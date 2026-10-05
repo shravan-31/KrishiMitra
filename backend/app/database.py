@@ -50,6 +50,8 @@ CREATE TABLE IF NOT EXISTS farms (
     district     VARCHAR(100),
     area_acres   FLOAT,
     soil_type    VARCHAR(100),
+    latitude     FLOAT,
+    longitude    FLOAT,
     created_at   TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -233,6 +235,12 @@ async def init_db() -> None:
         # Ensure password_hash column exists
         try:
             await conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT")
+        except Exception:
+            pass
+        # Ensure latitude/longitude on farms for geolocation-based weather
+        try:
+            await conn.execute("ALTER TABLE farms ADD COLUMN IF NOT EXISTS latitude FLOAT")
+            await conn.execute("ALTER TABLE farms ADD COLUMN IF NOT EXISTS longitude FLOAT")
         except Exception:
             pass
 

@@ -135,6 +135,7 @@ export default function Disease() {
     if (!activeFarm) return
     setLoadingWindows(true)
     try {
+      // Use farm's stored GPS, or fallback to India center
       const lat = activeFarm.latitude || 20.0
       const lon = activeFarm.longitude || 78.0
       const data = await apiFetch(`/api/v1/crop-health/treatment-windows/${activeFarm.id}?lat=${lat}&lon=${lon}`)

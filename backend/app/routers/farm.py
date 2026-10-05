@@ -14,6 +14,8 @@ class FarmCreate(BaseModel):
     district: Optional[str] = ""
     area_acres: Optional[float] = 0.0
     soil_type: Optional[str] = ""
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
 class FarmOut(BaseModel):
     id: int
@@ -24,23 +26,27 @@ class FarmOut(BaseModel):
     district: Optional[str]
     area_acres: Optional[float]
     soil_type: Optional[str]
+    latitude: Optional[float]
+    longitude: Optional[float]
 
 @router.post("", response_model=FarmOut)
 async def create_farm(farm: FarmCreate, user=Depends(get_current_user), db=Depends(get_db)):
     row = await db.fetchrow(
         """
-        INSERT INTO farms (user_id, farm_name, location, state, district, area_acres, soil_type)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING id, user_id, farm_name, location, state, district, area_acres, soil_type
+        INSERT INTO farms (user_id, farm_name, location, state, district, area_acres, soil_type, latitude, longitude)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        RETURNING id, user_id, farm_name, location, state, district, area_acres, soil_type, latitude, longitude
         """,
-        user["id"], farm.farm_name, farm.location, farm.state, farm.district, farm.area_acres, farm.soil_type
+        user["id"], farm.farm_name, farm.location, farm.state, farm.district,
+        farm.area_acres, farm.soil_type, farm.latitude, farm.longitude
     )
     return dict(row)
 
 @router.get("", response_model=List[FarmOut])
 async def list_farms(user=Depends(get_current_user), db=Depends(get_db)):
     rows = await db.fetch(
-        "SELECT id, user_id, farm_name, location, state, district, area_acres, soil_type FROM farms WHERE user_id = $1 ORDER BY id DESC",
+        """SELECT id, user_id, farm_name, location, state, district, area_acres, soil_type, latitude, longitude
+           FROM farms WHERE user_id = $1 ORDER BY id DESC""",
         user["id"]
     )
     return [dict(row) for row in rows]
@@ -48,7 +54,8 @@ async def list_farms(user=Depends(get_current_user), db=Depends(get_db)):
 @router.get("/{id}", response_model=FarmOut)
 async def get_farm(id: int, user=Depends(get_current_user), db=Depends(get_db)):
     row = await db.fetchrow(
-        "SELECT id, user_id, farm_name, location, state, district, area_acres, soil_type FROM farms WHERE id = $1 AND user_id = $2",
+        """SELECT id, user_id, farm_name, location, state, district, area_acres, soil_type, latitude, longitude
+           FROM farms WHERE id = $1 AND user_id = $2""",
         id, user["id"]
     )
     if not row:
@@ -60,15 +67,18 @@ async def update_farm(id: int, farm: FarmCreate, user=Depends(get_current_user),
     exists = await db.fetchval("SELECT id FROM farms WHERE id = $1 AND user_id = $2", id, user["id"])
     if not exists:
         raise HTTPException(status_code=404, detail="Farm not found")
-        
+
     row = await db.fetchrow(
         """
         UPDATE farms
-        SET farm_name = $1, location = $2, state = $3, district = $4, area_acres = $5, soil_type = $6
-        WHERE id = $7 AND user_id = $8
-        RETURNING id, user_id, farm_name, location, state, district, area_acres, soil_type
+        SET farm_name = $1, location = $2, state = $3, district = $4,
+            area_acres = $5, soil_type = $6, latitude = $7, longitude = $8
+        WHERE id = $9 AND user_id = $10
+        RETURNING id, user_id, farm_name, location, state, district, area_acres, soil_type, latitude, longitude
         """,
-        farm.farm_name, farm.location, farm.state, farm.district, farm.area_acres, farm.soil_type, id, user["id"]
+        farm.farm_name, farm.location, farm.state, farm.district,
+        farm.area_acres, farm.soil_type, farm.latitude, farm.longitude,
+        id, user["id"]
     )
     return dict(row)
 
@@ -77,7 +87,7 @@ async def delete_farm(id: int, user=Depends(get_current_user), db=Depends(get_db
     exists = await db.fetchval("SELECT id FROM farms WHERE id = $1 AND user_id = $2", id, user["id"])
     if not exists:
         raise HTTPException(status_code=404, detail="Farm not found")
-        
+
     await db.execute("DELETE FROM farms WHERE id = $1 AND user_id = $2", id, user["id"])
     return {"ok": True}
 
@@ -98,4 +108,3 @@ async def get_farm_report(id: int, user=Depends(get_current_user), db=Depends(ge
         raise HTTPException(status_code=404, detail="Farm not found")
     report_data = await load_farm_context(id, db)
     return report_data
-

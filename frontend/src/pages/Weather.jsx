@@ -48,8 +48,21 @@ export default function Weather() {
     }
   }, [activeFarm, lat, lon, apiFetch])
 
-  // Get user geolocation on mount
+  // Get user geolocation on mount — priority: farm GPS > browser GPS > default
   useEffect(() => {
+    if (!activeFarm) return
+
+    // Priority 1: Farm's saved GPS coordinates
+    if (activeFarm.latitude && activeFarm.longitude) {
+      const farmLat = String(activeFarm.latitude)
+      const farmLon = String(activeFarm.longitude)
+      setLat(farmLat)
+      setLon(farmLon)
+      fetchWeather(farmLat, farmLon)
+      return
+    }
+
+    // Priority 2: Browser GPS
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -60,7 +73,7 @@ export default function Weather() {
           fetchWeather(userLat, userLon)
         },
         () => {
-          // Fallback to default
+          // Priority 3: Default (Pune)
           fetchWeather()
         }
       )
@@ -68,6 +81,7 @@ export default function Weather() {
       fetchWeather()
     }
   }, [activeFarm])
+
 
   const getWeatherIcon = (cond) => {
     switch (String(cond).toLowerCase()) {

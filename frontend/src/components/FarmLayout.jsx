@@ -22,7 +22,9 @@ export default function FarmLayout({ children }) {
     state: 'Maharashtra',
     district: 'Pune',
     area_acres: 5.0,
-    soil_type: 'Clayey'
+    soil_type: 'Clayey',
+    latitude: null,
+    longitude: null
   })
 
   // Connect WebSocket to active farm
@@ -85,7 +87,9 @@ export default function FarmLayout({ children }) {
         state: 'Maharashtra',
         district: 'Pune',
         area_acres: 5.0,
-        soil_type: 'Clayey'
+        soil_type: 'Clayey',
+        latitude: null,
+        longitude: null
       })
       toast.success(`Farm "${data.farm_name}" registered successfully!`)
     } catch (err) {
@@ -464,6 +468,55 @@ export default function FarmLayout({ children }) {
                     <option value="Sandy Loam" style={{ background: '#0a100a' }}>Sandy Loam</option>
                   </select>
                 </div>
+              </div>
+
+              {/* GPS Location */}
+              <div>
+                <label style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                  GPS Coordinates <span style={{ color: '#475569', fontWeight: 400 }}>(for Weather & Disease Risk)</span>
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '0.5rem', alignItems: 'center' }}>
+                  <input
+                    type="number" step="0.0001" className="glass-input"
+                    placeholder="Lat (e.g. 18.52)"
+                    value={newFarm.latitude ?? ''}
+                    onChange={(e) => setNewFarm({ ...newFarm, latitude: e.target.value ? parseFloat(e.target.value) : null })}
+                  />
+                  <input
+                    type="number" step="0.0001" className="glass-input"
+                    placeholder="Lon (e.g. 73.85)"
+                    value={newFarm.longitude ?? ''}
+                    onChange={(e) => setNewFarm({ ...newFarm, longitude: e.target.value ? parseFloat(e.target.value) : null })}
+                  />
+                  <button
+                    type="button"
+                    title="Use my current GPS location"
+                    style={{
+                      padding: '0.55rem 0.75rem', borderRadius: '8px',
+                      background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)',
+                      color: '#10b981', cursor: 'pointer', fontSize: '1.1rem'
+                    }}
+                    onClick={() => {
+                      if (!navigator.geolocation) { toast.error('Geolocation not supported'); return }
+                      navigator.geolocation.getCurrentPosition(
+                        (pos) => {
+                          setNewFarm(prev => ({
+                            ...prev,
+                            latitude: Math.round(pos.coords.latitude * 10000) / 10000,
+                            longitude: Math.round(pos.coords.longitude * 10000) / 10000
+                          }))
+                          toast.success('📍 GPS location captured!')
+                        },
+                        () => toast.error('GPS access denied. Enter coordinates manually.')
+                      )
+                    }}
+                  >📍</button>
+                </div>
+                {newFarm.latitude && newFarm.longitude && (
+                  <div style={{ fontSize: '0.72rem', color: '#10b981', marginTop: '4px' }}>
+                    ✓ {newFarm.latitude}, {newFarm.longitude}
+                  </div>
+                )}
               </div>
 
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
