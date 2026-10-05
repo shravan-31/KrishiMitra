@@ -255,4 +255,14 @@ if os.path.exists(frontend_dist):
         if os.path.isfile(file_path):
             return FileResponse(file_path)
         return FileResponse(os.path.join(frontend_dist, "index.html"))
+else:
+    @app.get("/")
+    async def serve_root_fallback():
+        return {
+            "status": "online",
+            "app": "AgriMind (KrishiMitra) API",
+            "message": "Backend API is live and operational!",
+            "documentation": "/docs",
+            "health": "/health"
+        }
 
