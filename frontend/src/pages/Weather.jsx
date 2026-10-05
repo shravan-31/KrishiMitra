@@ -189,6 +189,58 @@ export default function Weather() {
                 </div>
               )}
             </div>
+
+            {/* ── NEW: Disease Risk Assessment Panel ── */}
+            {weather?.disease_risk && (
+              <div className="glass-card" style={{ padding: '2rem' }}>
+                <h3 style={{ margin: '0 0 1rem', fontSize: '1.15rem', fontWeight: 800 }}>
+                  🦠 Disease Risk Assessment
+                </h3>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: '1rem',
+                  background: weather.disease_risk.risk_level === 'HIGH' ? 'rgba(239,68,68,0.1)' :
+                              weather.disease_risk.risk_level === 'MEDIUM' ? 'rgba(234,179,8,0.1)' : 'rgba(34,197,94,0.1)',
+                  border: `1px solid ${weather.disease_risk.risk_level === 'HIGH' ? 'rgba(239,68,68,0.3)' :
+                           weather.disease_risk.risk_level === 'MEDIUM' ? 'rgba(234,179,8,0.3)' : 'rgba(34,197,94,0.3)'}`,
+                  borderRadius: '14px', padding: '1rem'
+                }}>
+                  <div style={{
+                    width: '50px', height: '50px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: weather.disease_risk.risk_level === 'HIGH' ? 'rgba(239,68,68,0.2)' :
+                                weather.disease_risk.risk_level === 'MEDIUM' ? 'rgba(234,179,8,0.2)' : 'rgba(34,197,94,0.2)',
+                    fontSize: '1.2rem', fontWeight: 800,
+                    color: weather.disease_risk.risk_level === 'HIGH' ? '#f87171' :
+                           weather.disease_risk.risk_level === 'MEDIUM' ? '#fde047' : '#4ade80'
+                  }}>
+                    {weather.disease_risk.risk_score}
+                  </div>
+                  <div>
+                    <div style={{
+                      fontWeight: 800, fontSize: '1rem',
+                      color: weather.disease_risk.risk_level === 'HIGH' ? '#f87171' :
+                             weather.disease_risk.risk_level === 'MEDIUM' ? '#fde047' : '#4ade80'
+                    }}>
+                      {weather.disease_risk.risk_level} RISK
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '2px' }}>
+                      {weather.disease_risk.engine}
+                    </div>
+                  </div>
+                </div>
+
+                {weather.disease_risk.risk_factors && weather.disease_risk.risk_factors.length > 0 && (
+                  <ul style={{ margin: '0.75rem 0 0', paddingLeft: '1.2rem', fontSize: '0.8rem', color: '#cbd5e1', lineHeight: 1.6 }}>
+                    {weather.disease_risk.risk_factors.map((f, i) => (
+                      <li key={i} style={{ marginBottom: '2px' }}>{f}</li>
+                    ))}
+                  </ul>
+                )}
+
+                <p style={{ margin: '0.75rem 0 0', fontSize: '0.82rem', color: '#94a3b8', lineHeight: 1.5 }}>
+                  💡 {weather.disease_risk.recommendation}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 

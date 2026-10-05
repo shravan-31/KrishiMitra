@@ -1,1 +1,1 @@
-# Services module
+# AgriMind Services Package

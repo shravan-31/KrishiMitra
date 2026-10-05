@@ -207,6 +207,7 @@ from app.routers.chat import router as chat_router
 from app.routers.schemes import router as schemes_router
 from app.routers.health import router as health_router
 from app.routers.language import router as language_router
+from app.routers.crop_health import router as crop_health_router
 
 app.include_router(auth_router)
 app.include_router(farm_router)
@@ -225,6 +226,7 @@ app.include_router(chat_router)
 app.include_router(schemes_router)
 app.include_router(health_router)
 app.include_router(language_router)
+app.include_router(crop_health_router)
 
 
 # ---------------------------------------------------------------------------

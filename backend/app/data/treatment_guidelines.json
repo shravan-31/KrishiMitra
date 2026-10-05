@@ -1,0 +1,211 @@
+{
+  "_meta": {
+    "source": "Compiled from public agricultural extension service guidelines (ICAR, TNAU, KVK)",
+    "disclaimer": "These are general guidance references. Always consult local agricultural extension officers for region-specific recommendations.",
+    "version": "1.0"
+  },
+  "treatments": {
+    "Tomato___Late_blight": {
+      "disease": "Late Blight",
+      "crop": "Tomato",
+      "severity_guidance": {
+        "LOW": "Remove and destroy affected leaves. Improve air circulation.",
+        "MEDIUM": "Apply copper-based fungicide (Bordeaux mixture 1%). Remove severely affected parts.",
+        "HIGH": "Apply systemic fungicide (Metalaxyl-based, consult local extension). Remove and burn affected plants."
+      },
+      "cultural_practices": [
+        "Avoid overhead irrigation",
+        "Ensure proper plant spacing for air circulation",
+        "Remove plant debris after harvest",
+        "Rotate crops — avoid planting Solanaceae in the same field for 2-3 years"
+      ],
+      "follow_up_days": 7,
+      "monitoring_note": "Re-scan affected plants after 7 days to track progression."
+    },
+    "Tomato___Early_blight": {
+      "disease": "Early Blight",
+      "crop": "Tomato",
+      "severity_guidance": {
+        "LOW": "Remove lower affected leaves. Mulch around base to prevent splash-back.",
+        "MEDIUM": "Apply Mancozeb-based fungicide as per label dosage. Improve drainage.",
+        "HIGH": "Apply combination fungicide treatment. Remove severely affected plants."
+      },
+      "cultural_practices": [
+        "Mulch around plants to prevent soil splash",
+        "Water at base, avoid wetting foliage",
+        "Stake plants for better air circulation",
+        "Remove infected plant debris"
+      ],
+      "follow_up_days": 7,
+      "monitoring_note": "Re-scan affected plants after 7 days."
+    },
+    "Tomato___Septoria_leaf_spot": {
+      "disease": "Septoria Leaf Spot",
+      "crop": "Tomato",
+      "severity_guidance": {
+        "LOW": "Remove affected lower leaves. Improve air circulation.",
+        "MEDIUM": "Apply chlorothalonil or copper-based fungicide as per label.",
+        "HIGH": "Intensive fungicide program. Remove heavily infected plants."
+      },
+      "cultural_practices": [
+        "Avoid working with wet plants",
+        "Remove infected leaves immediately",
+        "Use drip irrigation",
+        "Crop rotation (2-3 year cycle)"
+      ],
+      "follow_up_days": 7,
+      "monitoring_note": "Re-scan after 7 days."
+    },
+    "Tomato___Bacterial_spot": {
+      "disease": "Bacterial Spot",
+      "crop": "Tomato",
+      "severity_guidance": {
+        "LOW": "Remove affected leaves. Avoid overhead watering.",
+        "MEDIUM": "Apply copper-based bactericide. Use disease-free seeds for next planting.",
+        "HIGH": "Copper + mancozeb combination spray. Remove severely affected plants."
+      },
+      "cultural_practices": [
+        "Use certified disease-free transplants",
+        "Avoid handling plants when wet",
+        "Sanitize tools between plants",
+        "Hot-water seed treatment before planting"
+      ],
+      "follow_up_days": 10,
+      "monitoring_note": "Bacterial diseases are harder to control. Re-scan after 10 days."
+    },
+    "Tomato___Leaf_Mold": {
+      "disease": "Leaf Mold",
+      "crop": "Tomato",
+      "severity_guidance": {
+        "LOW": "Increase ventilation. Remove affected leaves.",
+        "MEDIUM": "Apply chlorothalonil-based fungicide. Reduce humidity.",
+        "HIGH": "Intensive ventilation + fungicide treatment."
+      },
+      "cultural_practices": [
+        "Improve greenhouse ventilation",
+        "Reduce leaf wetness duration",
+        "Avoid overcrowding plants",
+        "Use resistant varieties"
+      ],
+      "follow_up_days": 7,
+      "monitoring_note": "Re-scan after 7 days."
+    },
+    "Potato___Late_blight": {
+      "disease": "Late Blight",
+      "crop": "Potato",
+      "severity_guidance": {
+        "LOW": "Scout regularly. Remove affected leaves.",
+        "MEDIUM": "Apply Mancozeb or copper fungicide preventively.",
+        "HIGH": "Apply Metalaxyl + Mancozeb combination. Destroy severely infected tubers."
+      },
+      "cultural_practices": [
+        "Plant certified disease-free seed potatoes",
+        "Hill soil around plants",
+        "Destroy volunteer potato plants",
+        "Harvest on dry days"
+      ],
+      "follow_up_days": 5,
+      "monitoring_note": "Late blight spreads rapidly. Re-scan within 5 days."
+    },
+    "Potato___Early_blight": {
+      "disease": "Early Blight",
+      "crop": "Potato",
+      "severity_guidance": {
+        "LOW": "Remove lower affected leaves. Maintain adequate fertilization.",
+        "MEDIUM": "Apply Mancozeb-based fungicide.",
+        "HIGH": "Intensive fungicide program with rotation of active ingredients."
+      },
+      "cultural_practices": [
+        "Maintain adequate nitrogen and potassium",
+        "Proper irrigation management",
+        "Crop rotation (3 year)",
+        "Use resistant varieties"
+      ],
+      "follow_up_days": 7,
+      "monitoring_note": "Re-scan after 7 days."
+    },
+    "Grape___Black_rot": {
+      "disease": "Black Rot",
+      "crop": "Grape",
+      "severity_guidance": {
+        "LOW": "Remove mummified berries. Prune for air circulation.",
+        "MEDIUM": "Apply Mancozeb-based fungicide before bloom. Remove affected clusters.",
+        "HIGH": "Intensive fungicide program from bud break. Remove all infected material."
+      },
+      "cultural_practices": [
+        "Remove mummified fruit from vines and ground",
+        "Prune for open canopy",
+        "Destroy infected debris",
+        "Timely fungicide application before bloom"
+      ],
+      "follow_up_days": 10,
+      "monitoring_note": "Re-scan after 10 days."
+    },
+    "Apple___Apple_scab": {
+      "disease": "Apple Scab",
+      "crop": "Apple",
+      "severity_guidance": {
+        "LOW": "Remove fallen leaves. Monitor new growth.",
+        "MEDIUM": "Apply protectant fungicide during wet periods.",
+        "HIGH": "Intensive spray program. Remove severely affected fruit."
+      },
+      "cultural_practices": [
+        "Rake and destroy fallen leaves in autumn",
+        "Prune for air circulation",
+        "Use scab-resistant varieties",
+        "Apply urea to fallen leaves to speed decomposition"
+      ],
+      "follow_up_days": 10,
+      "monitoring_note": "Re-scan after 10 days."
+    },
+    "Corn_(Maize)___Northern_Leaf_Blight": {
+      "disease": "Northern Leaf Blight",
+      "crop": "Corn",
+      "severity_guidance": {
+        "LOW": "Monitor progression. Usually manageable.",
+        "MEDIUM": "Apply foliar fungicide if in early growth stages.",
+        "HIGH": "Apply strobilurin or triazole-based fungicide. Consider yield impact."
+      },
+      "cultural_practices": [
+        "Use resistant hybrids",
+        "Rotate crops away from corn",
+        "Till under crop debris",
+        "Plant at recommended density"
+      ],
+      "follow_up_days": 14,
+      "monitoring_note": "Re-scan after 14 days."
+    },
+    "Corn_(Maize)___Common_rust_": {
+      "disease": "Common Rust",
+      "crop": "Corn",
+      "severity_guidance": {
+        "LOW": "Usually no treatment needed. Monitor.",
+        "MEDIUM": "Apply foliar fungicide if before tasseling.",
+        "HIGH": "Apply triazole-based fungicide."
+      },
+      "cultural_practices": [
+        "Plant resistant hybrids",
+        "Early planting where appropriate",
+        "Monitor regularly during humid conditions"
+      ],
+      "follow_up_days": 14,
+      "monitoring_note": "Re-scan after 14 days."
+    }
+  },
+  "default_treatment": {
+    "severity_guidance": {
+      "LOW": "Remove affected plant parts. Improve growing conditions and air circulation.",
+      "MEDIUM": "Apply appropriate fungicide or pesticide as per label. Consult local extension office.",
+      "HIGH": "Seek advice from a local agricultural extension officer for targeted treatment."
+    },
+    "cultural_practices": [
+      "Remove and destroy affected plant material",
+      "Improve air circulation around plants",
+      "Avoid overhead irrigation",
+      "Practice crop rotation",
+      "Consult local agricultural extension services"
+    ],
+    "follow_up_days": 7,
+    "monitoring_note": "Re-scan affected plants after 7 days to track disease progression."
+  }
+}

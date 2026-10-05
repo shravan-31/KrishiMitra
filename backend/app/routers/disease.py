@@ -87,6 +87,58 @@ async def scan_disease(
                         "confidence": round(float(pred["confidence"]) * 100, 1), "health_score": score}
         })
 
+    # ── NEW: Compute Smart Crop Health Alert ──
+    from app.services.crop_health_alert import determine_crop_alert_status
+
+    # Get latest pest info for alert context
+    pest_row = await db.fetchrow("""
+        SELECT pest_name, infestation FROM pest_scans
+        WHERE farm_id=$1 ORDER BY scanned_at DESC LIMIT 1
+    """, farm_id)
+
+    # Get weather risk level from latest weather alert
+    weather_alert_row = await db.fetchrow("""
+        SELECT severity FROM alerts
+        WHERE farm_id=$1 AND alert_type='WEATHER'
+        ORDER BY created_at DESC LIMIT 1
+    """, farm_id)
+    weather_risk = "LOW"
+    if weather_alert_row:
+        sev = weather_alert_row["severity"]
+        weather_risk = "HIGH" if sev in ("HIGH", "CRITICAL") else ("MEDIUM" if sev == "MEDIUM" else "LOW")
+
+    crop_alert = determine_crop_alert_status(
+        disease_name=pred["disease_name"],
+        disease_confidence=float(pred["confidence"]),
+        disease_severity=pred["severity"],
+        is_uncertain=is_uncertain,
+        is_healthy=is_healthy,
+        pest_name=pest_row["pest_name"] if pest_row else None,
+        pest_infestation=pest_row["infestation"] if pest_row else None,
+        weather_risk_level=weather_risk,
+    )
+
+    # ── NEW: Load treatment plan from verified guidelines ──
+    treatment_plan = None
+    if not is_healthy and not is_uncertain:
+        import json as _json
+        _gpath = os.path.join(os.path.dirname(__file__), "..", "data", "treatment_guidelines.json")
+        try:
+            with open(_gpath, "r") as _gf:
+                _gdata = _json.load(_gf)
+            disease_key = pred["disease_name"]
+            plan = _gdata.get("treatments", {}).get(disease_key, _gdata.get("default_treatment", {}))
+            sev_upper = pred["severity"].upper()
+            treatment_plan = {
+                "guidance": plan.get("severity_guidance", {}).get(sev_upper, "Consult local extension officer."),
+                "cultural_practices": plan.get("cultural_practices", []),
+                "follow_up_days": plan.get("follow_up_days", 7),
+                "monitoring_note": plan.get("monitoring_note", "Re-scan after treatment."),
+                "source": "Agricultural Extension Guidelines (ICAR/TNAU/KVK)",
+            }
+        except Exception:
+            pass
+
     return {
         "status":          pred.get("status", "success"),
         "is_uncertain":    is_uncertain,
@@ -97,7 +149,9 @@ async def scan_disease(
         "is_healthy":      is_healthy,
         "top5":            top5,
         "image_url":       image_url,
-        "message":         pred.get("message", "Diagnosis complete.")
+        "message":         pred.get("message", "Diagnosis complete."),
+        "crop_alert":      crop_alert,
+        "treatment_plan":  treatment_plan,
     }
 
 @router.get("/history/{farm_id}")

@@ -25,8 +25,8 @@ async def get_weather(
 
     weather_data = {}
     forecast_list = []
-    is_live = False
-    api_key = os.getenv("OPENWEATHER_API_KEY", OPENWEATHER_API_KEY).strip()
+    from app.config import settings
+    api_key = (os.getenv("OPENWEATHER_API_KEY") or getattr(settings, "openweather_api_key", "") or "").strip()
 
     # 1. Fetch real current weather and 5-day forecast from OpenWeatherMap
     if api_key:
@@ -146,6 +146,30 @@ async def get_weather(
         advisories.append("Conditions are optimal. Continue standard crop care.")
 
     weather_data["advisory"] = " | ".join(advisories)
+
+    # ── NEW: Weather-Based Disease Risk Assessment ──
+    from app.services.disease_risk_engine import assess_disease_risk
+    crop_name = "generic"
+    try:
+        crop_row = await db.fetchrow("""
+            SELECT crop_name FROM crops
+            WHERE farm_id=$1 AND status='growing'
+            ORDER BY sown_date DESC LIMIT 1
+        """, farm_id)
+        if crop_row:
+            crop_name = crop_row["crop_name"]
+    except Exception:
+        pass
+
+    disease_risk = assess_disease_risk(
+        crop_name=crop_name,
+        temperature=weather_data.get("temp"),
+        humidity=weather_data.get("humidity"),
+        rainfall=weather_data.get("rainfall"),
+        wind_speed=weather_data.get("wind_speed"),
+        forecast_condition=weather_data.get("condition"),
+    )
+    weather_data["disease_risk"] = disease_risk
 
     # Call on_weather_refreshed cascade
     await on_weather_refreshed(farm_id, weather_data, db, ws_manager)
