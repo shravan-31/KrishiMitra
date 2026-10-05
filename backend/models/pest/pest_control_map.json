@@ -1,0 +1,107 @@
+{
+  "Aphids": {
+    "severity": "MEDIUM",
+    "treatment": [
+      "Spray neem oil (0.5% solution) or insecticidal soap, release natural predators like ladybugs or lacewings, and remove and discard heavily infested plant tips.",
+      "Apply chemical controls like Imidacloprid if infestation is severe."
+    ]
+  },
+  "Armyworm": {
+    "severity": "HIGH",
+    "treatment": [
+      "Apply Bacillus thuringiensis (Bt) or Spinosad sprays, plow soil in early spring to expose and destroy pupae, and use pheromone traps to monitor adult moth activity.",
+      "Apply Chlorantraniliprole for chemical control."
+    ]
+  },
+  "Bollworm": {
+    "severity": "HIGH",
+    "treatment": [
+      "Plant Bt crop varieties if available, deploy pheromone traps at 5-10 traps per acre, and encourage predatory bugs and trichogramma wasps.",
+      "Apply Spinosad or Emamectin benzoate @ 0.4g/L."
+    ]
+  },
+  "Cutworm": {
+    "severity": "MEDIUM",
+    "treatment": [
+      "Use cardboard collars around stems of young seedlings, apply diatomaceous earth around the base of plants, and hand-pick larvae from soil surface at night.",
+      "Apply Spinosad bait or Pyrethroid insecticide to the soil in the evening."
+    ]
+  },
+  "Fruit_Fly": {
+    "severity": "HIGH",
+    "treatment": [
+      "Deploy methyl eugenol or protein bait traps, collect and bury fallen infested fruits at least 2 feet deep, and use fruit bagging/sleeving for high-value crops.",
+      "Apply spinosad bait spray or standard chemical sprays like Malathion if fly density is high."
+    ]
+  },
+  "Grasshopper": {
+    "severity": "MEDIUM",
+    "treatment": [
+      "Apply nosema locustae baits for biological control, keep a buffer strip of tall grass/weeds around the field, and till soil in late autumn to destroy grasshopper eggs.",
+      "Apply chemical sprays like Cypermethrin or Lambda-cyhalothrin."
+    ]
+  },
+  "Leaf_Miner": {
+    "severity": "LOW",
+    "treatment": [
+      "Remove and destroy infested leaves showing mine patterns, use yellow sticky cards to trap adult flies, and introduce parasitic wasps like Diglyphus isaea.",
+      "Apply Spinosad or Abamectin to target larvae inside leaves."
+    ]
+  },
+  "Mealybugs": {
+    "severity": "HIGH",
+    "treatment": [
+      "Prune and destroy infested plant parts, spray with high-pressure water or horticultural oil, and release Cryptolaemus montrouzieri (mealybug destroyer) beetles.",
+      "Apply systemic insecticides like Buprofezin or Imidacloprid."
+    ]
+  },
+  "Nematodes": {
+    "severity": "HIGH",
+    "treatment": [
+      "Grow nematode-resistant crop cultivars, practice crop rotation with non-hosts like French marigolds, and solarize soil during hot summer months using clear plastic sheets.",
+      "Apply bio-nematicides containing Purpureocillium lilacinum or chemical nematicides if critical."
+    ]
+  },
+  "Scale_Insects": {
+    "severity": "MEDIUM",
+    "treatment": [
+      "Prune heavily infested twigs and branches, apply horticultural spray oil during the dormant season, and introduce natural predators such as parasitic wasps.",
+      "Use systemic insecticides like Acetamiprid or Dinotefuran."
+    ]
+  },
+  "Spider_Mites": {
+    "severity": "HIGH",
+    "treatment": [
+      "Spray underside of leaves with cold water or insecticidal soap, introduce predatory mites such as Phytoseiulus persimilis, and keep plants well-watered to prevent drought stress.",
+      "Apply miticides like Abamectin, Spiromesifen, or Hexythiazox."
+    ]
+  },
+  "Stem_Borer": {
+    "severity": "CRITICAL",
+    "treatment": [
+      "Cut and burn infested plants showing 'dead heart' symptoms, release Trichogramma chilonis egg parasitoids, and plow and destroy crop stubble after harvest to kill hibernating larvae.",
+      "Apply granular Cartap hydrochloride or Fipronil in the soil."
+    ]
+  },
+  "Termites": {
+    "severity": "CRITICAL",
+    "treatment": [
+      "Locate and destroy nearby termite mounds, use neem cake or well-rotted organic manure in soil, and ensure proper field irrigation (dry soil attracts termites).",
+      "Apply Chlorpyrifos or Imidacloprid to the soil around crops."
+    ]
+  },
+  "Thrips": {
+    "severity": "MEDIUM",
+    "treatment": [
+      "Use blue sticky traps to monitor and catch adult thrips, spray neem oil or horticultural oil for organic control, and avoid excessive nitrogen fertilization which attracts thrips.",
+      "Apply Spinosad or Fipronil sprays to foliage."
+    ]
+  },
+  "Whitefly": {
+    "severity": "HIGH",
+    "treatment": [
+      "Use yellow sticky traps to catch flying adults, spray neem oil (1% solution) or insecticidal soap, and introduce parasitoid wasps like Encarsia formosa.",
+      "Spray underside of leaves with Spiromesifen or Diafenthiuron."
+    ]
+  }
+}

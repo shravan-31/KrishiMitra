@@ -1,0 +1,6 @@
+step,value
+Raw rows,246091
+After drop NaN,242361
+After zero yield check,238838
+After removing extreme area,196550
+After IQR outlier removal,155084

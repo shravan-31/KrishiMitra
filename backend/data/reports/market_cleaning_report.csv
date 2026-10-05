@@ -1,0 +1,5 @@
+step,value
+Raw rows,3654
+After drop NaN/invalid,3654
+After daily forward-fill,3654
+After rolling outlier removal,3640
