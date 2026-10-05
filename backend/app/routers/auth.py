@@ -68,7 +68,7 @@ def verify_password(password: str, hashed: str) -> bool:
     hashed_bytes = hashed.encode('utf-8')
     return bcrypt.checkpw(pwd_bytes, hashed_bytes)
 
-def create_jwt_response(user_row, status_code=200):
+def create_jwt_response(user_row, request: Optional[Request] = None, status_code=200):
     payload = {
         "sub": str(user_row["id"]),
         "email": user_row["email"],
@@ -90,6 +90,10 @@ def create_jwt_response(user_row, status_code=200):
         "lang_pref": user_row.get("lang_pref", "en")
     }
     
+    is_https = False
+    if request:
+        is_https = request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https"
+
     response = JSONResponse(content=content, status_code=status_code)
     response.set_cookie(
         key="access_token",
@@ -97,16 +101,37 @@ def create_jwt_response(user_row, status_code=200):
         httponly=True,
         samesite="lax",
         max_age=604800,  # 7 days
-        secure=False,
+        secure=is_https,
     )
     return response
+
+
+def get_effective_redirect_uri(request: Request) -> str:
+    """
+    Determine the redirect URI for Google OAuth.
+    If GOOGLE_REDIRECT_URI environment variable is explicitly set to a production URL, use it.
+    Otherwise, infer dynamically from incoming request headers (x-forwarded-proto, x-forwarded-host).
+    """
+    env_uri = os.getenv("GOOGLE_REDIRECT_URI", "").strip()
+    if env_uri and "localhost" not in env_uri and "127.0.0.1" not in env_uri:
+        return env_uri
+
+    # Detect scheme and host from reverse proxy (e.g. Render / Cloudflare / Nginx)
+    proto = request.headers.get("x-forwarded-proto", request.url.scheme)
+    host = request.headers.get("x-forwarded-host", request.url.netloc)
+
+    # If running locally and env_uri is provided, use env_uri
+    if ("localhost" in host or "127.0.0.1" in host) and env_uri:
+        return env_uri
+
+    return f"{proto}://{host}/auth/google/callback"
 
 
 # ═══════════════════════════════════════════════════════════════════════════
 # DEVELOPER BYPASS ENDPOINT: GET /auth/dev-login
 # ═══════════════════════════════════════════════════════════════════════════
 @router.get("/dev-login")
-async def dev_login(db=Depends(get_db)):
+async def dev_login(request: Request, db=Depends(get_db)):
     """Mock/Developer login endpoint for local environments when Google OAuth is not configured."""
     # Check if a mock user exists
     user = await db.fetchrow(
@@ -137,7 +162,8 @@ async def dev_login(db=Depends(get_db)):
     }
     token = jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
 
-    # Redirect relative to current host so it works locally and through tunnels
+    is_https = request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https"
+    # Redirect relative to current host so it works locally and through tunnels/deployments
     response = RedirectResponse("/dashboard")
     response.set_cookie(
         key="access_token",
@@ -145,7 +171,7 @@ async def dev_login(db=Depends(get_db)):
         httponly=True,
         samesite="lax",
         max_age=604800,  # 7 days
-        secure=False,
+        secure=is_https,
     )
     return response
 
@@ -155,10 +181,10 @@ async def dev_login(db=Depends(get_db)):
 # Redirects browser to Google OAuth consent screen
 # ═══════════════════════════════════════════════════════════════════════════
 @router.get("/google/login")
-async def google_login():
+async def google_login(request: Request):
     """Build Google OAuth URL and redirect user to consent screen."""
     client_id = os.getenv("GOOGLE_CLIENT_ID", GOOGLE_CLIENT_ID)
-    redirect_uri = os.getenv("GOOGLE_REDIRECT_URI", GOOGLE_REDIRECT_URI)
+    redirect_uri = get_effective_redirect_uri(request)
     if not client_id:
         raise HTTPException(
             status_code=500,
@@ -181,7 +207,7 @@ async def google_login():
 # Exchanges auth code → tokens → upserts user → sets JWT cookie
 # ═══════════════════════════════════════════════════════════════════════════
 @router.get("/google/callback")
-async def google_callback(code: str, db=Depends(get_db)):
+async def google_callback(code: str, request: Request, db=Depends(get_db)):
     """
     Google OAuth callback handler.
 
@@ -193,7 +219,7 @@ async def google_callback(code: str, db=Depends(get_db)):
     """
     client_id = os.getenv("GOOGLE_CLIENT_ID", GOOGLE_CLIENT_ID)
     client_secret = os.getenv("GOOGLE_CLIENT_SECRET", GOOGLE_CLIENT_SECRET)
-    redirect_uri = os.getenv("GOOGLE_REDIRECT_URI", GOOGLE_REDIRECT_URI)
+    redirect_uri = get_effective_redirect_uri(request)
 
     # ── Step A: Exchange code for tokens ──────────────────────────────────
     async with httpx.AsyncClient() as client:
@@ -280,14 +306,21 @@ async def google_callback(code: str, db=Depends(get_db)):
     token = jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
 
     # ── Step E: Set cookie and redirect to dashboard ──────────────────────
-    response = RedirectResponse(FRONTEND_URL + "/dashboard")
+    frontend_env = os.getenv("FRONTEND_URL", "").strip()
+    if frontend_env and "localhost" not in frontend_env and "127.0.0.1" not in frontend_env:
+        target_dashboard = f"{frontend_env.rstrip('/')}/dashboard"
+    else:
+        target_dashboard = "/dashboard"
+
+    is_https = request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https"
+    response = RedirectResponse(target_dashboard)
     response.set_cookie(
         key="access_token",
         value=token,
         httponly=True,
         samesite="lax",
         max_age=604800,  # 7 days
-        secure=False,    # True in production with HTTPS
+        secure=is_https,
     )
     return response
 
@@ -347,10 +380,11 @@ async def get_me(user=Depends(get_current_user)):
 # Clears the access_token cookie
 # ═══════════════════════════════════════════════════════════════════════════
 @router.post("/logout")
-async def logout():
+async def logout(request: Request):
     """Clear the JWT cookie and log the user out."""
+    is_https = request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https"
     response = JSONResponse(content={"ok": True})
-    response.delete_cookie("access_token")
+    response.delete_cookie("access_token", httponly=True, samesite="lax", secure=is_https)
     return response
 
 
@@ -359,7 +393,7 @@ async def logout():
 # Accepts email, password, full_name and registers a user, setting a JWT cookie
 # ═══════════════════════════════════════════════════════════════════════════
 @router.post("/register")
-async def register(req: RegisterRequest, db=Depends(get_db)):
+async def register(req: RegisterRequest, request: Request, db=Depends(get_db)):
     """Register a new user with email and password, setting a JWT cookie."""
     # Validation
     email_clean = req.email.strip().lower()
@@ -396,7 +430,7 @@ async def register(req: RegisterRequest, db=Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database insertion failed: {str(e)}")
         
-    return create_jwt_response(user, status_code=201)
+    return create_jwt_response(user, request=request, status_code=201)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -404,7 +438,7 @@ async def register(req: RegisterRequest, db=Depends(get_db)):
 # Accepts email, password, verifies credentials, setting a JWT cookie
 # ═══════════════════════════════════════════════════════════════════════════
 @router.post("/login")
-async def login(req: LoginRequest, db=Depends(get_db)):
+async def login(req: LoginRequest, request: Request, db=Depends(get_db)):
     """Authenticate email and password, setting a JWT cookie."""
     email_clean = req.email.strip().lower()
     user = await db.fetchrow(
@@ -432,5 +466,5 @@ async def login(req: LoginRequest, db=Depends(get_db)):
         user["id"]
     )
     
-    return create_jwt_response(updated_user, status_code=200)
+    return create_jwt_response(updated_user, request=request, status_code=200)
 
