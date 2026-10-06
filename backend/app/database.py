@@ -213,7 +213,13 @@ async def init_db() -> None:
     dsn = os.getenv("DATABASE_URL", "postgresql://agriuser:agripass@postgres:5432/agridb")
     if dsn.startswith("postgres://"):
         dsn = dsn.replace("postgres://", "postgresql://", 1)
-    pool = await asyncpg.create_pool(dsn=dsn, min_size=2, max_size=10)
+    pool = await asyncpg.create_pool(
+        dsn=dsn,
+        min_size=1,   # Render free tier: 1 instance, no need for >1 idle connections
+        max_size=5,   # Neon serverless: keep low to avoid connection limit errors
+        command_timeout=30,
+        max_inactive_connection_lifetime=300,  # recycle idle connections every 5 min
+    )
 
     async with pool.acquire() as conn:
         await conn.execute(SCHEMA_SQL)

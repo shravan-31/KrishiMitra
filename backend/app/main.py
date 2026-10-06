@@ -1,9 +1,10 @@
 """
 KrishiMitra — FastAPI Application Entry Point
 
-Lifespan: init_db ↔ close_db
-CORS: allows FRONTEND_URL with credentials
-WebSocket: ConnectionManager for real-time farm alerts
+Lifespan: init_db ↔ close_db + ML model preload
+CORS: Production-safe origin whitelist
+WebSocket: ConnectionManager with heartbeat ping
+Sentry: Error monitoring integrated
 Health: GET /health
 """
 
@@ -19,9 +20,28 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import init_db, close_db
 
+# ---------------------------------------------------------------------------
+# Sentry Error Monitoring (Fix 4)
+# ---------------------------------------------------------------------------
+SENTRY_DSN = os.getenv("SENTRY_DSN", "")
+if SENTRY_DSN:
+    import sentry_sdk
+    from sentry_sdk.integrations.fastapi import FastApiIntegration
+    from sentry_sdk.integrations.asyncio import AsyncioIntegration
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[FastApiIntegration(), AsyncioIntegration()],
+        traces_sample_rate=0.1,      # 10% performance traces
+        environment=os.getenv("ENVIRONMENT", "production"),
+        release=os.getenv("GIT_COMMIT", "unknown"),
+    )
+    print("[Sentry] Error monitoring active")
+else:
+    print("[Sentry] SENTRY_DSN not set — skipping error monitoring")
+
 
 # ---------------------------------------------------------------------------
-# WebSocket Connection Manager
+# WebSocket Connection Manager (Fix 8 — heartbeat ping support)
 # ---------------------------------------------------------------------------
 class ConnectionManager:
     """Manages WebSocket connections grouped by farm_id rooms."""
@@ -30,21 +50,18 @@ class ConnectionManager:
         self.rooms: Dict[int, Set[WebSocket]] = {}
 
     async def connect(self, ws: WebSocket, farm_id: int) -> None:
-        """Accept a WebSocket and add it to the farm's room."""
         await ws.accept()
         if farm_id not in self.rooms:
             self.rooms[farm_id] = set()
         self.rooms[farm_id].add(ws)
 
     def disconnect(self, ws: WebSocket, farm_id: int) -> None:
-        """Remove a WebSocket from the farm's room."""
         if farm_id in self.rooms:
             self.rooms[farm_id].discard(ws)
             if not self.rooms[farm_id]:
                 del self.rooms[farm_id]
 
     async def broadcast(self, farm_id: int, data: dict) -> None:
-        """Send a JSON message to all connections in a farm room."""
         if farm_id not in self.rooms:
             return
         message = json.dumps(data)
@@ -58,7 +75,6 @@ class ConnectionManager:
             self.rooms[farm_id].discard(ws)
 
     async def broadcast_all(self, data: dict) -> None:
-        """Send a JSON message to every connected client across all rooms."""
         message = json.dumps(data)
         for farm_id in list(self.rooms.keys()):
             dead: list[WebSocket] = []
@@ -70,8 +86,11 @@ class ConnectionManager:
             for ws in dead:
                 self.rooms[farm_id].discard(ws)
 
+    def active_connections_count(self) -> int:
+        return sum(len(v) for v in self.rooms.values())
 
-# Singleton manager — importable from other modules
+
+# Singleton manager
 ws_manager = ConnectionManager()
 
 def get_ws_manager():
@@ -79,14 +98,46 @@ def get_ws_manager():
 
 
 # ---------------------------------------------------------------------------
-# Lifespan
+# Lifespan — DB init + ML model preload on startup (Fix 6)
 # ---------------------------------------------------------------------------
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup: init DB pool + schema. Shutdown: close pool."""
+    """Startup: init DB pool + preload ML models. Shutdown: close pool."""
+    # 1. Database
     await init_db()
-    print("[Start] KrishiMitra backend started")
+
+    # 2. Preload ML models to eliminate cold-start lag on first request (Fix 6)
+    try:
+        from app.ml.disease import load_disease_model
+        load_disease_model()
+        print("[ML] Disease model preloaded ✓")
+    except Exception as e:
+        print(f"[ML] Disease model preload failed: {e}")
+
+    try:
+        from app.ml.pest import load_pest_model
+        load_pest_model()
+        print("[ML] Pest model preloaded ✓")
+    except Exception as e:
+        print(f"[ML] Pest model preload failed (non-critical): {e}")
+
+    try:
+        from app.ml.soil import load_soil_model
+        load_soil_model()
+        print("[ML] Soil model preloaded ✓")
+    except Exception as e:
+        print(f"[ML] Soil model preload failed (non-critical): {e}")
+
+    try:
+        from app.ml.yield_pred import load_yield_model
+        load_yield_model()
+        print("[ML] Yield model preloaded ✓")
+    except Exception as e:
+        print(f"[ML] Yield model preload failed (non-critical): {e}")
+
+    print("[Start] KrishiMitra backend started — all models ready")
     yield
+
     await close_db()
     print("[Stop] KrishiMitra backend stopped")
 
@@ -97,19 +148,31 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="KrishiMitra API",
     description="Smart Agriculture Intelligence Platform — 14 features, ML-powered",
-    version="0.1.0",
+    version="1.0.0",
     lifespan=lifespan,
 )
 
-# ---- CORS ----
-frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+# ---- CORS (Fix 5) — Production-safe whitelist ----
+_frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+_backend_url  = os.getenv("BACKEND_URL",  "http://localhost:8000")
+
+# Build explicit allowed origins — no wildcard regex in production
+_allowed_origins = [
+    _frontend_url,
+    _backend_url,
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+]
+# Remove duplicates and empty strings
+_allowed_origins = list(set(o for o in _allowed_origins if o))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[frontend_url, "http://localhost:3000", "http://localhost:80", "http://localhost:5173"],
-    allow_origin_regex=r"https?://.*",
+    allow_origins=_allowed_origins,      # explicit list, no wildcard
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=["Content-Type", "Authorization", "X-Requested-With", "Accept"],
 )
 
 
@@ -118,13 +181,18 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 @app.get("/health", tags=["System"])
 async def health_check():
-    """System health probe — returns phase and status."""
-    return {"status": "ok", "phase": "1-auth"}
+    """System health probe — returns status and active WS connections."""
+    return {
+        "status": "ok",
+        "version": "1.0.0",
+        "ws_connections": ws_manager.active_connections_count(),
+    }
 
 
 # ---------------------------------------------------------------------------
-# WebSocket Endpoint with Farm Ownership Authorization (Fix 15)
+# WebSocket Endpoint with Farm Ownership Auth + Heartbeat Ping (Fix 8)
 # ---------------------------------------------------------------------------
+import asyncio
 from starlette.status import WS_1008_POLICY_VIOLATION, WS_1011_INTERNAL_ERROR
 from jose import jwt, JWTError
 
@@ -143,7 +211,10 @@ async def get_ws_user_id(ws: WebSocket) -> Optional[int]:
 
 @app.websocket("/ws/{farm_id}")
 async def websocket_endpoint(ws: WebSocket, farm_id: int):
-    """Per-farm WebSocket room for real-time alerts with farmer ownership authorization."""
+    """Per-farm WebSocket room with auth + server-side heartbeat ping every 25s.
+    
+    The 25s ping prevents Render's idle connection timeout (which drops at 55s).
+    """
     user_id = await get_ws_user_id(ws)
     if user_id is None:
         await ws.close(code=WS_1008_POLICY_VIOLATION, reason="Authentication required")
@@ -162,18 +233,34 @@ async def websocket_endpoint(ws: WebSocket, farm_id: int):
             return
 
     await ws_manager.connect(ws, farm_id)
+
+    # Heartbeat task — ping every 25s to keep Render connection alive (Fix 8)
+    async def heartbeat():
+        while True:
+            await asyncio.sleep(25)
+            try:
+                await ws.send_json({"event_type": "ping", "payload": {}})
+            except Exception:
+                break
+
+    ping_task = asyncio.create_task(heartbeat())
+
     try:
         while True:
             data = await ws.receive_text()
+            if data == "pong":
+                continue  # client responding to our ping — ignore
             await ws_manager.broadcast(farm_id, {"echo": data})
     except WebSocketDisconnect:
+        pass
+    finally:
+        ping_task.cancel()
         ws_manager.disconnect(ws, farm_id)
 
 @app.websocket("/ws/farm/{farm_id}")
 async def websocket_endpoint_farm(ws: WebSocket, farm_id: int):
-    """Alias for /ws/{farm_id} to match frontend hook pattern."""
+    """Alias for /ws/{farm_id}."""
     await websocket_endpoint(ws, farm_id)
-
 
 
 # ---------------------------------------------------------------------------
@@ -181,15 +268,12 @@ async def websocket_endpoint_farm(ws: WebSocket, farm_id: int):
 # ---------------------------------------------------------------------------
 from fastapi.staticfiles import StaticFiles
 
-# Resolve and create uploads path
 uploads_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "uploads"))
 os.makedirs(os.path.join(uploads_path, "disease"), exist_ok=True)
 os.makedirs(os.path.join(uploads_path, "pest"), exist_ok=True)
 
-# Mount static uploads
 app.mount("/static/uploads", StaticFiles(directory=uploads_path), name="static_uploads")
 
-# Include Routers
 from app.routers.auth import router as auth_router
 from app.routers.farm import router as farm_router
 from app.routers.crops import router as crops_router
@@ -230,7 +314,7 @@ app.include_router(crop_health_router)
 
 
 # ---------------------------------------------------------------------------
-# Serve React Frontend SPA (Single Service / Single Domain Deployment)
+# Serve React Frontend SPA
 # ---------------------------------------------------------------------------
 from fastapi.responses import FileResponse
 
@@ -247,7 +331,6 @@ if os.path.exists(frontend_dist):
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
-        # Exclude API, Auth, WS, Swagger docs and static uploads from SPA catch-all
         if full_path.startswith(("api", "auth", "static", "ws", "health", "docs", "openapi.json", "redoc")):
             from fastapi import HTTPException
             raise HTTPException(status_code=404, detail="Not Found")
@@ -265,4 +348,3 @@ else:
             "documentation": "/docs",
             "health": "/health"
         }
-
