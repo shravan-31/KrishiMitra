@@ -14,6 +14,7 @@ import os
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode
 import re
+from typing import Optional
 
 import bcrypt
 import httpx
@@ -467,4 +468,3 @@ async def login(req: LoginRequest, request: Request, db=Depends(get_db)):
     )
     
     return create_jwt_response(updated_user, request=request, status_code=200)
-
