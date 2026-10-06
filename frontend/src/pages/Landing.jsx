@@ -827,11 +827,19 @@ export default function Landing() {
             </div>
 
             {/* Card 6: AI Chat copilot */}
-            <div className="glass-card-landing" style={{ padding: '2.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div
+              className="glass-card-landing"
+              onClick={() => navigate('/chat')}
+              style={{ padding: '2.25rem', display: 'flex', flexDirection: 'column', gap: '1rem', cursor: 'pointer', transition: 'all 0.3s ease' }}
+              title="Click to open KrishiMitra AI Chatbot"
+            >
               <div style={{ width: '50px', height: '50px', background: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.25)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6366f1' }}>
                 <Bot size={24} />
               </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>AI Agronomist Copilot</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>AI Agronomist Copilot</span>
+                <span style={{ fontSize: '0.8rem', color: '#818cf8', fontWeight: 600 }}>Chat Now ➔</span>
+              </h3>
               <p style={{ color: '#94a3b8', fontSize: '0.95rem', lineHeight: 1.5, margin: 0 }}>
                 Instant conversation assistant trained in farming guidelines, sowing schedules, fertilizer applications, and state support schemes.
               </p>

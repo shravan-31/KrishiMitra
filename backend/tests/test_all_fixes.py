@@ -314,6 +314,55 @@ def test_no_randomness_in_business_modules():
     print("✓ Fix 21: Deterministic guarantee verified across all ML modules")
 
 
+# ---------------------------------------------------------------------------
+# 9. CHATBOT ZERO 404 ROUTING & RESILIENT FALLBACKS
+# ---------------------------------------------------------------------------
+def test_chatbot_routes_and_fallbacks():
+    from fastapi.testclient import TestClient
+    from app.main import app
+
+    client = TestClient(app)
+
+    # 1. Test POST /api/v1/chat/message
+    res1 = client.post("/api/v1/chat/message", json={"message": "What is the NPK ratio for wheat?"})
+    assert res1.status_code == 200, f"Expected 200 on /api/v1/chat/message, got {res1.status_code}"
+    data1 = res1.json()
+    assert "reply" in data1
+    assert len(data1["reply"]) > 10
+
+    # 2. Test POST /api/chat/message (legacy alias)
+    res2 = client.post("/api/chat/message", json={"message": "How to control aphids?"})
+    assert res2.status_code == 200, f"Expected 200 on /api/chat/message, got {res2.status_code}"
+    assert "reply" in res2.json()
+
+    # 3. Test POST /api/v1/chat (direct endpoint without /message)
+    res3 = client.post("/api/v1/chat", json={"message": "Tell me about PM-KISAN"})
+    assert res3.status_code == 200, f"Expected 200 on /api/v1/chat, got {res3.status_code}"
+
+    # 4. Test POST /api/chat
+    res4 = client.post("/api/chat", json={"message": "Soil fertilizer guide"})
+    assert res4.status_code == 200, f"Expected 200 on /api/chat, got {res4.status_code}"
+
+    # 5. Test GET status endpoints (no 404 when visited via browser/monitoring)
+    res5 = client.get("/api/v1/chat")
+    assert res5.status_code == 200, f"Expected 200 on GET /api/v1/chat, got {res5.status_code}"
+    assert res5.json()["status"] == "online"
+
+    res6 = client.get("/api/chat")
+    assert res6.status_code == 200
+
+    # 6. Test GET /chat and /chatbot HTML and JSON
+    res7 = client.get("/chat", headers={"Accept": "text/html"})
+    assert res7.status_code == 200
+    assert "KrishiMitra" in res7.text
+
+    res8 = client.get("/chatbot", headers={"Accept": "application/json"})
+    assert res8.status_code == 200
+    assert res8.json()["status"] == "online"
+
+    print("✓ Chatbot: Zero-404 multi-route & standalone fallback verified")
+
+
 if __name__ == "__main__":
     print("\n--- Executing AgriMind Comprehensive Test Suite ---")
     test_disease_model_top5_and_ood()
@@ -324,6 +373,7 @@ if __name__ == "__main__":
     test_scheduler_dedup_and_dynamic_health()
     test_krishimitra_safety_prompt_rules()
     test_no_randomness_in_business_modules()
+    test_chatbot_routes_and_fallbacks()
     print("\n=======================================================")
-    print("ALL FIX SUITE TESTS PASSED SUCCESSFULLY! (8/8 Suites OK)")
+    print("ALL FIX SUITE TESTS PASSED SUCCESSFULLY! (9/9 Suites OK)")
     print("=======================================================\n")

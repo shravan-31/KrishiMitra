@@ -287,7 +287,14 @@ from app.routers.alerts import router as alerts_router
 from app.routers.calendar import router as calendar_router
 from app.routers.season_summary import router as season_summary_router
 from app.routers.weather import router as weather_router
-from app.routers.chat import router as chat_router
+from app.routers.chat import (
+    router as chat_router,
+    legacy_router as chat_legacy_router,
+    chatbot_router,
+    v1_chatbot_router,
+    chat_page_router,
+    chatbot_page_router
+)
 from app.routers.schemes import router as schemes_router
 from app.routers.health import router as health_router
 from app.routers.language import router as language_router
@@ -307,6 +314,11 @@ app.include_router(calendar_router)
 app.include_router(season_summary_router)
 app.include_router(weather_router)
 app.include_router(chat_router)
+app.include_router(chat_legacy_router)
+app.include_router(chatbot_router)
+app.include_router(v1_chatbot_router)
+app.include_router(chat_page_router)
+app.include_router(chatbot_page_router)
 app.include_router(schemes_router)
 app.include_router(health_router)
 app.include_router(language_router)
@@ -314,13 +326,14 @@ app.include_router(crop_health_router)
 
 
 # ---------------------------------------------------------------------------
-# Serve React Frontend SPA
+# Serve React Frontend SPA / Fallback Pages
 # ---------------------------------------------------------------------------
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
+from app.routers.chat import CHATBOT_HTML_PAGE
 
 frontend_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))
 
-if os.path.exists(frontend_dist):
+if os.path.exists(frontend_dist) and os.path.exists(os.path.join(frontend_dist, "index.html")):
     assets_path = os.path.join(frontend_dist, "assets")
     if os.path.exists(assets_path):
         app.mount("/assets", StaticFiles(directory=assets_path), name="frontend_assets")
@@ -331,9 +344,20 @@ if os.path.exists(frontend_dist):
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
+        # Specific friendly fallback for direct chat URLs
+        if full_path in ("chat", "chatbot", "ai-chat"):
+            file_path = os.path.join(frontend_dist, full_path)
+            if os.path.isfile(file_path):
+                return FileResponse(file_path)
+            # If SPA index.html exists, return it; otherwise return standalone Chatbot HTML
+            if os.path.exists(os.path.join(frontend_dist, "index.html")):
+                return FileResponse(os.path.join(frontend_dist, "index.html"))
+            return HTMLResponse(content=CHATBOT_HTML_PAGE, status_code=200)
+
         if full_path.startswith(("api", "auth", "static", "ws", "health", "docs", "openapi.json", "redoc")):
             from fastapi import HTTPException
             raise HTTPException(status_code=404, detail="Not Found")
+
         file_path = os.path.join(frontend_dist, full_path)
         if os.path.isfile(file_path):
             return FileResponse(file_path)
@@ -346,5 +370,15 @@ else:
             "app": "AgriMind (KrishiMitra) API",
             "message": "Backend API is live and operational!",
             "documentation": "/docs",
-            "health": "/health"
+            "health": "/health",
+            "chatbot_ui": "/chat",
+            "chatbot_api": "/api/v1/chat/message"
         }
+
+    @app.get("/{full_path:path}")
+    async def serve_fallback_paths(full_path: str):
+        if full_path in ("chat", "chatbot", "ai-chat"):
+            return HTMLResponse(content=CHATBOT_HTML_PAGE, status_code=200)
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Not Found")
+

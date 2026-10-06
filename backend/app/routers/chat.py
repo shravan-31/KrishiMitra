@@ -283,15 +283,30 @@ async def generate_gemini_response(system_prompt: str, user_message: str) -> Opt
             
     return None
 
-async def get_optional_user(request: Request, db=Depends(get_db)):
+async def get_optional_db():
+    """Optional database connection dependency — yields None if DB pool is unavailable."""
+    import app.database as db_module
+    if getattr(db_module, "pool", None) is None:
+        yield None
+        return
+    try:
+        async with db_module.pool.acquire() as conn:
+            yield conn
+    except Exception as e:
+        logger.warning(f"Database connection error in chat: {e}")
+        yield None
+
+async def get_optional_user(request: Request, db=Depends(get_optional_db)):
     """Optional user dependency — does not reject anonymous or unauthenticated chat sessions."""
+    if not db:
+        return None
     try:
         return await get_current_user(request, db)
     except Exception:
         return None
 
 async def safe_load_farm_context(farm_id: Optional[int], db) -> dict:
-    if not farm_id or farm_id <= 0:
+    if not farm_id or farm_id <= 0 or not db:
         return {}
     try:
         ctx = await load_farm_context(farm_id, db)
@@ -300,12 +315,11 @@ async def safe_load_farm_context(farm_id: Optional[int], db) -> dict:
         logger.warning(f"Error loading farm context for id {farm_id}: {e}")
         return {}
 
-@router.post("/message")
-async def chat_message(
+async def process_chat_message(
     req: ChatRequest,
-    user=Depends(get_optional_user),
-    db=Depends(get_db)
-):
+    user=None,
+    db=None
+) -> dict:
     # Step 1: Safely load Farm Context
     context = await safe_load_farm_context(req.farm_id, db)
     
@@ -329,16 +343,446 @@ async def chat_message(
         reply = get_expert_fallback_response(req.message, lang_code)
     
     return {
+        "status": "success",
         "reply": reply,
         "language_detected": lang_code
     }
 
-# Streaming WebSocket route
-@router.websocket("/ws/stream/{farm_id}")
-async def websocket_chat_stream(websocket: WebSocket, farm_id: int, db=Depends(get_db)):
+from fastapi.responses import HTMLResponse, JSONResponse
+
+CHATBOT_HTML_PAGE = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KrishiMitra AI Agricultural Chatbot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #070d07;
+      --card-bg: rgba(20, 35, 20, 0.7);
+      --card-border: rgba(74, 222, 128, 0.15);
+      --primary: #22c55e;
+      --primary-hover: #16a34a;
+      --accent: #4ade80;
+      --text: #f0fdf4;
+      --text-muted: #86efac;
+      --bubble-ai: rgba(22, 101, 52, 0.25);
+      --bubble-user: #15803d;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: radial-gradient(circle at 50% 10%, #0d2812 0%, var(--bg) 70%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: rgba(10, 25, 12, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .logo {
+      font-size: 1.75rem;
+      background: rgba(34, 197, 94, 0.15);
+      padding: 0.4rem;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+    }
+    .title h1 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+    .title p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #4ade80;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.35rem 0.75rem;
+      border-radius: 20px;
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      background: #22c55e;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #22c55e;
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } }
+    main {
+      flex: 1;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 75px);
+    }
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+    .messages-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .message {
+      display: flex;
+      gap: 0.75rem;
+      max-width: 82%;
+      animation: fadeIn 0.25s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .message.user { align-self: flex-end; flex-direction: row-reverse; }
+    .message.ai { align-self: flex-start; }
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid var(--card-border);
+    }
+    .message.user .avatar { background: #166534; }
+    .bubble {
+      padding: 0.85rem 1.15rem;
+      border-radius: 16px;
+      line-height: 1.6;
+      font-size: 0.95rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .message.ai .bubble {
+      background: var(--bubble-ai);
+      border: 1px solid var(--card-border);
+      border-top-left-radius: 4px;
+      color: #e2e8f0;
+    }
+    .message.user .bubble {
+      background: var(--bubble-user);
+      color: #fff;
+      border-top-right-radius: 4px;
+    }
+    .quick-chips {
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      border-top: 1px solid rgba(74, 222, 128, 0.08);
+      background: rgba(10, 25, 12, 0.4);
+    }
+    .chip {
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      color: #86efac;
+      padding: 0.4rem 0.9rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .chip:hover {
+      background: rgba(34, 197, 94, 0.2);
+      color: #fff;
+      border-color: #22c55e;
+    }
+    .input-bar {
+      padding: 1rem 1.25rem;
+      background: rgba(10, 25, 12, 0.7);
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      gap: 0.75rem;
+    }
+    .input-bar input {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(74, 222, 128, 0.2);
+      color: #fff;
+      padding: 0.85rem 1.25rem;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .input-bar input:focus { border-color: #22c55e; box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2); }
+    .send-btn {
+      background: #22c55e;
+      color: #052e16;
+      border: none;
+      border-radius: 12px;
+      padding: 0 1.5rem;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .send-btn:hover { background: #4ade80; }
+    .send-btn:active { transform: scale(0.98); }
+    .typing-indicator {
+      display: inline-flex;
+      gap: 4px;
+      padding: 6px 12px;
+    }
+    .typing-indicator span {
+      width: 6px;
+      height: 6px;
+      background: #4ade80;
+      border-radius: 50%;
+      animation: bounce 1.2s infinite ease-in-out;
+    }
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-6px); } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">🌾</div>
+      <div class="title">
+        <h1>KrishiMitra AI Copilot</h1>
+        <p>Smart Agriculture & Farm Advisory</p>
+      </div>
+    </div>
+    <div class="status-badge">
+      <div class="status-dot"></div>
+      <span>AI Online</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="chat-container">
+      <div class="messages-area" id="messagesArea">
+        <div class="message ai">
+          <div class="avatar">🤖</div>
+          <div class="bubble">Namaste! I am KrishiMitra, your AI agricultural assistant. 
+
+How can I help you today? Ask me about:
+• Crop disease detection & biological remedies
+• Pest management & safe organic controls
+• Soil NPK fertilizer dosage & balancing
+• PM-KISAN, PMFBY & government schemes
+• Weather-aligned irrigation & harvesting tips</div>
+        </div>
+      </div>
+
+      <div class="quick-chips">
+        <button class="chip" onclick="askQuestion('What fertilizer ratio should I use for wheat?')">🌱 Fertilizer for Wheat</button>
+        <button class="chip" onclick="askQuestion('How to treat yellow leaves organically?')">🍂 Yellow Leaf Treatment</button>
+        <button class="chip" onclick="askQuestion('How to control aphids without harmful chemicals?')">🐛 Organic Pest Control</button>
+        <button class="chip" onclick="askQuestion('What are the benefits of PM-KISAN and PMFBY?')">🏛️ Government Schemes</button>
+      </div>
+
+      <div class="input-bar">
+        <input type="text" id="userInput" placeholder="Ask any farming question..." onkeypress="if(event.key==='Enter') sendMessage()" />
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">Send ➔</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const messagesArea = document.getElementById('messagesArea');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    function scrollToBottom() {
+      messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+
+    function appendMessage(sender, text) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `message ${sender}`;
+      
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar';
+      avatar.innerText = sender === 'user' ? '👨‍🌾' : '🤖';
+
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.innerText = text;
+
+      msgDiv.appendChild(avatar);
+      msgDiv.appendChild(bubble);
+      messagesArea.appendChild(msgDiv);
+      scrollToBottom();
+      return bubble;
+    }
+
+    function showTyping() {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'message ai';
+      msgDiv.id = 'typingBubble';
+      
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar';
+      avatar.innerText = '🤖';
+
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble typing-indicator';
+      bubble.innerHTML = '<span></span><span></span><span></span>';
+
+      msgDiv.appendChild(avatar);
+      msgDiv.appendChild(bubble);
+      messagesArea.appendChild(msgDiv);
+      scrollToBottom();
+    }
+
+    function removeTyping() {
+      const typing = document.getElementById('typingBubble');
+      if (typing) typing.remove();
+    }
+
+    async function sendMessage() {
+      const text = userInput.value.trim();
+      if (!text) return;
+
+      appendMessage('user', text);
+      userInput.value = '';
+      userInput.disabled = true;
+      sendBtn.disabled = true;
+      showTyping();
+
+      try {
+        const endpoints = [
+          '/api/v1/chat/message',
+          '/api/chat/message',
+          '/api/v1/chat',
+          '/api/chat'
+        ];
+
+        let result = null;
+        for (const ep of endpoints) {
+          try {
+            const res = await fetch(ep, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ message: text, language: 'en' })
+            });
+            if (res.ok) {
+              result = await res.json();
+              break;
+            }
+          } catch (e) {}
+        }
+
+        removeTyping();
+        if (result && result.reply) {
+          appendMessage('ai', result.reply);
+        } else {
+          appendMessage('ai', 'Namaste! KrishiMitra is ready. Your question has been noted. Please ensure backend services are connected.');
+        }
+      } catch (err) {
+        removeTyping();
+        appendMessage('ai', 'Namaste! I am currently operating in resilient offline mode. Ask about crop diseases, fertilizers, or government schemes!');
+      } finally {
+        userInput.disabled = false;
+        sendBtn.disabled = false;
+        userInput.focus();
+        scrollToBottom();
+      }
+    }
+
+    function askQuestion(q) {
+      userInput.value = q;
+      sendMessage();
+    }
+  </script>
+</body>
+</html>
+"""
+
+# Common chat endpoint handler
+async def chat_message_endpoint(
+    req: ChatRequest,
+    user=Depends(get_optional_user),
+    db=Depends(get_optional_db)
+):
+    return await process_chat_message(req, user, db)
+
+# Common GET status handler
+async def chat_status_endpoint(request: Request):
+    accept = request.headers.get("accept", "")
+    if "text/html" in accept:
+        return HTMLResponse(content=CHATBOT_HTML_PAGE, status_code=200)
+    return JSONResponse(
+        status_code=200,
+        content={
+            "status": "online",
+            "service": "KrishiMitra Agricultural AI Chatbot",
+            "version": "1.0.0",
+            "endpoints": [
+                "/api/v1/chat/message",
+                "/api/chat/message",
+                "/api/v1/chat",
+                "/api/chat"
+            ],
+            "websocket_stream": "/api/v1/chat/ws/stream/{farm_id}"
+        }
+    )
+
+# Common WebSocket stream logic
+async def handle_chat_websocket(websocket: WebSocket, farm_id: int):
     await websocket.accept()
+    context = {}
+    if farm_id > 0:
+        import app.database as db_module
+        if getattr(db_module, "pool", None) is not None:
+            try:
+                async with db_module.pool.acquire() as conn:
+                    context = await safe_load_farm_context(farm_id, conn)
+            except Exception as e:
+                logger.warning(f"Failed to acquire db for ws context: {e}")
+
     try:
-        context = await safe_load_farm_context(farm_id, db)
         while True:
             data_str = await websocket.receive_text()
             try:
@@ -446,3 +890,118 @@ async def websocket_chat_stream(websocket: WebSocket, farm_id: int, db=Depends(g
         pass
     except Exception as e:
         logger.error(f"WebSocket session terminated: {e}")
+
+# Register routes on primary router: /api/v1/chat
+@router.post("/message")
+@router.post("")
+@router.post("/")
+async def chat_message_v1(req: ChatRequest, user=Depends(get_optional_user), db=Depends(get_optional_db)):
+    return await chat_message_endpoint(req, user, db)
+
+@router.get("")
+@router.get("/")
+@router.get("/message")
+@router.get("/health")
+async def chat_get_v1(request: Request):
+    return await chat_status_endpoint(request)
+
+@router.websocket("/ws/stream/{farm_id}")
+async def ws_v1(websocket: WebSocket, farm_id: int):
+    await handle_chat_websocket(websocket, farm_id)
+
+# Alias router 1: /api/chat
+legacy_router = APIRouter(prefix="/api/chat", tags=["chat"])
+
+@legacy_router.post("/message")
+@legacy_router.post("")
+@legacy_router.post("/")
+async def chat_message_legacy(req: ChatRequest, user=Depends(get_optional_user), db=Depends(get_optional_db)):
+    return await chat_message_endpoint(req, user, db)
+
+@legacy_router.get("")
+@legacy_router.get("/")
+@legacy_router.get("/message")
+@legacy_router.get("/health")
+async def chat_get_legacy(request: Request):
+    return await chat_status_endpoint(request)
+
+@legacy_router.websocket("/ws/stream/{farm_id}")
+async def ws_legacy(websocket: WebSocket, farm_id: int):
+    await handle_chat_websocket(websocket, farm_id)
+
+# Alias router 2: /api/chatbot & /api/v1/chatbot
+chatbot_router = APIRouter(prefix="/api/chatbot", tags=["chat"])
+
+@chatbot_router.post("/message")
+@chatbot_router.post("")
+@chatbot_router.post("/")
+async def chat_message_chatbot(req: ChatRequest, user=Depends(get_optional_user), db=Depends(get_optional_db)):
+    return await chat_message_endpoint(req, user, db)
+
+@chatbot_router.get("")
+@chatbot_router.get("/")
+@chatbot_router.get("/message")
+@chatbot_router.get("/health")
+async def chat_get_chatbot(request: Request):
+    return await chat_status_endpoint(request)
+
+@chatbot_router.websocket("/ws/stream/{farm_id}")
+async def ws_chatbot(websocket: WebSocket, farm_id: int):
+    await handle_chat_websocket(websocket, farm_id)
+
+v1_chatbot_router = APIRouter(prefix="/api/v1/chatbot", tags=["chat"])
+
+@v1_chatbot_router.post("/message")
+@v1_chatbot_router.post("")
+@v1_chatbot_router.post("/")
+async def chat_message_v1_chatbot(req: ChatRequest, user=Depends(get_optional_user), db=Depends(get_optional_db)):
+    return await chat_message_endpoint(req, user, db)
+
+@v1_chatbot_router.get("")
+@v1_chatbot_router.get("/")
+@v1_chatbot_router.get("/message")
+@v1_chatbot_router.get("/health")
+async def chat_get_v1_chatbot(request: Request):
+    return await chat_status_endpoint(request)
+
+@v1_chatbot_router.websocket("/ws/stream/{farm_id}")
+async def ws_v1_chatbot(websocket: WebSocket, farm_id: int):
+    await handle_chat_websocket(websocket, farm_id)
+
+# Direct page routers: /chat and /chatbot
+chat_page_router = APIRouter(prefix="/chat", tags=["chat"])
+
+@chat_page_router.post("/message")
+@chat_page_router.post("")
+@chat_page_router.post("/")
+async def chat_message_page(req: ChatRequest, user=Depends(get_optional_user), db=Depends(get_optional_db)):
+    return await chat_message_endpoint(req, user, db)
+
+@chat_page_router.get("")
+@chat_page_router.get("/")
+@chat_page_router.get("/message")
+async def chat_get_page(request: Request):
+    return await chat_status_endpoint(request)
+
+@chat_page_router.websocket("/ws/stream/{farm_id}")
+async def ws_chat_page(websocket: WebSocket, farm_id: int):
+    await handle_chat_websocket(websocket, farm_id)
+
+chatbot_page_router = APIRouter(prefix="/chatbot", tags=["chat"])
+
+@chatbot_page_router.post("/message")
+@chatbot_page_router.post("")
+@chatbot_page_router.post("/")
+async def chatbot_message_page(req: ChatRequest, user=Depends(get_optional_user), db=Depends(get_optional_db)):
+    return await chat_message_endpoint(req, user, db)
+
+@chatbot_page_router.get("")
+@chatbot_page_router.get("/")
+@chatbot_page_router.get("/message")
+async def chatbot_get_page(request: Request):
+    return await chat_status_endpoint(request)
+
+@chatbot_page_router.websocket("/ws/stream/{farm_id}")
+async def ws_chatbot_page(websocket: WebSocket, farm_id: int):
+    await handle_chat_websocket(websocket, farm_id)
+

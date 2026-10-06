@@ -73,6 +73,22 @@ function AnimatedRoutes() {
           }
         />
         <Route
+          path="/chatbot"
+          element={
+            <ProtectedRoute>
+              <Chat />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ai-chat"
+          element={
+            <ProtectedRoute>
+              <Chat />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/disease"
           element={
             <ProtectedRoute>
