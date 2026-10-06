@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     # ---- Application ----
     app_name: str = "KrishiMitra"
     debug: bool = False
+    upload_dir: str = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "data", "uploads")
+    )
 
     # ---- Database ----
     database_url: str = Field(

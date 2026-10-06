@@ -51,9 +51,16 @@ export function useFarmWebSocket(farmId) {
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data)
+          const eventType = data.event_type || data.type
+          if (eventType === 'ping') {
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send('pong')
+            }
+            return
+          }
+
           console.log("WebSocket event received:", data)
 
-          const eventType = data.event_type || data.type
           const payload = data.payload || data
 
           if (!eventType) return

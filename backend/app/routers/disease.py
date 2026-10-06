@@ -4,6 +4,7 @@ from app.database import get_db
 from app.main import get_ws_manager
 from app.ml.disease import predict_disease, load_disease_model, _classes
 from app.integration_engine import on_disease_detected
+from app.config import settings
 import os
 import uuid
 import time
@@ -11,7 +12,7 @@ import torch
 
 router = APIRouter(prefix="/api/v1/disease", tags=["disease"])
 
-UPLOAD_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data", "uploads", "disease"))
+UPLOAD_DIR = os.path.join(os.path.abspath(settings.upload_dir), "disease")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @router.post("/scan")
@@ -34,8 +35,6 @@ async def scan_disease(
         f.write(image_bytes)
     
     image_url = f"/static/uploads/disease/{filename}"
-
-    from app.config import settings
 
     # Step 3: Run ML inference
     try:

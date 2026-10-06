@@ -267,8 +267,9 @@ async def websocket_endpoint_farm(ws: WebSocket, farm_id: int):
 # Router Includes & Static Files
 # ---------------------------------------------------------------------------
 from fastapi.staticfiles import StaticFiles
+from app.config import settings
 
-uploads_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "uploads"))
+uploads_path = os.path.abspath(settings.upload_dir)
 os.makedirs(os.path.join(uploads_path, "disease"), exist_ok=True)
 os.makedirs(os.path.join(uploads_path, "pest"), exist_ok=True)
 
@@ -381,4 +382,3 @@ else:
             return HTMLResponse(content=CHATBOT_HTML_PAGE, status_code=200)
         from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Not Found")
-

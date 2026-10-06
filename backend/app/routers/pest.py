@@ -4,13 +4,14 @@ from app.database import get_db
 from app.main import get_ws_manager
 from app.ml.pest import predict_pest, load_pest_model, _classes
 from app.integration_engine import on_pest_detected
+from app.config import settings
 import os
 import uuid
 import time
 
 router = APIRouter(prefix="/api/v1/pest", tags=["pest"])
 
-UPLOAD_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data", "uploads", "pest"))
+UPLOAD_DIR = os.path.join(os.path.abspath(settings.upload_dir), "pest")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @router.post("/detect")
@@ -32,8 +33,6 @@ async def detect_pest(
         f.write(image_bytes)
         
     image_url = f"/static/uploads/pest/{filename}"
-
-    from app.config import settings
 
     # Run ML prediction
     try:
