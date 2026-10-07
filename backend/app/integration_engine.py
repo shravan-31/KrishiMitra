@@ -546,4 +546,17 @@ async def load_farm_context(farm_id: int, db) -> dict:
         WHERE f.id = $1
     """, farm_id)
 
-    return dict(row) if row else {}
+    if not row:
+        return {}
+    data = dict(row)
+    # asyncpg returns row_to_json/json_agg columns as JSON strings —
+    # parse them so API consumers get real objects/arrays, not strings.
+    for key in ("soil", "diseases", "pests", "tasks",
+                "expenses", "alerts", "season_summary", "active_crops"):
+        val = data.get(key)
+        if isinstance(val, str):
+            try:
+                data[key] = json.loads(val)
+            except Exception:
+                data[key] = None
+    return data

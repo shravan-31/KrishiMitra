@@ -133,11 +133,11 @@ export default function Health() {
               <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800 }}>Component Vector Analysis</h3>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <HealthBar label="Soil Chemistry Stability" score={healthData.breakdown?.soil} color="#22c55e" emoji="🌱" />
-                <HealthBar label="Pathogen Resistance index" score={healthData.breakdown?.disease} color="#ef4444" emoji="🔬" />
-                <HealthBar label="Infestation Control level" score={healthData.breakdown?.pest} color="#f59e0b" emoji="🐛" />
-                <HealthBar label="Microclimate Safety index" score={healthData.breakdown?.weather} color="#0ea5e9" emoji="⛅" />
-                <HealthBar label="Hydration & Irrigation Index" score={healthData.breakdown?.irrigation} color="#3b82f6" emoji="💧" />
+                <HealthBar label="Soil Chemistry Stability" score={healthData.breakdown?.soil?.score} status={healthData.breakdown?.soil?.status} color="#22c55e" emoji="🌱" />
+                <HealthBar label="Pathogen Resistance index" score={healthData.breakdown?.disease?.score} status={healthData.breakdown?.disease?.status} color="#ef4444" emoji="🔬" />
+                <HealthBar label="Infestation Control level" score={healthData.breakdown?.pest?.score} status={healthData.breakdown?.pest?.status} color="#f59e0b" emoji="🐛" />
+                <HealthBar label="Microclimate Safety index" score={healthData.breakdown?.weather?.score} status={healthData.breakdown?.weather?.status} color="#0ea5e9" emoji="⛅" />
+                <HealthBar label="Hydration & Irrigation Index" score={healthData.breakdown?.irrigation?.score} status={healthData.breakdown?.irrigation?.status} color="#3b82f6" emoji="💧" />
               </div>
             </div>
 
@@ -184,17 +184,21 @@ export default function Health() {
   )
 }
 
-function HealthBar({ label, score, color, emoji }) {
+function HealthBar({ label, score, status, color, emoji }) {
+  const hasScore = typeof score === 'number' && !Number.isNaN(score)
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '6px' }}>
         <span style={{ color: '#e2e8f0', fontWeight: 600 }}>{emoji} {label}</span>
-        <span style={{ color, fontWeight: 800 }}>{score}%</span>
+        <span style={{ color, fontWeight: 800 }}>
+          {hasScore ? `${score}%` : 'N/A'}
+          {status && status !== 'Measured' ? <span style={{ color: '#64748b', fontWeight: 500 }}> · {status}</span> : null}
+        </span>
       </div>
       <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
         <motion.div
           initial={{ width: 0 }}
-          animate={{ width: `${score}%` }}
+          animate={{ width: `${hasScore ? score : 0}%` }}
           transition={{ duration: 1, ease: 'easeOut' }}
           style={{ height: '100%', background: color }}
         />

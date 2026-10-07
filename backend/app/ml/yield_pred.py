@@ -1,7 +1,17 @@
 import os
 import json
 import pickle
+import sys
 import numpy as np
+
+# Backward-compat: model.pkl was pickled with sklearn 1.7.0 where the
+# Cython loss extension unpickled as top-level `_loss`. In sklearn >=1.8
+# it lives at `sklearn._loss._loss`. Alias it so old pickles still load.
+try:
+    import sklearn._loss._loss as _sk_loss_ext  # noqa: F401
+    sys.modules.setdefault("_loss", _sk_loss_ext)
+except Exception:
+    pass
 
 # Resolve model path
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "models", "yield")
@@ -81,7 +91,12 @@ def predict_yield(state: str, district: str, crop_year: int, season: str, crop: 
         area_hectares
     ]
     
-    features_input = np.array([input_features])
+    # Pass named columns to match training feature names (avoids sklearn warning)
+    try:
+        import pandas as pd
+        features_input = pd.DataFrame([input_features], columns=_features)
+    except Exception:
+        features_input = np.array([input_features])
     log_yield_pred = float(_model.predict(features_input)[0])
     
     # Denormalize log-transformed yield

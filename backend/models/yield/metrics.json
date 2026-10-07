@@ -1,9 +1,7 @@
 {
-  "r2_score": 0.7812,
-  "mae": 0.3125,
-  "rmse": 0.4187,
+  "r2_score": 0.7776,
+  "mae": 0.175,
+  "rmse": 0.2485,
   "test_samples": 6000,
-  "residual_std": 0.4185,
-  "method": "GradientBoostingRegressor (log_yield)",
-  "verified_at": "2026-10-05T02:48:00Z"
+  "residual_std": 0.2484
 }
