@@ -26,9 +26,9 @@ _transform = transforms.Compose([
     ),
 ])
 
-def load_pest_model():
+def load_pest_model(force_reload: bool = False):
     global _model, _classes, _controls
-    if _model is None:
+    if _model is None or force_reload:
         with open(CLASSES_PATH, "r") as f:
             _classes = json.load(f)
             
