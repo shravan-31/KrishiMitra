@@ -187,13 +187,13 @@ def forecast_market(crop_name: str, forecast_days: int = 7):
     
     if pct_change > 1.2:
         trend = "BULLISH"
-        advisory = "बाजारभाव वाढीचा कल दर्शवत आहे. पुढील ५-७ दिवस माल राखून ठेवल्यास चांगला नफा मिळू शकतो."
+        advisory = "Market price indicates an upward trend. Holding produce for the next 5–7 days may yield higher profit margins."
     elif pct_change < -1.2:
         trend = "BEARISH"
-        advisory = "पुढील दिवसांत बाजारात आवक वाढल्याने दरात घट होण्याची शक्यता आहे. चांगला दर असताना टप्प्याटप्प्याने विक्री करा."
+        advisory = "Market price indicates a downward trend due to increased arrivals. Consider staggered selling to secure prevailing rates."
     else:
         trend = "STABLE"
-        advisory = "बाजारभाव स्थिर राहण्याची शक्यता आहे. गरजेनुसार आणि योग्य भाव तपासून विक्रीचा निर्णय घ्या."
+        advisory = "Market price is expected to remain stable. Plan your sales in batches based on cash flow requirements and mandi rates."
 
     return {
         "crop": crop_clean,
