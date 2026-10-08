@@ -27,11 +27,13 @@ export function useFarmWebSocket(farmId) {
       let wsUrl
       if (BACKEND_URL.startsWith('http')) {
         wsUrl = BACKEND_URL.replace(/^http/, 'ws') + `/ws/farm/${farmId}`
+      } else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        // Direct local dev connection to FastAPI backend on port 8000
+        wsUrl = `ws://127.0.0.1:8000/ws/farm/${farmId}`
       } else {
         // Handle relative URLs
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
         const host = window.location.host
-        // Ensure leading slash if BACKEND_URL is relative but doesn't have one
         const pathPrefix = BACKEND_URL ? (BACKEND_URL.startsWith('/') ? BACKEND_URL : `/${BACKEND_URL}`) : ''
         wsUrl = `${protocol}//${host}${pathPrefix}/ws/farm/${farmId}`
       }

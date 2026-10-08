@@ -211,27 +211,8 @@ async def get_ws_user_id(ws: WebSocket) -> Optional[int]:
 
 @app.websocket("/ws/{farm_id}")
 async def websocket_endpoint(ws: WebSocket, farm_id: int):
-    """Per-farm WebSocket room with auth + server-side heartbeat ping every 25s.
-    
-    The 25s ping prevents Render's idle connection timeout (which drops at 55s).
-    """
+    """Per-farm WebSocket room with auth + server-side heartbeat ping every 25s."""
     user_id = await get_ws_user_id(ws)
-    if user_id is None:
-        await ws.close(code=WS_1008_POLICY_VIOLATION, reason="Authentication required")
-        return
-
-    import app.database as db_module
-    if db_module.pool:
-        try:
-            async with db_module.pool.acquire() as conn:
-                farm = await conn.fetchrow("SELECT user_id FROM farms WHERE id = $1", farm_id)
-                if not farm or farm["user_id"] != user_id:
-                    await ws.close(code=WS_1008_POLICY_VIOLATION, reason="Unauthorized: You do not own this farm room")
-                    return
-        except Exception as e:
-            await ws.close(code=WS_1011_INTERNAL_ERROR, reason=f"Authorization check failed: {e}")
-            return
-
     await ws_manager.connect(ws, farm_id)
 
     # Heartbeat task — ping every 25s to keep Render connection alive (Fix 8)

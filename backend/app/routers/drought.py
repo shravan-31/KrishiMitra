@@ -5,12 +5,10 @@ certified drought-resilient crops, and government relief subsidy integration.
 Entirely in English.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timezone
-from app.middleware.auth import get_current_user
-from app.database import get_db
 
 router = APIRouter(prefix="/api/v1/drought", tags=["drought"])
 
@@ -150,14 +148,11 @@ DROUGHT_SCHEMES = [
 
 
 @router.post("/analyze")
-async def analyze_drought_stress(
-    req: DroughtAssessmentRequest,
-    user=Depends(get_current_user),
-    db=Depends(get_db)
-):
+async def analyze_drought_stress(req: DroughtAssessmentRequest):
     """
     Computes precise water balance, stress severity, emergency survival schedule,
     and mitigation strategies tailored to crop and land specifications.
+    Open to all users and farmers.
     """
     crop_clean = req.crop_name.strip().capitalize()
     benchmark = CROP_WATER_NEEDS.get(crop_clean, {
@@ -168,7 +163,6 @@ async def analyze_drought_stress(
 
     # 1. Calculate Water Supply
     # Average pump discharge (liters per hour per HP)
-    # 1 HP approx = 4,000 to 5,000 liters/hr depending on depth
     liters_per_hp_hour = 4200.0
     daily_water_supplied = req.pump_hp * req.daily_water_hours * liters_per_hp_hour
 
@@ -183,9 +177,9 @@ async def analyze_drought_stress(
     stage_lower = req.growth_stage.lower()
     if "flowering" in stage_lower or "pod" in stage_lower or "boll" in stage_lower:
         stage_multiplier = 1.25  # peak water consumption period
-    elif "fruiting" in stage_lower or "seed" in stage_lower:
+    elif "fruit" in stage_lower or "seed" in stage_lower:
         stage_multiplier = 1.15
-    elif "seedling" in stage_lower:
+    elif "seedling" in stage_lower or "vegetative" in stage_lower:
         stage_multiplier = 0.70
     else:
         stage_multiplier = 0.90
@@ -194,7 +188,7 @@ async def analyze_drought_stress(
 
     # Soil retention adjustments
     soil_lower = req.soil_type.lower()
-    if "heavy black" in soil_lower or "regur" in soil_lower:
+    if "heavy black" in soil_lower or "deep black" in soil_lower or "regur" in soil_lower:
         retention_days = 6.0
         soil_bonus = "High clay content retains subsoil moisture up to 6 days."
     elif "medium black" in soil_lower:
@@ -206,30 +200,35 @@ async def analyze_drought_stress(
 
     # 3. Water Stress Index (WSI)
     coverage_ratio = effective_water_available / max(total_demand, 1.0)
-    
+    deficit_liters = max(0, int(total_demand - effective_water_available))
+    surplus_liters = max(0, int(effective_water_available - total_demand))
+
     if coverage_ratio >= 1.05:
         stress_level = "OPTIMAL"
         stress_color = "#10b981"
         stress_badge = "Adequate Water Supply"
         survival_run_days = 45
+        stress_pct = 15
     elif coverage_ratio >= 0.75:
         stress_level = "MODERATE"
         stress_color = "#f59e0b"
         stress_badge = "Mild Moisture Deficit"
         survival_run_days = 28
+        stress_pct = 40
     elif coverage_ratio >= 0.45:
         stress_level = "HIGH"
         stress_color = "#f97316"
         stress_badge = "Severe Moisture Stress"
         survival_run_days = 16
+        stress_pct = 72
     else:
         stress_level = "CRITICAL"
         stress_color = "#ef4444"
         stress_badge = "Extreme Drought Threat — Crop Failure Risk"
         survival_run_days = 8
+        stress_pct = 95
 
     # 4. Precision Irrigation Schedule
-    # Calculate optimized Drip Cycle
     if coverage_ratio < 0.70:
         recommended_interval_days = 3
         daily_drip_duration_hours = round(min(req.daily_water_hours, 2.0), 1)
@@ -241,32 +240,36 @@ async def analyze_drought_stress(
 
     water_saved_percent = 35 if "drip" in req.irrigation_type.lower() else 55
 
-    # 5. Emergency Crop Preservation Protocols
-    emergency_protocols = [
-        {
-            "priority": "IMMEDIATE (Within 24 Hours)",
-            "title": "Organic / Straw Mulching at Root Zones",
-            "action": "Spread 3-inch thick layer of sugarcane bagasse, soybean straw, or dry crop stubble around plant base.",
-            "impact": "Reduces direct soil surface evaporation by 40-45% and lowers soil root temperature by 4°C."
-        },
-        {
-            "priority": "HIGH (Day 2-3)",
-            "title": "Anti-Transpirant Foliar Spray (Kaolin / Potassium)",
-            "action": "Spray 5% Kaolin clay (50g/liter water) or 00:52:34 Potassium spray (8g/liter) early morning.",
-            "impact": "Creates reflective microscopic barrier on leaves, reducing transpiration water loss by 30% without hampering photosynthesis."
-        },
-        {
-            "priority": "MEDIUM",
-            "title": "Partial Root-Zone Deficit Management",
-            "action": "Alternate wetting between rows. In fruit crops, prune excessive canopy leaves and non-productive side shoots.",
-            "impact": "Triggers natural abscisic acid (ABA) defense hormone, increasing drought resilience."
-        }
+    # 5. Emergency Protocols
+    emergency_protocols = {
+        "mulching": "Spread a 3-inch thick layer of sugarcane trash, soybean residue, or straw mulch around the root zone to stop 40% surface evaporation.",
+        "anti_transpirant_spray": "Foliar spray with 5% Kaolin clay (50g/L) or Potassium Nitrate (1%) at sunrise to create a reflective leaf shield and reduce transpiration by 30%.",
+        "alternate_furrow_irrigation": "Water only odd-numbered rows during this cycle; switch to even-numbered rows next cycle to cut water demand in half.",
+        "stage_prioritization": f"Prioritize all available water strictly for {benchmark.get('critical_stage', 'Flowering & Fruit Setting')} stage."
+    }
+
+    actionable_recs = [
+        f"Shift all irrigation between 5:30 AM – 7:30 AM to eliminate up to 35% midday solar vaporization.",
+        f"Apply organic straw mulching to preserve subsoil moisture in {req.soil_type}.",
+        f"Utilize alternate furrow or pulse drip irrigation to stretch available water to ~{survival_run_days} days.",
+        f"Apply for 80% drip subsidy and farm pond assistance through the Mahadbt portal."
     ]
 
     return {
         "crop": crop_clean,
         "acres": req.acres,
         "district": req.district,
+        "stress_level": stress_level,
+        "water_stress_index": stress_pct,
+        "estimated_survival_days": survival_run_days,
+        "summary": f"Your {crop_clean} crop currently requires {int(total_demand):,} L/day, while current irrigation delivers {int(effective_water_available):,} L/day ({round(coverage_ratio * 100)}% coverage). {stress_badge}.",
+        "water_balance": {
+            "crop_daily_demand_liters": int(total_demand),
+            "effective_supply_liters": int(effective_water_available),
+            "irrigation_efficiency_pct": int(eff_multiplier * 100),
+            "water_deficit_liters": deficit_liters,
+            "water_surplus_liters": surplus_liters
+        },
         "water_stress": {
             "level": stress_level,
             "badge": stress_badge,
@@ -275,7 +278,7 @@ async def analyze_drought_stress(
             "estimated_survival_days": survival_run_days,
             "daily_demand_liters": int(total_demand),
             "daily_available_liters": int(effective_water_available),
-            "daily_deficit_liters": max(0, int(total_demand - effective_water_available))
+            "daily_deficit_liters": deficit_liters
         },
         "soil_analysis": {
             "soil_type": req.soil_type,
@@ -283,16 +286,21 @@ async def analyze_drought_stress(
             "note": soil_bonus
         },
         "drip_schedule": {
+            "recommended_run_time_per_session": f"{daily_drip_duration_hours} Hours",
             "recommended_run_hours": daily_drip_duration_hours,
+            "optimal_watering_window": "5:30 AM – 7:30 AM (Early Morning)",
+            "optimal_window": "5:30 AM – 7:30 AM (Early Morning)",
+            "avoid_window": "11:00 AM – 4:00 PM (Peak Solar Loss)",
+            "watering_frequency": f"Every {recommended_interval_days} Days",
             "interval_days": recommended_interval_days,
-            "optimal_window": "5:30 AM – 7:30 AM (or after 6:30 PM)",
-            "avoid_window": "11:00 AM – 4:00 PM (Peak Evaporative Loss)",
-            "water_saved_percent": water_saved_percent,
+            "water_saved_percent": f"{water_saved_percent}%",
+            "tip": cycle_note,
             "guideline": cycle_note
         },
         "emergency_protocols": emergency_protocols,
-        "alternative_drought_crops": DROUGHT_RESILIENT_CROPS[:4],
-        "government_schemes": DROUGHT_SCHEMES,
+        "actionable_recommendations": actionable_recs,
+        "drought_resilient_crops": DROUGHT_RESILIENT_CROPS,
+        "schemes": DROUGHT_SCHEMES,
         "generated_at": datetime.now(timezone.utc).isoformat()
     }
 
@@ -300,10 +308,16 @@ async def analyze_drought_stress(
 @router.get("/crops")
 async def get_drought_tolerant_crops():
     """Returns curated list of university-certified dryland crops."""
-    return DROUGHT_RESILIENT_CROPS
+    return {
+        "status": "success",
+        "drought_resilient_crops": DROUGHT_RESILIENT_CROPS
+    }
 
 
 @router.get("/schemes")
 async def get_drought_relief_schemes():
     """Returns government drought subsidy programs and portal links."""
-    return DROUGHT_SCHEMES
+    return {
+        "status": "success",
+        "schemes": DROUGHT_SCHEMES
+    }
