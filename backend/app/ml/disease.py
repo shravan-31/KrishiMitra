@@ -126,6 +126,8 @@ def predict_disease(image_bytes: bytes, min_confidence: float = 0.60):
     })
     treatment_str = " | ".join(treatment_info.get("treatment", []))
     
+    raw_steps = treatment_info.get("treatment", [])
+    
     # 4. Out-of-Distribution / Low Confidence Check
     if confidence < min_confidence:
         return {
@@ -137,6 +139,7 @@ def predict_disease(image_bytes: bytes, min_confidence: float = 0.60):
             "confidence": round(confidence, 2),
             "severity": "LOW",
             "treatment": "Diagnosis uncertain — please upload a clearer, well-lit image of the affected leaf before taking action.",
+            "treatment_steps": ["Diagnosis uncertain — please upload a clearer, well-lit image of the affected leaf before taking action."],
             "top_predictions": top_predictions,
             "message": "The image could not be classified reliably with sufficient confidence. Please upload a clear image of the affected leaf."
         }
@@ -150,6 +153,7 @@ def predict_disease(image_bytes: bytes, min_confidence: float = 0.60):
         "confidence": round(confidence, 2),
         "severity": treatment_info.get("severity", "LOW"),
         "treatment": treatment_str,
+        "treatment_steps": raw_steps,
         "top_predictions": top_predictions,
         "message": "Leaf diagnosis completed successfully."
     }

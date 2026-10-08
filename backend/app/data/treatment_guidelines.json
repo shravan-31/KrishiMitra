@@ -1,211 +1,652 @@
 {
   "_meta": {
-    "source": "Compiled from public agricultural extension service guidelines (ICAR, TNAU, KVK)",
-    "disclaimer": "These are general guidance references. Always consult local agricultural extension officers for region-specific recommendations.",
-    "version": "1.0"
+    "source": "Compiled from public agricultural extension service guidelines (ICAR, TNAU, KVK, USDA-ARS)",
+    "disclaimer": "These are clinical reference guidelines. Follow local agricultural extension rules and product label instructions for exact pesticide rates.",
+    "version": "2.0",
+    "total_classes": 38
   },
   "treatments": {
-    "Tomato___Late_blight": {
-      "disease": "Late Blight",
-      "crop": "Tomato",
+    "Apple___Apple_scab": {
+      "disease": "Apple Scab",
+      "crop": "Apple",
       "severity_guidance": {
-        "LOW": "Remove and destroy affected leaves. Improve air circulation.",
-        "MEDIUM": "Apply copper-based fungicide (Bordeaux mixture 1%). Remove severely affected parts.",
-        "HIGH": "Apply systemic fungicide (Metalaxyl-based, consult local extension). Remove and burn affected plants."
+        "LOW": "Remove and destroy fallen leaves. Prune canopy to promote rapid drying. Monitor new leaves weekly.",
+        "MEDIUM": "Apply protectant fungicide: Mancozeb 75 WP @ 2.5g/L or Captan 50 WP @ 2g/L at 10-14 day intervals during wet periods.",
+        "HIGH": "Apply systemic curative fungicide: Difenoconazole 25 EC @ 0.5ml/L or Myclobutanil 10 WP @ 0.5g/L. Remove severely infected twigs and fruit."
       },
       "cultural_practices": [
-        "Avoid overhead irrigation",
-        "Ensure proper plant spacing for air circulation",
-        "Remove plant debris after harvest",
-        "Rotate crops — avoid planting Solanaceae in the same field for 2-3 years"
+        "Rake and destroy fallen leaves in autumn or apply 5% urea spray to speed leaf decomposition",
+        "Prune trees annually to maintain open center canopy for maximum sun and airflow",
+        "Plant scab-resistant cultivars (e.g., Liberty, Prima, Enterprise) in new plantings",
+        "Avoid overhead irrigation; use drip or under-tree micro-sprinklers"
       ],
       "follow_up_days": 7,
-      "monitoring_note": "Re-scan affected plants after 7 days to track progression."
+      "monitoring_note": "Re-scan new terminal leaves after 7 days to verify no olive-green fungal lesions appear."
     },
-    "Tomato___Early_blight": {
-      "disease": "Early Blight",
-      "crop": "Tomato",
+    "Apple___Black_rot": {
+      "disease": "Black Rot",
+      "crop": "Apple",
       "severity_guidance": {
-        "LOW": "Remove lower affected leaves. Mulch around base to prevent splash-back.",
-        "MEDIUM": "Apply Mancozeb-based fungicide as per label dosage. Improve drainage.",
-        "HIGH": "Apply combination fungicide treatment. Remove severely affected plants."
+        "LOW": "Prune out dead shoots and mummified fruits. Disinfect shears with 70% ethanol between cuts.",
+        "MEDIUM": "Apply Captan 50 WP @ 2.5g/L or Thiophanate-methyl 70 WP @ 1g/L every 10 to 14 days from petal fall.",
+        "HIGH": "Aggressively cut back cankered limbs at least 15 cm below infected tissue. Burn infected wood immediately. Apply protective copper fungicide."
       },
       "cultural_practices": [
-        "Mulch around plants to prevent soil splash",
-        "Water at base, avoid wetting foliage",
-        "Stake plants for better air circulation",
-        "Remove infected plant debris"
-      ],
-      "follow_up_days": 7,
-      "monitoring_note": "Re-scan affected plants after 7 days."
-    },
-    "Tomato___Septoria_leaf_spot": {
-      "disease": "Septoria Leaf Spot",
-      "crop": "Tomato",
-      "severity_guidance": {
-        "LOW": "Remove affected lower leaves. Improve air circulation.",
-        "MEDIUM": "Apply chlorothalonil or copper-based fungicide as per label.",
-        "HIGH": "Intensive fungicide program. Remove heavily infected plants."
-      },
-      "cultural_practices": [
-        "Avoid working with wet plants",
-        "Remove infected leaves immediately",
-        "Use drip irrigation",
-        "Crop rotation (2-3 year cycle)"
-      ],
-      "follow_up_days": 7,
-      "monitoring_note": "Re-scan after 7 days."
-    },
-    "Tomato___Bacterial_spot": {
-      "disease": "Bacterial Spot",
-      "crop": "Tomato",
-      "severity_guidance": {
-        "LOW": "Remove affected leaves. Avoid overhead watering.",
-        "MEDIUM": "Apply copper-based bactericide. Use disease-free seeds for next planting.",
-        "HIGH": "Copper + mancozeb combination spray. Remove severely affected plants."
-      },
-      "cultural_practices": [
-        "Use certified disease-free transplants",
-        "Avoid handling plants when wet",
-        "Sanitize tools between plants",
-        "Hot-water seed treatment before planting"
+        "Remove all mummified apples hanging on trees or lying on ground before winter",
+        "Prune dead twigs, fire blight strikes, and winter-injured wood which harbor fungal spores",
+        "Prevent mechanical bark injury and insect damage that provide fungal entry sites"
       ],
       "follow_up_days": 10,
-      "monitoring_note": "Bacterial diseases are harder to control. Re-scan after 10 days."
+      "monitoring_note": "Inspect branch bark and fruit clusters for black pycnidia pustules after 10 days."
     },
-    "Tomato___Leaf_Mold": {
-      "disease": "Leaf Mold",
-      "crop": "Tomato",
+    "Apple___Cedar_apple_rust": {
+      "disease": "Cedar Apple Rust",
+      "crop": "Apple",
       "severity_guidance": {
-        "LOW": "Increase ventilation. Remove affected leaves.",
-        "MEDIUM": "Apply chlorothalonil-based fungicide. Reduce humidity.",
-        "HIGH": "Intensive ventilation + fungicide treatment."
+        "LOW": "Inspect nearby Juniper/Cedar trees. Prune out cedar rust galls within 500m radius if feasible.",
+        "MEDIUM": "Spray Myclobutanil 10 WP @ 0.5g/L or Mancozeb 75 WP @ 2g/L at pink bud through petal fall.",
+        "HIGH": "Apply sterol inhibitor fungicide (Difenoconazole 25 EC @ 0.5ml/L) immediately to stop aecia spore formation. Repeat in 10 days."
       },
       "cultural_practices": [
-        "Improve greenhouse ventilation",
-        "Reduce leaf wetness duration",
-        "Avoid overcrowding plants",
-        "Use resistant varieties"
+        "Remove red cedar and ornamental juniper hosts near the orchard boundary",
+        "Plant rust-resistant apple varieties (e.g., Freedom, Liberty, Redfree)",
+        "Schedule preventive sprays during spring rainy spells when galls produce spore horns"
+      ],
+      "follow_up_days": 8,
+      "monitoring_note": "Check upper leaf surfaces for bright yellow-orange spots with dark dots."
+    },
+    "Apple___healthy": {
+      "disease": "Healthy Plant",
+      "crop": "Apple",
+      "severity_guidance": {
+        "LOW": "Canopy is vigorous and disease-free. Maintain routine balanced nutrition and orchard sanitation.",
+        "MEDIUM": "Optimal health. Continue preventive dormant oil and copper sanitation spray schedule.",
+        "HIGH": "Excellent condition. Maintain regular scouting during rainy vegetative flushes."
+      },
+      "cultural_practices": [
+        "Maintain clean tree basins free of weed competition",
+        "Apply balanced NPK with micronutrients (Boron, Zinc) based on annual soil analysis",
+        "Ensure adequate mulch and regulated irrigation during fruit sizing"
+      ],
+      "follow_up_days": 21,
+      "monitoring_note": "Routine scouting in 3 weeks or after significant rain events."
+    },
+    "Blueberry___healthy": {
+      "disease": "Healthy Plant",
+      "crop": "Blueberry",
+      "severity_guidance": {
+        "LOW": "Foliage is green and healthy. Maintain soil acidity (pH 4.5-5.2) and organic mulch depth.",
+        "MEDIUM": "Healthy. Continue regular acid-loving fertilization (ammonium sulfate).",
+        "HIGH": "Vigorous growth. Monitor drip lines for uniform moisture distribution."
+      },
+      "cultural_practices": [
+        "Maintain 8-10 cm pine bark or acidic organic mulch around root zones",
+        "Keep soil pH strictly between 4.5 and 5.5 using elemental sulfur if necessary",
+        "Irrigate with clean, low-salinity water to avoid iron chlorosis"
+      ],
+      "follow_up_days": 21,
+      "monitoring_note": "Regular inspection in 3 weeks to ensure no cane blight or leaf scorch."
+    },
+    "Cherry_(including_sour)___Powdery_mildew": {
+      "disease": "Powdery Mildew",
+      "crop": "Cherry",
+      "severity_guidance": {
+        "LOW": "Prune out water sprouts and lower dense foliage to enhance sun penetration and air circulation.",
+        "MEDIUM": "Apply Wettable Sulfur 80 WP @ 3g/L or Potassium bicarbonate 5g/L early morning at first appearance.",
+        "HIGH": "Apply systemic fungicide: Trifloxystrobin + Tebuconazole @ 0.75ml/L or Myclobutanil @ 0.5ml/L. Repeat in 10 days."
+      },
+      "cultural_practices": [
+        "Avoid overhead irrigation; keep foliage dry particularly during evenings",
+        "Avoid excess nitrogen fertilization which triggers succulent susceptible growth flushes",
+        "Prune for open canopy to maximize interior tree sunlight exposure"
       ],
       "follow_up_days": 7,
-      "monitoring_note": "Re-scan after 7 days."
+      "monitoring_note": "Check younger shoots and leaf undersides for powdery white mycelial coating."
     },
-    "Potato___Late_blight": {
-      "disease": "Late Blight",
-      "crop": "Potato",
+    "Cherry_(including_sour)___healthy": {
+      "disease": "Healthy Plant",
+      "crop": "Cherry",
       "severity_guidance": {
-        "LOW": "Scout regularly. Remove affected leaves.",
-        "MEDIUM": "Apply Mancozeb or copper fungicide preventively.",
-        "HIGH": "Apply Metalaxyl + Mancozeb combination. Destroy severely infected tubers."
+        "LOW": "Leaves show vibrant deep green without spot or mildew signs. Maintain regular orchard care.",
+        "MEDIUM": "Vigorous tree. Ensure balanced post-harvest nutrition and trunk borer protection.",
+        "HIGH": "Excellent tree health. Maintain good orchard floor management."
       },
       "cultural_practices": [
-        "Plant certified disease-free seed potatoes",
-        "Hill soil around plants",
-        "Destroy volunteer potato plants",
-        "Harvest on dry days"
+        "Ensure proper drip irrigation during fruit set and development",
+        "Sanitize dropped fruit and dead twigs to prevent monilinia brown rot buildup",
+        "Monitor orchard boundaries for aphid and fruit fly vectors"
       ],
-      "follow_up_days": 5,
-      "monitoring_note": "Late blight spreads rapidly. Re-scan within 5 days."
+      "follow_up_days": 21,
+      "monitoring_note": "Routine visual inspection in 21 days."
     },
-    "Potato___Early_blight": {
-      "disease": "Early Blight",
-      "crop": "Potato",
+    "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot": {
+      "disease": "Gray Leaf Spot",
+      "crop": "Corn (Maize)",
       "severity_guidance": {
-        "LOW": "Remove lower affected leaves. Maintain adequate fertilization.",
-        "MEDIUM": "Apply Mancozeb-based fungicide.",
-        "HIGH": "Intensive fungicide program with rotation of active ingredients."
+        "LOW": "Monitor lesions on lower leaves before tasseling. Lesions are rectangular and vein-bounded.",
+        "MEDIUM": "Apply foliar fungicide: Azoxystrobin 18.2% + Difenoconazole 11.4% SC @ 1ml/L at early silking stage.",
+        "HIGH": "Apply Pyraclostrobin + Fluxapyroxad @ 1ml/L. If disease reaches ear leaf prior to dough stage, spray immediately."
       },
       "cultural_practices": [
-        "Maintain adequate nitrogen and potassium",
-        "Proper irrigation management",
-        "Crop rotation (3 year)",
-        "Use resistant varieties"
+        "Rotate fields away from corn for at least 1-2 seasons to break residue-borne inoculum",
+        "Deep till crop residue into soil after harvest to accelerate decomposition of fungal stroma",
+        "Plant high-yielding resistant or tolerant hybrid varieties suited to your agro-zone",
+        "Maintain balanced potassium nutrition to strengthen stalk and leaf cuticle"
       ],
-      "follow_up_days": 7,
-      "monitoring_note": "Re-scan after 7 days."
+      "follow_up_days": 10,
+      "monitoring_note": "Check ear leaf and leaves above ear for expansion of rectangular gray lesions."
+    },
+    "Corn_(maize)___Common_rust_": {
+      "disease": "Common Rust",
+      "crop": "Corn (Maize)",
+      "severity_guidance": {
+        "LOW": "Few cinnamon-brown pustules on lower leaves; usually economic threshold not reached. Monitor weekly.",
+        "MEDIUM": "Apply Mancozeb 75 WP @ 2.5g/L or Propiconazole 25 EC @ 1ml/L if pustules spread before tasseling.",
+        "HIGH": "Apply Azoxystrobin + Propiconazole combination @ 1ml/L. Ensure full coverage on upper canopy."
+      },
+      "cultural_practices": [
+        "Select hybrids with Rp gene-mediated resistance to Puccinia sorghi",
+        "Plant early in the season to evade peak rust spore showers carried by southern winds",
+        "Avoid excessive nitrogen applications that delay crop maturity and increase susceptibility"
+      ],
+      "follow_up_days": 10,
+      "monitoring_note": "Re-scan upper canopy leaves for powdery cinnamon-brown pustules on both leaf surfaces."
+    },
+    "Corn_(maize)___Northern_Leaf_Blight": {
+      "disease": "Northern Leaf Blight",
+      "crop": "Corn (Maize)",
+      "severity_guidance": {
+        "LOW": "Monitor long cigar-shaped grayish-green lesions on bottom leaves. Disease favored by humid 18-27°C weather.",
+        "MEDIUM": "Apply Mancozeb 75 WP @ 2.5g/L or Tebuconazole 250 EC @ 1ml/L if lesions appear 2 weeks before silking.",
+        "HIGH": "Apply Strobilurin + Triazole combination (e.g. Azoxystrobin 200 g/l + Cyproconazole 80 g/l) @ 1ml/L."
+      },
+      "cultural_practices": [
+        "Use multi-race resistant corn hybrids with Ht gene resistance",
+        "Rotate with non-host crops like soybean, peanut, or sunflower for at least 1 year",
+        "Plow under corn stubble post-harvest to reduce overwintering conidia survival"
+      ],
+      "follow_up_days": 10,
+      "monitoring_note": "Check for development of olive-black fungal spores inside the cigar-shaped lesions."
+    },
+    "Corn_(maize)___healthy": {
+      "disease": "Healthy Plant",
+      "crop": "Corn (Maize)",
+      "severity_guidance": {
+        "LOW": "Crop shows vigorous dark green vegetative growth without leaf lesions or blight streaks.",
+        "MEDIUM": "Excellent vegetative stand. Ensure critical moisture during tasseling and silking stages.",
+        "HIGH": "Optimal crop condition. Maintain balanced topdressing with urea and zinc sulfate."
+      },
+      "cultural_practices": [
+        "Maintain weed-free conditions during early 30-45 days crop vegetative stage",
+        "Apply split nitrogen doses (basal, knee-high, and tasseling stages)",
+        "Scout for Fall Armyworm (Spodoptera frugiperda) whorl damage regularly"
+      ],
+      "follow_up_days": 14,
+      "monitoring_note": "Inspect during tasseling stage for any sudden rust or blight development."
     },
     "Grape___Black_rot": {
       "disease": "Black Rot",
       "crop": "Grape",
       "severity_guidance": {
-        "LOW": "Remove mummified berries. Prune for air circulation.",
-        "MEDIUM": "Apply Mancozeb-based fungicide before bloom. Remove affected clusters.",
-        "HIGH": "Intensive fungicide program from bud break. Remove all infected material."
+        "LOW": "Remove dried mummified berries from vines. Prune lower shoots for air circulation.",
+        "MEDIUM": "Apply Mancozeb 75 WP @ 2.5g/L or Captan 50 WP @ 2g/L before and immediately after bloom.",
+        "HIGH": "Apply Myclobutanil 10 WP @ 0.5g/L or Kresoxim-methyl 44.3 SC @ 0.6ml/L. Remove all infected clusters."
       },
       "cultural_practices": [
-        "Remove mummified fruit from vines and ground",
-        "Prune for open canopy",
-        "Destroy infected debris",
-        "Timely fungicide application before bloom"
+        "Thoroughly collect and destroy all mummified berries from vine cordons and trellis floor",
+        "Canopy management: Shoot thinning, leaf pulling around fruiting zones to improve spray coverage",
+        "Mow vineyard ground cover to reduce relative humidity inside vine microclimate"
       ],
-      "follow_up_days": 10,
-      "monitoring_note": "Re-scan after 10 days."
+      "follow_up_days": 7,
+      "monitoring_note": "Inspect young berry clusters and young leaves for circular brown spots with dark margins."
     },
-    "Apple___Apple_scab": {
-      "disease": "Apple Scab",
-      "crop": "Apple",
+    "Grape___Esca_(Black_Measles)": {
+      "disease": "Esca (Black Measles / Trunk Disease)",
+      "crop": "Grape",
       "severity_guidance": {
-        "LOW": "Remove fallen leaves. Monitor new growth.",
-        "MEDIUM": "Apply protectant fungicide during wet periods.",
-        "HIGH": "Intensive spray program. Remove severely affected fruit."
+        "LOW": "Tag symptomatic vines displaying tiger-stripe leaf interveinal chlorosis. Prune tagged vines last.",
+        "MEDIUM": "Disinfect all pruning cuts immediately with wound sealant containing copper or pyraclostrobin.",
+        "HIGH": "Trunk surgery: cut trunk below fungal white-rot spongy wood. If systemic, uproot and burn vine."
       },
       "cultural_practices": [
-        "Rake and destroy fallen leaves in autumn",
-        "Prune for air circulation",
-        "Use scab-resistant varieties",
-        "Apply urea to fallen leaves to speed decomposition"
-      ],
-      "follow_up_days": 10,
-      "monitoring_note": "Re-scan after 10 days."
-    },
-    "Corn_(Maize)___Northern_Leaf_Blight": {
-      "disease": "Northern Leaf Blight",
-      "crop": "Corn",
-      "severity_guidance": {
-        "LOW": "Monitor progression. Usually manageable.",
-        "MEDIUM": "Apply foliar fungicide if in early growth stages.",
-        "HIGH": "Apply strobilurin or triazole-based fungicide. Consider yield impact."
-      },
-      "cultural_practices": [
-        "Use resistant hybrids",
-        "Rotate crops away from corn",
-        "Till under crop debris",
-        "Plant at recommended density"
+        "Delay annual pruning until late winter when vine wound healing is faster and spore release is minimal",
+        "Never prune vines during rain or high humidity events",
+        "Sterilize pruning shears between vines with 70% alcohol or 10% sodium hypochlorite solution",
+        "Paint all large cuts (>2 cm diameter) with antifungal protective paste"
       ],
       "follow_up_days": 14,
-      "monitoring_note": "Re-scan after 14 days."
+      "monitoring_note": "Monitor foliage for tiger-stripe pattern and berries for small dark measles spots."
     },
-    "Corn_(Maize)___Common_rust_": {
-      "disease": "Common Rust",
-      "crop": "Corn",
+    "Grape___Leaf_blight_(Isariopsis_Leaf_Spot)": {
+      "disease": "Leaf Blight (Isariopsis Clavispora Spot)",
+      "crop": "Grape",
       "severity_guidance": {
-        "LOW": "Usually no treatment needed. Monitor.",
-        "MEDIUM": "Apply foliar fungicide if before tasseling.",
-        "HIGH": "Apply triazole-based fungicide."
+        "LOW": "Remove early infected leaves showing brown angular spots. Increase canopy air movement.",
+        "MEDIUM": "Spray Mancozeb 75 WP @ 2.5g/L or Copper Oxychloride 50 WP @ 3g/L. Repeat in 10-12 days.",
+        "HIGH": "Apply Difenoconazole 25 EC @ 0.5ml/L or Azoxystrobin 23 SC @ 1ml/L. Ensure both leaf surfaces are wetted."
       },
       "cultural_practices": [
-        "Plant resistant hybrids",
-        "Early planting where appropriate",
-        "Monitor regularly during humid conditions"
+        "Prune to eliminate canopy overcrowding and ensure rapid drying of dew on leaves",
+        "Collect fallen diseased leaves and burn or bury in deep trenches",
+        "Avoid excessive vegetative vigor through controlled nitrogen fertilization"
+      ],
+      "follow_up_days": 8,
+      "monitoring_note": "Re-scan leaf undersides for dark brown to black velvety fungal spore tufts."
+    },
+    "Grape___healthy": {
+      "disease": "Healthy Plant",
+      "crop": "Grape",
+      "severity_guidance": {
+        "LOW": "Vine foliage is clean, vigorous, and free from spots, mildew, or chlorosis.",
+        "MEDIUM": "Excellent canopy health. Maintain trellis positioning and shoot tucking.",
+        "HIGH": "Healthy vines. Maintain regulated deficit irrigation (RDI) for wine or table grape quality."
+      },
+      "cultural_practices": [
+        "Regular shoot positioning, leaf removal around clusters, and canopy management",
+        "Maintain balanced potassium and magnesium nutrition to prevent bunch stem necrosis",
+        "Scout weekly for downy mildew and powdery mildew during humid weather"
       ],
       "follow_up_days": 14,
-      "monitoring_note": "Re-scan after 14 days."
+      "monitoring_note": "Routine vineyard scout in 14 days."
+    },
+    "Orange___Haunglongbing_(Citrus_greening)": {
+      "disease": "Citrus Greening (Huanglongbing - HLB)",
+      "crop": "Orange / Citrus",
+      "severity_guidance": {
+        "LOW": "Isolate affected tree. Scout for Asian Citrus Psyllid (Diaphorina citri) vectors on tender young flushes.",
+        "MEDIUM": "Control psyllid vectors immediately: Spray Imidacloprid 17.8 SL @ 0.5ml/L or Thiamethoxam 25 WG @ 0.3g/L.",
+        "HIGH": "HLB is incurable. Remove and burn confirmed positive trees to stop spread to orchard. Spray psyllid insecticide before tree removal."
+      },
+      "cultural_practices": [
+        "Plant only certified disease-free, tested budwood stock from registered insect-proof nurseries",
+        "Deploy yellow sticky traps (10 per acre) to detect and monitor psyllid populations",
+        "Apply foliar micronutrient cocktail (Zinc, Manganese, Iron) to support declining tree vigor",
+        "Maintain orchard weed sanitation and remove alternate hosts like Murraya paniculata (orange jasmine)"
+      ],
+      "follow_up_days": 7,
+      "monitoring_note": "Check new flush shoots for asymmetric blotchy mottle on leaves and psyllid nymphs."
+    },
+    "Peach___Bacterial_spot": {
+      "disease": "Bacterial Spot (Xanthomonas arboricola)",
+      "crop": "Peach",
+      "severity_guidance": {
+        "LOW": "Remove infected shoots. Avoid overhead irrigation and minimize wind-blown dust abrasion.",
+        "MEDIUM": "Apply Copper hydroxide @ 1.5g/L or Copper octanoate during dormant and petal fall stages at low rates to avoid phytotoxicity.",
+        "HIGH": "Apply Oxytetracycline (Mycoshield) @ 1.5g/L every 7 days during warm rainy periods from shuck split."
+      },
+      "cultural_practices": [
+        "Plant tolerant cultivars (e.g., Candor, Dixired, Redhaven) and avoid highly susceptible varieties",
+        "Plant windbreaks around the orchard perimeter to prevent blowing sand abrasive injury",
+        "Avoid excessive nitrogen fertilization which prolongs succulent vegetative growth"
+      ],
+      "follow_up_days": 7,
+      "monitoring_note": "Inspect young leaves for small angular water-soaked spots that drop out creating 'shot-hole' effect."
+    },
+    "Peach___healthy": {
+      "disease": "Healthy Plant",
+      "crop": "Peach",
+      "severity_guidance": {
+        "LOW": "Leaves are broad, lustrous green, and free of leaf curl, shot-hole, or bacterial spots.",
+        "MEDIUM": "Vigorous tree. Maintain summer pruning for sunlight penetration to lower fruiting wood.",
+        "HIGH": "Optimal tree health. Ensure uniform irrigation during stone hardening and fruit swell."
+      },
+      "cultural_practices": [
+        "Annual pruning to vase shape for optimal interior air and light penetration",
+        "Maintain weed-free ring with organic mulch around the trunk drip line",
+        "Apply dormant copper-oil spray before bud swell to prevent peach leaf curl"
+      ],
+      "follow_up_days": 21,
+      "monitoring_note": "Routine inspection in 21 days."
+    },
+    "Pepper,_bell___Bacterial_spot": {
+      "disease": "Bacterial Spot (Xanthomonas)",
+      "crop": "Pepper (Bell Pepper / Capsicum)",
+      "severity_guidance": {
+        "LOW": "Remove and discard lower infected leaves. Disinfect hands and tools before touching healthy plants.",
+        "MEDIUM": "Apply Copper Hydroxide 77 WP @ 2g/L combined with Mancozeb 75 WP @ 2g/L every 7 days (copper-mancozeb tank mix overcomes copper resistance).",
+        "HIGH": "Apply Kasugamycin 3% SL @ 2ml/L or Streptomycin Sulfate (bactericide) @ 0.5g/L. Avoid handling plants when foliage is damp."
+      },
+      "cultural_practices": [
+        "Use only certified hot-water treated pathogen-free pepper seeds and healthy nursery transplants",
+        "Use drip irrigation exclusively — never use overhead sprinklers which spread bacteria",
+        "Practice 2-3 year crop rotation away from solanaceous crops (tomato, potato, eggplant)",
+        "Clean stakes and trellis wires with 10% bleach solution between crop cycles"
+      ],
+      "follow_up_days": 6,
+      "monitoring_note": "Re-scan within 6 days. Inspect new leaves for water-soaked spots turning dark with yellow halos."
+    },
+    "Pepper,_bell___healthy": {
+      "disease": "Healthy Plant",
+      "crop": "Pepper (Bell Pepper / Capsicum)",
+      "severity_guidance": {
+        "LOW": "Foliage is dark green, turgid, and robust with no necrotic lesions or mosaic mottling.",
+        "MEDIUM": "Vigorous stand. Maintain regular calcium feeding to prevent blossom end rot in developing peppers.",
+        "HIGH": "Excellent crop condition. Continue regular scouting for thrips, mites, and aphids."
+      },
+      "cultural_practices": [
+        "Maintain uniform soil moisture using plastic mulch and drip fertigation",
+        "Apply calcium nitrate fertigation during active fruit set to prevent calcium deficiency",
+        "Stake plants to keep branches and developing fruit off wet soil"
+      ],
+      "follow_up_days": 14,
+      "monitoring_note": "Routine scouting in 14 days."
+    },
+    "Potato___Early_blight": {
+      "disease": "Early Blight (Alternaria solani)",
+      "crop": "Potato",
+      "severity_guidance": {
+        "LOW": "Targeted spot removal on bottom leaves. Improve potassium fertilization to boost plant vigor.",
+        "MEDIUM": "Apply Mancozeb 75 WP @ 2.5g/L or Chlorothalonil 75 WP @ 2g/L every 7-10 days.",
+        "HIGH": "Apply systemic curative fungicide: Azoxystrobin + Difenoconazole @ 1ml/L or Pyraclostrobin @ 1ml/L. Ensure thorough under-leaf coverage."
+      },
+      "cultural_practices": [
+        "Plant certified, disease-free seed tubers with balanced fertilization (avoid nitrogen deficit)",
+        "Hill soil adequately around stems to protect tubers from spore wash-down",
+        "Schedule irrigation in early morning so foliage dries rapidly under sunlight",
+        "Rotate fields on a 3-year cycle with non-host crops like cereals or legumes"
+      ],
+      "follow_up_days": 7,
+      "monitoring_note": "Check concentric 'target board' rings in brown spots on middle and lower leaves."
+    },
+    "Potato___Late_blight": {
+      "disease": "Late Blight (Phytophthora infestans)",
+      "crop": "Potato",
+      "severity_guidance": {
+        "LOW": "Preventive action: Spray Mancozeb 75 WP @ 2.5g/L or Chlorothalonil @ 2g/L immediately upon cool, humid weather forecast.",
+        "MEDIUM": "Apply Cymoxanil 8% + Mancozeb 64% WP @ 2.5g/L or Dimethomorph 50 WP @ 1g/L. Destroy infected plant foci.",
+        "HIGH": "EMERGENCY: Apply Metalaxyl 8% + Mancozeb 64% WP @ 2.5g/L or Infinito (Fluopicolide + Propamocarb) @ 1.5ml/L immediately. If widespread near harvest, destroy haulms with Reglone."
+      },
+      "cultural_practices": [
+        "Plant strictly certified disease-free seed tubers; cull out soft or rot-affected tubers before planting",
+        "Destroy all volunteer potatoes and cull piles before the season starts — primary infection source",
+        "Maintain high soil ridges (earthing up) to create at least 10 cm barrier preventing tuber infection",
+        "Do not harvest when vines are wet or green; kill haulms 10-14 days prior to digging tubers"
+      ],
+      "follow_up_days": 4,
+      "monitoring_note": "CRITICAL: Re-scan within 4 days. Look for water-soaked lesions with white mold on leaf undersides."
+    },
+    "Potato___healthy": {
+      "disease": "Healthy Plant",
+      "crop": "Potato",
+      "severity_guidance": {
+        "LOW": "Dense, healthy canopy without leaf lesions, wilting, or yellowing. Tuber initiation proceeding well.",
+        "MEDIUM": "Vigorous crop. Maintain regular earthing up and preventive protective fungicide sprays during cloudy weather.",
+        "HIGH": "Optimal health. Continue balanced potash fertigation to support tuber bulk."
+      },
+      "cultural_practices": [
+        "Maintain thorough earthing up to prevent greening and blight spore exposure to tubers",
+        "Avoid waterlogging in furrows; ensure rapid field drainage",
+        "Scout for aphid vectors of Potato Virus Y (PVY)"
+      ],
+      "follow_up_days": 10,
+      "monitoring_note": "Routine scouting in 10 days."
+    },
+    "Raspberry___healthy": {
+      "disease": "Healthy Plant",
+      "crop": "Raspberry",
+      "severity_guidance": {
+        "LOW": "Canes and foliage are strong, green, and upright without cane blight, spur blight, or rust signs.",
+        "MEDIUM": "Healthy canes. Ensure proper trellis support and wire training.",
+        "HIGH": "Excellent condition. Maintain regular organic mulch and drip watering."
+      },
+      "cultural_practices": [
+        "Prune out spent floricanes right down to the ground immediately after harvest",
+        "Thin primocanes to 4-5 vigorous canes per foot of row to ensure air circulation",
+        "Irrigate at ground level with drip lines to keep berries and foliage dry"
+      ],
+      "follow_up_days": 21,
+      "monitoring_note": "Routine cane inspection in 3 weeks."
+    },
+    "Soybean___healthy": {
+      "disease": "Healthy Plant",
+      "crop": "Soybean",
+      "severity_guidance": {
+        "LOW": "Trifoliate leaves are clean, vibrant green, and nodulation is healthy on root systems.",
+        "MEDIUM": "Vigorous crop canopy. Monitor for pod borers and rust during flowering and pod development.",
+        "HIGH": "Optimal crop health. Maintain adequate soil moisture during R3-R5 reproductive stages."
+      },
+      "cultural_practices": [
+        "Ensure seed inoculation with Rhizobium japonicum before sowing for nitrogen fixation",
+        "Maintain weed-free field conditions during initial 35 days",
+        "Scout regularly for defoliators (Spodoptera litura) and Asian soybean rust"
+      ],
+      "follow_up_days": 14,
+      "monitoring_note": "Routine field scout in 14 days."
+    },
+    "Squash___Powdery_mildew": {
+      "disease": "Powdery Mildew (Podosphaera xanthii)",
+      "crop": "Squash / Pumpkin / Cucurbits",
+      "severity_guidance": {
+        "LOW": "Remove first infected older leaves with white talcum-like spots. Increase plant spacing.",
+        "MEDIUM": "Apply Potassium Bicarbonate @ 4g/L or Wettable Sulfur 80 WP @ 2.5g/L or Neem Oil 0.5% early in the morning.",
+        "HIGH": "Apply systemic fungicide: Myclobutanil 10 WP @ 0.5g/L or Trifloxystrobin @ 0.5g/L. Repeat in 7-10 days."
+      },
+      "cultural_practices": [
+        "Plant powdery mildew-tolerant or resistant squash hybrids (e.g., PMR cultivars)",
+        "Provide wide row spacing (minimum 1.5 - 2 meters between rows) for maximum airflow and sun exposure",
+        "Avoid overhead irrigation; use drip irrigation underneath mulch",
+        "Remove and destroy all crop residues immediately after final harvest"
+      ],
+      "follow_up_days": 7,
+      "monitoring_note": "Re-scan upper and lower leaf surfaces for expanding white powder colonies."
+    },
+    "Strawberry___Leaf_scorch": {
+      "disease": "Leaf Scorch (Diplocarpon earlianum)",
+      "crop": "Strawberry",
+      "severity_guidance": {
+        "LOW": "Remove purple-bordered spotted leaves during runner training. Clear old dead foliage.",
+        "MEDIUM": "Apply Captan 50 WP @ 2g/L or Copper Hydroxide @ 1.5g/L before flowering and after renovation.",
+        "HIGH": "Apply Pyraclostrobin + Boscalid (Pristine) @ 1g/L or Thiophanate-methyl 70 WP @ 1g/L. Repeat in 10 days."
+      },
+      "cultural_practices": [
+        "Plant certified virus- and pathogen-free runner plants on raised beds with drip irrigation",
+        "Mow and renovate strawberry beds after harvest, discarding infected foliage debris",
+        "Avoid excessive nitrogen applications in spring which encourage dense foliage and humidity",
+        "Maintain 25-30 cm plant spacing so leaves dry rapidly each morning"
+      ],
+      "follow_up_days": 8,
+      "monitoring_note": "Inspect leaves for irregular purplish blotches turning brown and scorched around margins."
+    },
+    "Strawberry___healthy": {
+      "disease": "Healthy Plant",
+      "crop": "Strawberry",
+      "severity_guidance": {
+        "LOW": "Crowns and leaves are vigorous, rich green, and productive with healthy white blossom development.",
+        "MEDIUM": "Vigorous crop. Maintain clean black plastic or straw mulch beneath berry clusters.",
+        "HIGH": "Optimal plant health. Ensure steady boron and potassium fertigation during fruiting."
+      },
+      "cultural_practices": [
+        "Keep developing fruit elevated on straw or mulch away from wet soil to prevent leather rot",
+        "Pick ripe fruit promptly and discard any overripe or damaged berries",
+        "Scout for two-spotted spider mites on leaf undersides"
+      ],
+      "follow_up_days": 14,
+      "monitoring_note": "Routine strawberry scouting in 14 days."
+    },
+    "Tomato___Bacterial_spot": {
+      "disease": "Bacterial Spot (Xanthomonas campestris)",
+      "crop": "Tomato",
+      "severity_guidance": {
+        "LOW": "Remove lower infected leaves showing greasy water-soaked specks. Sanitize tools in 70% alcohol.",
+        "MEDIUM": "Apply Copper Hydroxide 77 WP @ 2g/L tank-mixed with Mancozeb 75 WP @ 2g/L every 7 days (the combination synergizes bactericidal copper activity).",
+        "HIGH": "Apply Kasugamycin 3% SL @ 2ml/L or Streptomycin Sulfate @ 0.5g/L. Remove severely diseased plants to save remainder of field."
+      },
+      "cultural_practices": [
+        "Always use certified pathogen-free seeds (hot water treated at 50°C for 25 minutes)",
+        "Never work in tomato fields when leaves are wet from dew or rainfall",
+        "Use drip irrigation; avoid overhead watering that splashes bacteria between plants",
+        "Rotate crops on a 2-3 year cycle avoiding tomato, potato, pepper, and eggplant"
+      ],
+      "follow_up_days": 6,
+      "monitoring_note": "Inspect young leaves and fruit calyx for small water-soaked dark spots with yellow halos."
+    },
+    "Tomato___Early_blight": {
+      "disease": "Early Blight (Alternaria solani)",
+      "crop": "Tomato",
+      "severity_guidance": {
+        "LOW": "Prune off lower 30 cm of leaves touching soil. Apply organic mulch around plant base.",
+        "MEDIUM": "Apply Mancozeb 75 WP @ 2.5g/L or Chlorothalonil 75 WP @ 2g/L every 7-10 days.",
+        "HIGH": "Apply Azoxystrobin 18.2% + Difenoconazole 11.4% SC @ 1ml/L or Pyraclostrobin @ 1ml/L. Spray thoroughly to leaf undersides."
+      },
+      "cultural_practices": [
+        "Stake and prune indeterminate tomatoes to maintain strong upright habit and air circulation",
+        "Mulch with straw or black plastic film to prevent soil-dwelling spores splashing onto lower leaves",
+        "Water at base using drip irrigation; keep foliage dry",
+        "Destroy and remove crop residues after harvest; never compost blighted foliage"
+      ],
+      "follow_up_days": 7,
+      "monitoring_note": "Check concentric target-like rings in brown spots on lower leaves for signs of active spore growth."
+    },
+    "Tomato___Late_blight": {
+      "disease": "Late Blight (Phytophthora infestans)",
+      "crop": "Tomato",
+      "severity_guidance": {
+        "LOW": "Preventive protection: Spray Mancozeb 75 WP @ 2.5g/L or Chlorothalonil 75 WP @ 2g/L immediately when humid, overcast weather is forecast.",
+        "MEDIUM": "Apply Dimethomorph 50 WP @ 1g/L or Cymoxanil 8% + Mancozeb 64% WP @ 2.5g/L. Repeat every 5-7 days under wet conditions.",
+        "HIGH": "EMERGENCY: Apply Metalaxyl 8% + Mancozeb 64% WP @ 2.5g/L or Fluopicolide + Propamocarb (Infinito) @ 1.5ml/L immediately. Rogue out and burn heavily infected plants."
+      },
+      "cultural_practices": [
+        "Avoid planting tomatoes near potato fields (both are major hosts for late blight epidemics)",
+        "Ensure maximum plant spacing (60 cm in row, 90 cm between rows) for quick canopy drying",
+        "Eliminate volunteer tomato and potato plants in and around fields before planting",
+        "Drip irrigate early in the morning so sun evaporates any accidental leaf wetness"
+      ],
+      "follow_up_days": 4,
+      "monitoring_note": "CRITICAL: Re-scan within 4 days. Monitor for rapidly enlarging water-soaked greasy gray-green blotches with white fungal fuzz."
+    },
+    "Tomato___Leaf_Mold": {
+      "disease": "Leaf Mold (Passalora fulva)",
+      "crop": "Tomato",
+      "severity_guidance": {
+        "LOW": "Increase greenhouse ventilation immediately. Lower relative humidity below 85%. Prune bottom foliage.",
+        "MEDIUM": "Apply Copper Oxychloride 50 WP @ 3g/L or Chlorothalonil 75 WP @ 2g/L. Spray underside of leaves thoroughly.",
+        "HIGH": "Apply Difenoconazole 25 EC @ 0.5ml/L or Tebuconazole 250 EC @ 1ml/L. Increase heated ventilation if in polyhouse."
+      },
+      "cultural_practices": [
+        "Maintain active greenhouse ventilation and circulation fans to prevent still, humid air pockets",
+        "Keep temperatures slightly warmer at night to reduce relative humidity",
+        "Prune lower suckers and dense leaves to allow light and air through plant middle",
+        "Use resistant varieties carrying Cf resistance genes (e.g. Cf-9, Cf-11)"
+      ],
+      "follow_up_days": 7,
+      "monitoring_note": "Inspect leaf undersides for velvety olive-green to brown fungal growth directly below pale yellow upper patches."
+    },
+    "Tomato___Septoria_leaf_spot": {
+      "disease": "Septoria Leaf Spot (Septoria lycopersici)",
+      "crop": "Tomato",
+      "severity_guidance": {
+        "LOW": "Remove infected lower leaves promptly. Mulch bare soil around root zone.",
+        "MEDIUM": "Apply Mancozeb 75 WP @ 2.5g/L or Chlorothalonil 75 WP @ 2g/L every 7 days during warm, rainy weather.",
+        "HIGH": "Apply Azoxystrobin 23 SC @ 1ml/L or Copper Hydroxide @ 2g/L tank-mixed with Mancozeb @ 2g/L. Prune infected stems."
+      },
+      "cultural_practices": [
+        "Mulch heavily around tomato base to prevent rain splash of fungal spores from soil",
+        "Stake plants vertically and remove suckers up to first fruit cluster",
+        "Practice 3-year crop rotation without solanaceous crops",
+        "Do not work in wet tomato rows to avoid mechanically transferring spores on clothing and tools"
+      ],
+      "follow_up_days": 7,
+      "monitoring_note": "Check for small circular spots (2-3mm) with gray centers and tiny black pycnidia speckles."
+    },
+    "Tomato___Spider_mites Two-spotted_spider_mite": {
+      "disease": "Two-Spotted Spider Mites (Tetranychus urticae)",
+      "crop": "Tomato",
+      "severity_guidance": {
+        "LOW": "Apply strong water jet to undersides of leaves to knock down mite colonies. Spray Neem Oil 0.5% solution.",
+        "MEDIUM": "Apply Spiromesifen 22.9 SC @ 1ml/L or Propargite 57 EC @ 2ml/L. Release predatory mites (Phytoseiulus persimilis).",
+        "HIGH": "Apply Abamectin 1.8 EC @ 0.5ml/L or Fenpyroximate 5 EC @ 1ml/L. Wet leaf undersides completely where webbing is dense."
+      },
+      "cultural_practices": [
+        "Avoid water stress — spider mites thrive and reproduce exponentially under hot, dry, dusty conditions",
+        "Wash perimeter dirt roads with water or establish windbreak vegetation to reduce dust buildup on leaves",
+        "Avoid broad-spectrum synthetic pyrethroids which kill beneficial predatory mites and cause mite resurgence",
+        "Destroy heavily infested plants at end of season to avoid overwintering"
+      ],
+      "follow_up_days": 5,
+      "monitoring_note": "Examine leaf undersides with a hand lens for tiny moving mites, yellow stippling, and fine silken webs."
+    },
+    "Tomato___Target_Spot": {
+      "disease": "Target Spot (Corynespora cassiicola)",
+      "crop": "Tomato",
+      "severity_guidance": {
+        "LOW": "Prune out diseased leaves from lower canopy. Ensure plants are staked and trellised.",
+        "MEDIUM": "Apply Chlorothalonil 75 WP @ 2g/L or Mancozeb 75 WP @ 2.5g/L at first sign of lesions.",
+        "HIGH": "Apply Azoxystrobin 23 SC @ 1ml/L or Fluxapyroxad + Pyraclostrobin @ 0.8ml/L. Reapply every 7-10 days."
+      },
+      "cultural_practices": [
+        "Maintain generous plant spacing for rapid air drying throughout the canopy",
+        "Eliminate solanaceous weeds and volunteer crops that harbor Corynespora fungus",
+        "Apply balanced nitrogen; avoid excessive vegetative canopy shading",
+        "Remove all plant debris and deep-plow after harvest"
+      ],
+      "follow_up_days": 7,
+      "monitoring_note": "Check for brown circular lesions with concentric rings and faint yellow halos on leaves, stems, and green fruit."
+    },
+    "Tomato___Tomato_Yellow_Leaf_Curl_Virus": {
+      "disease": "Tomato Yellow Leaf Curl Virus (TYLCV)",
+      "crop": "Tomato",
+      "severity_guidance": {
+        "LOW": "Virus has no chemical cure. Immediately rogue out and bag infected plants displaying upward leaf cupping and stunting.",
+        "MEDIUM": "Control vector Whitefly (Bemisia tabaci): Spray Imidacloprid 17.8 SL @ 0.5ml/L or Thiamethoxam 25 WG @ 0.3g/L or Spirotetramat @ 1ml/L.",
+        "HIGH": "Deploy silver reflective mulch to repel whiteflies. Spray Acetamiprid 20 SP @ 0.5g/L. Rogue out all symptomatic plants immediately."
+      },
+      "cultural_practices": [
+        "Plant certified TYLCV-resistant hybrids (e.g. Ty-1, Ty-2, Ty-3 gene varieties like US-440, Abhinav)",
+        "Use 40-50 mesh insect-proof netting in seedling nursery tunnels to produce 100% virus-free transplants",
+        "Deploy yellow sticky traps (15-20 traps per acre) at canopy height to monitor and capture adult whiteflies",
+        "Maintain a host-free fallow period or non-host barrier between tomato cycles"
+      ],
+      "follow_up_days": 5,
+      "monitoring_note": "Inspect apical growing tips for yellowing, reduction in leaf size, and upward cup-shaped curled leaflets."
+    },
+    "Tomato___Tomato_mosaic_virus": {
+      "disease": "Tomato Mosaic Virus (ToMV)",
+      "crop": "Tomato",
+      "severity_guidance": {
+        "LOW": "Virus is incurable and mechanically transmitted. Rogue out and burn infected plants. Wash hands with 20% skim milk or soap.",
+        "MEDIUM": "Disinfect all stakes, pruning knives, and trellis clips with 10% trisodium phosphate (TSP) or household bleach.",
+        "HIGH": "Isolate the row. Instruct workers not to touch healthy plants after handling infected areas. Control chewing and sap-sucking pests."
+      },
+      "cultural_practices": [
+        "Plant certified mosaic-resistant tomato varieties (designated with 'Tm-2' or 'ToMV' resistance)",
+        "Soak seeds in 10% trisodium phosphate (TSP) for 30 minutes before sowing if using farm-saved seed",
+        "Prohibit tobacco use near tomatoes — workers smoking or using tobacco must wash hands thoroughly before touching crops",
+        "Rotate fields out of tomatoes and peppers for 2 years"
+      ],
+      "follow_up_days": 7,
+      "monitoring_note": "Look for light and dark green mosaic patterns on leaves, fern-leaf distortion, and internal brown fruit browning."
+    },
+    "Tomato___healthy": {
+      "disease": "Healthy Plant",
+      "crop": "Tomato",
+      "severity_guidance": {
+        "LOW": "Vigorous, dark green foliage with healthy blossoms and balanced fruit set. Zero symptoms of blight or virus.",
+        "MEDIUM": "Optimal crop health. Continue preventive bio-fungicide (Trichoderma / Bacillus subtilis) root drench.",
+        "HIGH": "Excellent condition. Maintain balanced NPK + calcium nitrate fertigation to prevent blossom end rot."
+      },
+      "cultural_practices": [
+        "Ensure uniform soil moisture to avoid fruit cracking and blossom-end calcium disorders",
+        "Maintain weekly trellis tying and sucker pruning on indeterminate varieties",
+        "Scout foliage weekly for early signs of leaf miner, pinworm, or blight"
+      ],
+      "follow_up_days": 14,
+      "monitoring_note": "Routine crop scouting in 14 days."
     }
   },
   "default_treatment": {
     "severity_guidance": {
-      "LOW": "Remove affected plant parts. Improve growing conditions and air circulation.",
-      "MEDIUM": "Apply appropriate fungicide or pesticide as per label. Consult local extension office.",
-      "HIGH": "Seek advice from a local agricultural extension officer for targeted treatment."
+      "LOW": "Isolate affected plant area. Remove and safely dispose of spotted or symptomatic leaves. Improve air movement and sunshine exposure.",
+      "MEDIUM": "Apply protective broad-spectrum bio-fungicide or copper-based spray (Copper Oxychloride @ 2.5g/L or Mancozeb @ 2g/L). Consult your local Krishi Vigyan Kendra (KVK).",
+      "HIGH": "Consult your local Agricultural Extension Officer or block agriculture department for targeted systemic pesticide recommendations."
     },
     "cultural_practices": [
-      "Remove and destroy affected plant material",
-      "Improve air circulation around plants",
-      "Avoid overhead irrigation",
-      "Practice crop rotation",
-      "Consult local agricultural extension services"
+      "Remove and destroy severely affected plant material (do not compost diseased parts)",
+      "Water at root level using drip irrigation; keep foliage dry",
+      "Improve spacing and trellis support for maximum airflow",
+      "Rotate crops away from the host plant family for at least 2 consecutive seasons",
+      "Maintain clean agricultural tools disinfected with 70% alcohol or 10% bleach"
     ],
     "follow_up_days": 7,
-    "monitoring_note": "Re-scan affected plants after 7 days to track disease progression."
+    "monitoring_note": "Re-scan the affected plants after 7 days to evaluate if symptoms have halted or progressed."
   }
 }

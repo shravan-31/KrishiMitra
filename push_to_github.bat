@@ -1,9 +1,9 @@
 @echo off
-title Push KrishiMitra to GitHub
+title Push AgriMind to GitHub
 cd /d "%~dp0"
 
 echo ========================================================
-echo Pushing AgriMind / KrishiMitra to GitHub
+echo Pushing AgriMind / KrishiMitra Updates to GitHub
 echo ========================================================
 echo.
 
@@ -11,26 +11,24 @@ echo 1. Checking git status...
 git status
 echo.
 
-echo 2. Staging updated files (ignoring .env and secrets)...
-git add backend/app/routers/chat.py backend/app/main.py frontend/src/App.jsx frontend/src/pages/Chat.jsx frontend/src/pages/Landing.jsx backend/tests/test_all_fixes.py push_to_github.bat
+echo 2. Staging updated files...
 git add .
 echo.
 
-echo 3. Creating commit for Chatbot 404 fix...
-git commit -m "Fix 404 chatbot error: multi-route aliases, SPA fallback routing, and resilient offline advisor"
+echo 3. Creating commit with latest features and model retrainings...
+git commit -m "feat: live camera capture, retrained disease & pest models, 38 clinical treatment protocols & safety guardrails"
 echo.
 
-echo 4. Pushing commit to origin main...
+echo 4. Pushing commit to remote repository...
 git push origin main
 if errorlevel 1 (
     echo.
-    echo [Notice] Standard push failed, checking origin...
+    echo [Notice] Standard push to main failed, trying master branch...
     git push origin master
 )
 echo.
 
 echo ========================================================
-echo Finished! Check the status above.
+echo Push complete! Check the terminal status above.
 echo ========================================================
 pause
-

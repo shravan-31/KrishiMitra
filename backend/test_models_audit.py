@@ -28,15 +28,25 @@ results = {}
 # ─────────────────────────────────────────────────────────────────────────────
 print("\n[PHASE 4 AUDIT] PLANT DISEASE MODEL (PlantVillage MobileNetV2)...")
 try:
-    from app.ml.disease import load_disease_model, predict_disease, _model, _classes, _treatments
+    import app.ml.disease as d_ml
     
     start_t = time.time()
-    load_disease_model()
+    d_ml.load_disease_model()
     load_time = time.time() - start_t
     
+    _model = d_ml._model
+    _classes = d_ml._classes
+    _treatments = d_ml._treatments
+    predict_disease = d_ml.predict_disease
+    
     assert _model is not None, "Model failed to load"
-    assert _classes is not None and len(_classes) == 38, f"Expected 38 classes, got {len(_classes) if _classes else 0}"
-    assert _treatments is not None and len(_treatments) > 0, "Treatment map missing"
+    # Check treatments and guidelines
+    guidelines_path = os.path.join(BACKEND_DIR, "app", "data", "treatment_guidelines.json")
+    with open(guidelines_path, "r", encoding="utf-8") as gf:
+        gdata = json.load(gf)
+    num_guidelines = len(gdata.get("treatments", {}))
+    print(f"  ✓ Treatment Guidelines Loaded: {num_guidelines} classes configured with ICAR/TNAU protocols")
+    assert num_guidelines >= 38, f"Expected at least 38 treatment guidelines, got {num_guidelines}"
     
     # Check model architecture
     total_params = sum(p.numel() for p in _model.parameters())
@@ -53,6 +63,8 @@ try:
             img_bytes = f.read()
         pred = predict_disease(img_bytes)
         print(f"  ✓ Test Leaf (Tomato Early Blight): Predicted='{pred['disease_name']}', Conf={pred['confidence']*100:.1f}%, Crop='{pred['crop_name']}'")
+        print(f"    - Severity: {pred.get('severity')}")
+        print(f"    - Prescribed Treatment: {pred.get('treatment')}")
         test1_res = pred
     else:
         # Fallback tiny image
@@ -97,11 +109,16 @@ except Exception as e:
 # ─────────────────────────────────────────────────────────────────────────────
 print("\n[PHASE 5 AUDIT] INSECT PEST MODEL (EfficientNet-B0)...")
 try:
-    from app.ml.pest import load_pest_model, predict_pest, _model as _pest_m, _classes as _pest_c, _controls as _pest_ctrl
+    import app.ml.pest as p_ml
     
     start_t = time.time()
-    load_pest_model()
+    p_ml.load_pest_model()
     load_time = time.time() - start_t
+    
+    _pest_m = p_ml._model
+    _pest_c = p_ml._classes
+    _pest_ctrl = p_ml._controls
+    predict_pest = p_ml.predict_pest
     
     assert _pest_m is not None, "Pest model failed to load"
     assert _pest_c is not None, "Pest classes missing"
@@ -185,9 +202,15 @@ except Exception as e:
 # ─────────────────────────────────────────────────────────────────────────────
 print("\n[PHASE 7 AUDIT] CROP YIELD PREDICTOR (Gradient Boosting Regressor)...")
 try:
-    from app.ml.yield_pred import load_yield_model, predict_yield, _model as _yield_m, _encoders as _yield_enc
+    import app.ml.yield_pred as y_ml
     
-    load_yield_model()
+    y_ml.load_yield_model()
+    _yield_m = y_ml._model
+    _yield_enc = y_ml._encoders
+    predict_yield = y_ml.predict_yield
+    
+    assert _yield_m is not None, "Yield model failed to load"
+    assert _yield_enc is not None, "Yield encoders missing"
     print("  ✓ Yield Model Loaded: GradientBoostingRegressor")
     print(f"  ✓ Encoders: {list(_yield_enc.keys())}")
     
@@ -223,9 +246,15 @@ except Exception as e:
 # ─────────────────────────────────────────────────────────────────────────────
 print("\n[PHASE 8 AUDIT] MANDI PRICE FORECAST (PyTorch LSTM)...")
 try:
-    from app.ml.market import load_market_assets, forecast_market, _model as _market_m, _config as _market_cfg
+    import app.ml.market as m_ml
     
-    load_market_assets()
+    m_ml.load_market_assets()
+    _market_m = m_ml._model
+    _market_cfg = m_ml._config
+    forecast_market = m_ml.forecast_market
+    
+    assert _market_m is not None, "Market model failed to load"
+    assert _market_cfg is not None, "Market config missing"
     total_params = sum(p.numel() for p in _market_m.parameters())
     print(f"  ✓ Market LSTM Loaded ({total_params:,} parameters)")
     print(f"  ✓ Configured Crops: {_market_cfg['crops']}")

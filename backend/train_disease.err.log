@@ -1,0 +1,27 @@
+Traceback (most recent call last):
+  File "D:\AgriMind\agri-intelligence\backend\scripts\train_disease.py", line 735, in <module>
+    main()
+    ~~~~^^
+  File "D:\AgriMind\agri-intelligence\backend\scripts\train_disease.py", line 717, in main
+    history, best_val_acc = train_model(model, train_loader, val_loader, class_names)
+                            ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\AgriMind\agri-intelligence\backend\scripts\train_disease.py", line 603, in train_model
+    for images, labels in train_loader:
+                          ^^^^^^^^^^^^
+  File "D:\AgriMind\agri-intelligence\backend\venv\Lib\site-packages\torch\utils\data\dataloader.py", line 725, in __next__
+    data = self._next_data()
+  File "D:\AgriMind\agri-intelligence\backend\venv\Lib\site-packages\torch\utils\data\dataloader.py", line 785, in _next_data
+    data = self._dataset_fetcher.fetch(index)  # may raise StopIteration
+  File "D:\AgriMind\agri-intelligence\backend\venv\Lib\site-packages\torch\utils\data\_utils\fetch.py", line 52, in fetch
+    data = self.dataset.__getitems__(possibly_batched_index)
+  File "D:\AgriMind\agri-intelligence\backend\venv\Lib\site-packages\torch\utils\data\dataset.py", line 443, in __getitems__
+    return [self.dataset[self.indices[idx]] for idx in indices]
+            ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "D:\AgriMind\agri-intelligence\backend\venv\Lib\site-packages\torchvision\datasets\folder.py", line 245, in __getitem__
+    sample = self.loader(path)
+  File "D:\AgriMind\agri-intelligence\backend\venv\Lib\site-packages\torchvision\datasets\folder.py", line 284, in default_loader
+    return pil_loader(path)
+  File "D:\AgriMind\agri-intelligence\backend\venv\Lib\site-packages\torchvision\datasets\folder.py", line 262, in pil_loader
+    with open(path, "rb") as f:
+         ~~~~^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'backend\\data\\cleaned\\plantvillage\\Blueberry___healthy\\130aa260-b22a-4259-b63d-fb0a1cd4bd40___RS_HL 2643.JPG'

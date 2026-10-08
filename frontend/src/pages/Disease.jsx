@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useFarmStore } from '../store/farmStore'
 import FarmLayout from '../components/FarmLayout'
@@ -35,11 +35,112 @@ export default function Disease() {
   const [history, setHistory] = useState([])
   const [isDragOver, setIsDragOver] = useState(false)
 
+  // Camera state & refs
+  const [isCameraActive, setIsCameraActive] = useState(false)
+  const [facingMode, setFacingMode] = useState('environment') // 'environment' (rear) or 'user' (front)
+  const videoRef = useRef(null)
+  const canvasRef = useRef(null)
+  const streamRef = useRef(null)
+  const fileInputRef = useRef(null)
+  const mobileCameraInputRef = useRef(null)
+
   // New state for smart features
   const [treatmentWindows, setTreatmentWindows] = useState(null)
   const [loadingWindows, setLoadingWindows] = useState(false)
   const [followupResult, setFollowupResult] = useState(null)
   const [activeTab, setActiveTab] = useState('diagnosis') // diagnosis | treatment | schedule | followup
+
+  // Clean stop camera stream
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop())
+      streamRef.current = null
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null
+    }
+    setIsCameraActive(false)
+  }, [])
+
+  // Start device camera
+  const startCamera = useCallback(async (facing = facingMode) => {
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast.error("Camera API not supported in this browser.")
+        return
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop())
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: facing },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+        audio: false,
+      })
+      streamRef.current = stream
+      setIsCameraActive(true)
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        videoRef.current.play().catch(() => {})
+      }
+    } catch (err) {
+      console.error("Camera access error:", err)
+      toast.error("Camera permission denied or camera not available.")
+      setIsCameraActive(false)
+    }
+  }, [facingMode])
+
+  useEffect(() => {
+    if (isCameraActive && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current
+      videoRef.current.play().catch(() => {})
+    }
+  }, [isCameraActive])
+
+  // Stop camera on unmount
+  useEffect(() => {
+    return () => {
+      stopCamera()
+    }
+  }, [stopCamera])
+
+  // Toggle front/rear camera
+  const toggleFacingMode = useCallback(() => {
+    const nextMode = facingMode === 'environment' ? 'user' : 'environment'
+    setFacingMode(nextMode)
+    startCamera(nextMode)
+  }, [facingMode, startCamera])
+
+  // Snap photo from video frame
+  const capturePhoto = useCallback(() => {
+    if (!videoRef.current || !canvasRef.current) return
+    const video = videoRef.current
+    const canvas = canvasRef.current
+
+    canvas.width = video.videoWidth || 640
+    canvas.height = video.videoHeight || 480
+    const ctx = canvas.getContext('2d')
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        toast.error("Capture failed")
+        return
+      }
+      const file = new File([blob], `plant_leaf_${Date.now()}.jpg`, { type: 'image/jpeg' })
+      setSelectedFile(file)
+      setPreviewUrl(URL.createObjectURL(blob))
+      setResult(null)
+      setFollowupResult(null)
+      setTreatmentWindows(null)
+      setActiveTab('diagnosis')
+      stopCamera()
+      toast.success("Leaf photo captured! Click 'Run Diagnostics Scan'")
+    }, 'image/jpeg', 0.95)
+  }, [stopCamera])
 
   const apiFetch = useCallback(async (path, options = {}) => {
     options.credentials = 'include'
@@ -184,37 +285,187 @@ export default function Disease() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2rem', alignItems: 'flex-start' }}>
           {/* ── Left: Scan Zone ── */}
           <div className="glass-card" style={{ padding: '2rem' }}>
-            <div
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              style={{
-                border: isDragOver ? '2px dashed #10b981' : '2px dashed rgba(255,255,255,0.08)',
-                borderRadius: '16px', padding: '2.5rem', textAlign: 'center',
-                background: isDragOver ? 'rgba(16,185,129,0.04)' : 'rgba(0,0,0,0.15)',
-                transition: 'all 0.2s', position: 'relative', cursor: 'pointer', marginBottom: '1.5rem'
-              }}
-            >
-              <input type="file" accept="image/*" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} onChange={handleFileChange} />
-              {previewUrl ? (
-                <img src={previewUrl} alt="Preview" style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '10px', objectFit: 'contain' }} />
-              ) : (
-                <div>
-                  <span style={{ fontSize: '3rem', display: 'block', marginBottom: '0.5rem' }}>🍂</span>
-                  <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#e2e8f0' }}>Drag & Drop crop image here</div>
-                  <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>Supports PNG, JPG (Max 10MB)</div>
+            {/* Hidden Canvas for Frame Capture */}
+            <canvas ref={canvasRef} style={{ display: 'none' }} />
+
+            {/* Hidden Inputs for File and Native Mobile Camera */}
+            <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
+            <input ref={mobileCameraInputRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handleFileChange} />
+
+            {/* ── LIVE CAMERA VIEWFINDER ── */}
+            {isCameraActive ? (
+              <div style={{
+                position: 'relative',
+                borderRadius: '16px',
+                overflow: 'hidden',
+                background: '#000',
+                border: '2px solid #10b981',
+                boxShadow: '0 0 25px rgba(16,185,129,0.3)',
+                marginBottom: '1.25rem'
+              }}>
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  style={{
+                    width: '100%',
+                    height: '280px',
+                    objectFit: 'cover',
+                    display: 'block',
+                    transform: facingMode === 'user' ? 'scaleX(-1)' : 'none'
+                  }}
+                />
+
+                {/* Reticle / Aiming Guide Overlay */}
+                <div style={{
+                  position: 'absolute', top: '15px', left: '15px', right: '15px', bottom: '65px',
+                  border: '2px dashed rgba(16,185,129,0.6)', borderRadius: '12px',
+                  pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                  <div style={{
+                    background: 'rgba(0,0,0,0.6)', padding: '0.35rem 0.75rem',
+                    borderRadius: '20px', color: '#6ee7b7', fontSize: '0.75rem', fontWeight: 700
+                  }}>
+                    🎯 Align affected leaf inside frame
+                  </div>
                 </div>
-              )}
-            </div>
+
+                {/* Live Camera Bottom Bar */}
+                <div style={{
+                  position: 'absolute', bottom: 0, left: 0, right: 0,
+                  padding: '0.75rem', background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-around', gap: '0.5rem'
+                }}>
+                  <button
+                    onClick={toggleFacingMode}
+                    title="Flip Camera (Front/Rear)"
+                    style={{
+                      background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)',
+                      color: '#fff', borderRadius: '50%', width: '42px', height: '42px',
+                      cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}
+                  >
+                    🔄
+                  </button>
+
+                  <button
+                    onClick={capturePhoto}
+                    style={{
+                      background: '#10b981', border: '3px solid #fff',
+                      color: '#fff', borderRadius: '30px', padding: '0.55rem 1.4rem',
+                      fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer',
+                      boxShadow: '0 0 15px rgba(16,185,129,0.6)', display: 'flex', alignItems: 'center', gap: '0.4rem'
+                    }}
+                  >
+                    📸 Snap Photo
+                  </button>
+
+                  <button
+                    onClick={stopCamera}
+                    title="Close Camera"
+                    style={{
+                      background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)',
+                      color: '#f87171', borderRadius: '50%', width: '42px', height: '42px',
+                      cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+            /* ── DRAG & DROP / PREVIEW ZONE ── */
+            ) : (
+              <div>
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => { if (!previewUrl) fileInputRef.current?.click(); }}
+                  style={{
+                    border: isDragOver ? '2px dashed #10b981' : '2px dashed rgba(255,255,255,0.12)',
+                    borderRadius: '16px', padding: previewUrl ? '1rem' : '2rem', textAlign: 'center',
+                    background: isDragOver ? 'rgba(16,185,129,0.06)' : 'rgba(0,0,0,0.2)',
+                    transition: 'all 0.2s', position: 'relative', cursor: previewUrl ? 'default' : 'pointer', marginBottom: '1rem'
+                  }}
+                >
+                  {previewUrl ? (
+                    <div>
+                      <img src={previewUrl} alt="Preview" style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '10px', objectFit: 'contain' }} />
+                      <div style={{ marginTop: '0.75rem', display: 'flex', justifyContent: 'center', gap: '0.75rem' }}>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setSelectedFile(null); setPreviewUrl(null); }}
+                          style={{
+                            background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)',
+                            color: '#fca5a5', borderRadius: '8px', padding: '0.35rem 0.75rem',
+                            fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer'
+                          }}
+                        >
+                          🗑️ Remove Photo
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); startCamera(); }}
+                          style={{
+                            background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)',
+                            color: '#6ee7b7', borderRadius: '8px', padding: '0.35rem 0.75rem',
+                            fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer'
+                          }}
+                        >
+                          📸 Retake with Camera
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <span style={{ fontSize: '2.8rem', display: 'block', marginBottom: '0.35rem' }}>🌿</span>
+                      <div style={{ fontWeight: 700, fontSize: '1rem', color: '#e2e8f0' }}>Upload or Snap Crop Leaf Image</div>
+                      <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '4px' }}>PNG, JPG or live camera snapshot (Max 10MB)</div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Action Buttons: Live Camera, Mobile Snap, File Browser */}
+                {!previewUrl && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                    <button
+                      onClick={() => startCamera()}
+                      style={{
+                        background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.35)',
+                        color: '#6ee7b7', borderRadius: '12px', padding: '0.75rem 0.5rem',
+                        fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <span>📸</span> Live Camera
+                    </button>
+
+                    <button
+                      onClick={() => mobileCameraInputRef.current?.click()}
+                      style={{
+                        background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.35)',
+                        color: '#93c5fd', borderRadius: '12px', padding: '0.75rem 0.5rem',
+                        fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <span>📱</span> Phone Camera
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             <button
               className="glow-btn"
               onClick={handleScan}
-              disabled={!selectedFile || scanning}
+              disabled={!selectedFile || scanning || isCameraActive}
               style={{
                 width: '100%', padding: '1rem', borderRadius: '12px', color: '#fff',
                 fontSize: '1rem', fontWeight: 700,
-                opacity: (!selectedFile || scanning) ? 0.5 : 1
+                opacity: (!selectedFile || scanning || isCameraActive) ? 0.5 : 1
               }}
             >
               {scanning ? 'Running Neural Net Inference...' : '🔬 Run Diagnostics Scan'}
@@ -334,13 +585,37 @@ export default function Disease() {
                       </p>
                     </div>
                   ) : (
-                    <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '12px', padding: '1.25rem' }}>
-                      <h4 style={{ margin: '0 0 0.5rem', color: '#10b981', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Recommended Treatment Steps</h4>
-                      <ol style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.85rem', color: '#94a3b8', lineHeight: 1.6 }}>
+                    <div style={{ background: 'rgba(16,185,129,0.03)', border: '1px solid rgba(16,185,129,0.18)', borderRadius: '14px', padding: '1.3rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        <h4 style={{ margin: 0, color: '#10b981', fontSize: '0.95rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span>🩺</span> Prescribed Treatment Protocol
+                        </h4>
+                        {result.treatment_plan && (
+                          <button
+                            onClick={() => setActiveTab('treatment')}
+                            style={{
+                              background: 'rgba(16,185,129,0.15)', border: '1px solid #10b981',
+                              color: '#34d399', borderRadius: '8px', padding: '0.35rem 0.75rem',
+                              fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s'
+                            }}
+                          >
+                            💊 View Full Plan →
+                          </button>
+                        )}
+                      </div>
+                      <ol style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.88rem', color: '#cbd5e1', lineHeight: 1.7 }}>
                         {result.treatment_steps.map((step, idx) => (
-                          <li key={idx} style={{ marginBottom: '6px' }}>{step}</li>
+                          <li key={idx} style={{ marginBottom: '6px' }}>
+                            <strong style={{ color: '#6ee7b7' }}>Step {idx + 1}:</strong> {step}
+                          </li>
                         ))}
                       </ol>
+                      {result.treatment_plan?.guidance && (
+                        <div style={{ marginTop: '0.85rem', paddingTop: '0.75rem', borderTop: '1px dashed rgba(255,255,255,0.08)', fontSize: '0.82rem', color: '#94a3b8' }}>
+                          <span style={{ color: '#eab308', fontWeight: 700 }}>⚠️ Clinical Note: </span>
+                          {result.treatment_plan.guidance}
+                        </div>
+                      )}
                     </div>
                   )}
 

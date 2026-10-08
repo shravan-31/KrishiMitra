@@ -18,9 +18,18 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 
 # Config
-DATA_PATH = pathlib.Path("backend/data/raw/market/mandi_prices.csv")
-MODEL_DIR = pathlib.Path("backend/models/market")
-REPORT_DIR = pathlib.Path("backend/data/reports")
+SCRIPT_DIR = pathlib.Path(__file__).resolve().parent
+BASE_DIR = SCRIPT_DIR.parent  # backend directory
+WORKSPACE_DIR = BASE_DIR.parent.parent  # root AgriMind directory
+
+candidate_paths = [
+    BASE_DIR / "data" / "raw" / "market" / "mandi_prices.csv",
+    pathlib.Path("backend/data/raw/market/mandi_prices.csv").resolve(),
+    pathlib.Path("data/raw/market/mandi_prices.csv").resolve(),
+]
+DATA_PATH = next((p for p in candidate_paths if p.exists()), candidate_paths[0])
+MODEL_DIR = BASE_DIR / "models" / "market"
+REPORT_DIR = BASE_DIR / "data" / "reports"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 MODEL_DIR.mkdir(parents=True, exist_ok=True)

@@ -48,7 +48,7 @@ async def scan_disease(
         raise HTTPException(status_code=500, detail=f"Leaf analysis failed: {str(ex)}")
 
     # Extract treatment steps
-    treatment_steps = [step.strip() for step in pred["treatment"].split("|") if step.strip()]
+    treatment_steps = pred.get("treatment_steps") or [step.strip() for step in pred["treatment"].split("|") if step.strip()]
     is_healthy = "healthy" in pred["disease_name"].lower()
     is_uncertain = pred.get("is_uncertain", False)
 
@@ -117,26 +117,43 @@ async def scan_disease(
         weather_risk_level=weather_risk,
     )
 
-    # ── NEW: Load treatment plan from verified guidelines ──
+    # ── Load treatment plan from verified agricultural guidelines ──
     treatment_plan = None
-    if not is_healthy and not is_uncertain:
+    if not is_uncertain:
         import json as _json
         _gpath = os.path.join(os.path.dirname(__file__), "..", "data", "treatment_guidelines.json")
         try:
-            with open(_gpath, "r") as _gf:
+            with open(_gpath, "r", encoding="utf-8") as _gf:
                 _gdata = _json.load(_gf)
-            disease_key = pred["disease_name"]
-            plan = _gdata.get("treatments", {}).get(disease_key, _gdata.get("default_treatment", {}))
-            sev_upper = pred["severity"].upper()
+            
+            treatments_dict = _gdata.get("treatments", {})
+            class_key = pred.get("class_name", "")
+            disease_key = pred.get("disease_name", "")
+            crop_key = pred.get("crop_name", "")
+            composite_key = f"{crop_key}___{disease_key}".replace(" ", "_")
+
+            # Multi-key robust matching
+            plan = (
+                treatments_dict.get(class_key)
+                or treatments_dict.get(disease_key)
+                or treatments_dict.get(composite_key)
+                or next((v for k, v in treatments_dict.items() if k.lower() in [class_key.lower(), disease_key.lower()]), None)
+                or _gdata.get("default_treatment", {})
+            )
+            
+            sev_upper = pred.get("severity", "LOW").upper()
             treatment_plan = {
-                "guidance": plan.get("severity_guidance", {}).get(sev_upper, "Consult local extension officer."),
+                "disease": plan.get("disease", pred.get("disease_name", "Unknown")),
+                "crop": plan.get("crop", pred.get("crop_name", "Crop")),
+                "guidance": plan.get("severity_guidance", {}).get(sev_upper, plan.get("severity_guidance", {}).get("MEDIUM", "Consult local extension officer.")),
                 "cultural_practices": plan.get("cultural_practices", []),
                 "follow_up_days": plan.get("follow_up_days", 7),
                 "monitoring_note": plan.get("monitoring_note", "Re-scan after treatment."),
-                "source": "Agricultural Extension Guidelines (ICAR/TNAU/KVK)",
+                "source": "Agricultural Extension Guidelines (ICAR / TNAU / KVK / USDA-ARS)",
             }
-        except Exception:
-            pass
+        except Exception as _e:
+            import logging
+            logging.getLogger(__name__).warning(f"Error loading treatment guidelines: {_e}")
 
     return {
         "status":          pred.get("status", "success"),

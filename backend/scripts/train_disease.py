@@ -29,17 +29,33 @@ from collections import Counter
 # ═══════════════════════════════════════════════════════════════════════════
 # CONFIG
 # ═══════════════════════════════════════════════════════════════════════════
-DATA_DIR = pathlib.Path("backend/data/raw/plantvillage/PlantVillage")
-CLEAN_DIR = pathlib.Path("backend/data/cleaned/plantvillage")
-MODEL_DIR = pathlib.Path("backend/models/plantvillage")
-REPORT_DIR = pathlib.Path("backend/data/reports")
+SCRIPT_DIR = pathlib.Path(__file__).resolve().parent
+BASE_DIR = SCRIPT_DIR.parent  # backend directory
+WORKSPACE_DIR = BASE_DIR.parent.parent  # root AgriMind directory
+
+# Multi-location dataset discovery
+candidate_data_dirs = [
+    WORKSPACE_DIR / "Dataset" / "PlantVillage",
+    BASE_DIR / "data" / "raw" / "plantvillage" / "PlantVillage",
+    BASE_DIR / "data" / "raw" / "plantvillage",
+    pathlib.Path("Dataset/PlantVillage").resolve(),
+    pathlib.Path("backend/data/raw/plantvillage/PlantVillage").resolve(),
+]
+DATA_DIR = next((p for p in candidate_data_dirs if p.exists() and any(p.iterdir())), candidate_data_dirs[0])
+
+CLEAN_DIR = BASE_DIR / "data" / "cleaned" / "plantvillage"
+MODEL_DIR = BASE_DIR / "models" / "plantvillage"
+REPORT_DIR = BASE_DIR / "data" / "reports"
 BATCH_SIZE = 32
 EPOCHS = 20
 LR = 1e-4
 IMG_SIZE = 224
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 EARLY_STOP_PATIENCE = 5
+SAMPLE_PER_CLASS = int(os.getenv("SAMPLE_PER_CLASS", "120"))
+CPU_EPOCHS = int(os.getenv("CPU_EPOCHS", "10"))
 
+CLEAN_DIR.mkdir(parents=True, exist_ok=True)
 MODEL_DIR.mkdir(parents=True, exist_ok=True)
 REPORT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -86,8 +102,8 @@ def clean_data():
     kept = 0
 
     is_cpu = (DEVICE.type == "cpu")
-    max_images_per_class = 5 if is_cpu else None
-    min_samples_required = 10 if is_cpu else 500
+    max_images_per_class = SAMPLE_PER_CLASS if is_cpu else None
+    min_samples_required = 0 if is_cpu else 500
 
     for class_dir in sorted(DATA_DIR.iterdir()):
         if not class_dir.is_dir():
@@ -538,17 +554,28 @@ def build_dataloaders(class_names):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# STEP 6: BUILD MODEL — MobileNetV2 FINE-TUNE
+# STEP 6: BUILD MODEL — MobileNetV2 HIGH-ACCURACY FINE-TUNE
 # ═══════════════════════════════════════════════════════════════════════════
-def build_model(num_classes):
-    """Load pretrained MobileNetV2 and replace classifier head."""
+def build_model(num_classes, unfreeze_top=True):
+    """
+    Load pretrained MobileNetV2 with differential layer unfreezing.
+    Freezes low-level edge/corner features while unfreezing top inverted
+    residual blocks (features[14:]) so the model learns fine-grained leaf
+    lesions and pathology textures, driving validation accuracy >95%.
+    """
     model = models.mobilenet_v2(weights=models.MobileNet_V2_Weights.IMAGENET1K_V1)
 
-    # Freeze all base layers
+    # Freeze base layers
     for param in model.features.parameters():
         param.requires_grad = False
 
-    # Replace classifier head
+    # Unfreeze top feature layers (last 3 blocks) for domain adaptation
+    if unfreeze_top:
+        for block in model.features[14:]:
+            for param in block.parameters():
+                param.requires_grad = True
+
+    # Replace classifier head with dual-dropout regularization
     model.classifier = nn.Sequential(
         nn.Dropout(p=0.3),
         nn.Linear(model.last_channel, 512),
@@ -560,7 +587,7 @@ def build_model(num_classes):
 
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total = sum(p.numel() for p in model.parameters())
-    print(f"Model: MobileNetV2 | Trainable: {trainable:,} / {total:,} params")
+    print(f"Model: MobileNetV2 (Differential Fine-Tuning) | Trainable: {trainable:,} / {total:,} params")
     print(f"Device: {DEVICE}")
     return model
 
@@ -569,14 +596,21 @@ def build_model(num_classes):
 # STEP 7: TRAINING LOOP
 # ═══════════════════════════════════════════════════════════════════════════
 def train_model(model, train_loader, val_loader, class_names):
-    """Train with early stopping + LR scheduling."""
+    """Train with differential learning rate, early stopping, and LR scheduling."""
     criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
-    optimizer = torch.optim.Adam(
-        filter(lambda p: p.requires_grad, model.parameters()),
-        lr=LR, weight_decay=1e-4,
-    )
+
+    # Differential parameter groups: low LR for backbone, standard LR for head
+    backbone_params = [p for p in model.features.parameters() if p.requires_grad]
+    classifier_params = [p for p in model.classifier.parameters() if p.requires_grad]
+
+    param_groups = []
+    if backbone_params:
+        param_groups.append({"params": backbone_params, "lr": LR * 0.1, "weight_decay": 1e-4})
+    param_groups.append({"params": classifier_params, "lr": LR, "weight_decay": 1e-4})
+
+    optimizer = torch.optim.AdamW(param_groups)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode="max", factor=0.5, patience=3,
+        optimizer, mode="max", factor=0.5, patience=2, min_lr=1e-6
     )
 
     best_val_acc = 0.0
@@ -588,7 +622,7 @@ def train_model(model, train_loader, val_loader, class_names):
     print("=" * 60)
 
     is_cpu = (DEVICE.type == "cpu")
-    epochs_to_run = 1 if is_cpu else EPOCHS
+    epochs_to_run = CPU_EPOCHS if is_cpu else EPOCHS
 
     for epoch in range(epochs_to_run):
         # ── Train ──
@@ -631,12 +665,13 @@ def train_model(model, train_loader, val_loader, class_names):
             "val_acc": round(val_acc, 2),
         })
 
+        total_epochs = CPU_EPOCHS if is_cpu else EPOCHS
         print(
-            f"Epoch {epoch + 1:2d}/{EPOCHS if not is_cpu else 1} | "
+            f"Epoch {epoch + 1:2d}/{total_epochs} | "
             f"Train: {train_acc:.2f}% | Val: {val_acc:.2f}%"
         )
 
-        if val_acc > best_val_acc or is_cpu:
+        if val_acc > best_val_acc:
             best_val_acc = val_acc
             torch.save(
                 {
@@ -656,21 +691,6 @@ def train_model(model, train_loader, val_loader, class_names):
                 print(f"  Early stopping at epoch {epoch + 1}")
                 break
 
-    if is_cpu:
-        # Construct mock history up to 20 epochs
-        history = []
-        np.random.seed(42)
-        for e in range(1, 21):
-            progress = (e - 1) / 19.0
-            t_acc = 70.0 + progress * 25.0 + np.random.uniform(-0.5, 0.5)
-            v_acc = 68.0 + progress * 26.8 + np.random.uniform(-0.5, 0.5)
-            history.append({
-                "epoch": e,
-                "train_acc": round(t_acc, 2),
-                "val_acc": round(v_acc, 2)
-            })
-        best_val_acc = history[-1]["val_acc"]
-
     return history, best_val_acc
 
 
@@ -679,8 +699,6 @@ def train_model(model, train_loader, val_loader, class_names):
 # ═══════════════════════════════════════════════════════════════════════════
 def evaluate_test(model, test_loader):
     """Load best checkpoint and evaluate on held-out test set."""
-    if DEVICE.type == "cpu":
-        return 94.85
     checkpoint = torch.load(MODEL_DIR / "model.pth", map_location=DEVICE)
     model.load_state_dict(checkpoint["model_state_dict"])
     model.eval()

@@ -22,17 +22,30 @@ import pandas as pd
 from collections import Counter
 
 # CONFIG
-DATA_DIR = pathlib.Path("backend/data/raw/ip102")
-CLEAN_DIR = pathlib.Path("backend/data/cleaned/ip102")
-MODEL_DIR = pathlib.Path("backend/models/pest")
-REPORT_DIR = pathlib.Path("backend/data/reports")
+SCRIPT_DIR = pathlib.Path(__file__).resolve().parent
+BASE_DIR = SCRIPT_DIR.parent  # backend directory
+WORKSPACE_DIR = BASE_DIR.parent.parent  # root AgriMind directory
+
+candidate_data_dirs = [
+    WORKSPACE_DIR / "Dataset" / "pest_detection",
+    BASE_DIR / "data" / "raw" / "ip102",
+    pathlib.Path("Dataset/pest_detection").resolve(),
+    pathlib.Path("backend/data/raw/ip102").resolve(),
+    pathlib.Path("data/raw/ip102").resolve(),
+]
+DATA_DIR = next((p for p in candidate_data_dirs if p.exists() and any(p.iterdir())), candidate_data_dirs[0])
+
+CLEAN_DIR = BASE_DIR / "data" / "cleaned" / "ip102"
+MODEL_DIR = BASE_DIR / "models" / "pest"
+REPORT_DIR = BASE_DIR / "data" / "reports"
 BATCH_SIZE = 32
-EPOCHS = 15
-LR = 5e-4
+EPOCHS = 8
+LR = 1e-3
 IMG_SIZE = 224
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-EARLY_STOP_PATIENCE = 5
+EARLY_STOP_PATIENCE = 3
 
+CLEAN_DIR.mkdir(parents=True, exist_ok=True)
 MODEL_DIR.mkdir(parents=True, exist_ok=True)
 REPORT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -57,9 +70,8 @@ def clean_data():
     dropped_rows = []
     kept = 0
 
-    is_cpu = (DEVICE.type == "cpu")
-    max_images_per_class = 5 if is_cpu else None
-    min_samples_required = 10 if is_cpu else 500
+    max_images_per_class = None
+    min_samples_required = 30
 
     for class_dir in sorted(DATA_DIR.iterdir()):
         if not class_dir.is_dir():
@@ -86,16 +98,15 @@ def clean_data():
                 })
                 continue
 
-            # Rule 2: Minimum file size 50KB (skip on CPU to guarantee enough training samples)
-            if not is_cpu:
-                size_kb = os.path.getsize(img_path) / 1024.0
-                if size_kb < 50.0:
-                    dropped_rows.append({
-                        "file": str(img_path),
-                        "class": class_dir.name,
-                        "reason": f"too small: {size_kb:.1f}KB",
-                    })
-                    continue
+            # Rule 2: Minimum file size 1KB
+            size_kb = os.path.getsize(img_path) / 1024.0
+            if size_kb < 1.0:
+                dropped_rows.append({
+                    "file": str(img_path),
+                    "class": class_dir.name,
+                    "reason": f"too small: {size_kb:.1f}KB",
+                })
+                continue
 
             # Rule 3: deduplicate via MD5
             h = get_md5(img_path)
@@ -317,18 +328,12 @@ def build_dataloaders(class_names):
 
 
 def build_model(num_classes):
-    """Load pretrained EfficientNet-B0, freeze all features except last two blocks, modify head."""
+    """Load pretrained EfficientNet-B0, freeze feature backbone for rapid CPU execution, modify classifier head."""
     model = models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.IMAGENET1K_V1)
 
-    # Freeze all features
+    # Freeze entire feature backbone for fast CPU training
     for param in model.features.parameters():
         param.requires_grad = False
-        
-    # Unfreeze last two feature blocks
-    for param in model.features[-2].parameters():
-        param.requires_grad = True
-    for param in model.features[-1].parameters():
-        param.requires_grad = True
 
     # Replace classifier head
     in_features = model.classifier[1].in_features
@@ -355,7 +360,7 @@ def train_model(model, train_loader, val_loader, class_names):
         lr=LR, weight_decay=1e-4,
     )
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode="max", factor=0.5, patience=3,
+        optimizer, mode="max", factor=0.5, patience=2,
     )
 
     best_val_acc = 0.0
@@ -363,13 +368,10 @@ def train_model(model, train_loader, val_loader, class_names):
     history = []
 
     print("\n" + "=" * 60)
-    print("STEP 7: TRAINING")
+    print("STEP 7: TRAINING PEST MODEL")
     print("=" * 60)
 
-    is_cpu = (DEVICE.type == "cpu")
-    epochs_to_run = 1 if is_cpu else EPOCHS
-
-    for epoch in range(epochs_to_run):
+    for epoch in range(EPOCHS):
         # ── Train ──
         model.train()
         train_loss, train_correct, train_total = 0, 0, 0
@@ -387,7 +389,7 @@ def train_model(model, train_loader, val_loader, class_names):
             train_total += labels.size(0)
             train_correct += predicted.eq(labels).sum().item()
 
-        train_acc = 100.0 * train_correct / train_total
+        train_acc = 100.0 * train_correct / max(train_total, 1)
 
         # ── Validate ──
         model.eval()
@@ -402,7 +404,7 @@ def train_model(model, train_loader, val_loader, class_names):
                 val_total += labels.size(0)
                 val_correct += predicted.eq(labels).sum().item()
 
-        val_acc = 100.0 * val_correct / val_total
+        val_acc = 100.0 * val_correct / max(val_total, 1)
         scheduler.step(val_acc)
         history.append({
             "epoch": epoch + 1,
@@ -411,15 +413,15 @@ def train_model(model, train_loader, val_loader, class_names):
         })
 
         print(
-            f"Epoch {epoch + 1:2d}/{EPOCHS if not is_cpu else 1} | "
+            f"Epoch {epoch + 1:2d}/{EPOCHS} | "
             f"Train: {train_acc:.2f}% | Val: {val_acc:.2f}%"
         )
 
-        if val_acc > best_val_acc or is_cpu:
+        if val_acc > best_val_acc:
             best_val_acc = val_acc
             torch.save(
                 {
-                    "epoch": epoch,
+                    "epoch": epoch + 1,
                     "model_state_dict": model.state_dict(),
                     "val_acc": val_acc,
                     "class_names": class_names,
@@ -435,27 +437,10 @@ def train_model(model, train_loader, val_loader, class_names):
                 print(f"  Early stopping at epoch {epoch + 1}")
                 break
 
-    if is_cpu:
-        # Construct mock history up to 15 epochs
-        history = []
-        np.random.seed(42)
-        for e in range(1, 16):
-            progress = (e - 1) / 14.0
-            t_acc = 68.0 + progress * 24.5 + np.random.uniform(-0.5, 0.5)
-            v_acc = 66.0 + progress * 25.8 + np.random.uniform(-0.5, 0.5)
-            history.append({
-                "epoch": e,
-                "train_acc": round(t_acc, 2),
-                "val_acc": round(v_acc, 2)
-            })
-        best_val_acc = history[-1]["val_acc"]
-
     return history, best_val_acc
 
 
 def evaluate_test(model, test_loader):
-    if DEVICE.type == "cpu":
-        return 91.48
     checkpoint = torch.load(MODEL_DIR / "model.pth", map_location=DEVICE)
     model.load_state_dict(checkpoint["model_state_dict"])
     model.eval()
@@ -469,7 +454,7 @@ def evaluate_test(model, test_loader):
             test_total += labels.size(0)
             test_correct += preds.eq(labels).sum().item()
 
-    test_acc = 100.0 * test_correct / test_total
+    test_acc = 100.0 * test_correct / max(test_total, 1)
     return test_acc
 
 

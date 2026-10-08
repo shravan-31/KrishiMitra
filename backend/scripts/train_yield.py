@@ -17,11 +17,20 @@ from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import r2_score
 
-# Config
-DATA_PATH = pathlib.Path("backend/data/raw/yield/crop_production.csv")
-MODEL_DIR = pathlib.Path("backend/models/yield")
-REPORT_DIR = pathlib.Path("backend/data/reports")
+SCRIPT_DIR = pathlib.Path(__file__).resolve().parent
+BASE_DIR = SCRIPT_DIR.parent  # backend directory
+WORKSPACE_DIR = BASE_DIR.parent.parent  # root AgriMind directory
 
+candidate_paths = [
+    BASE_DIR / "data" / "raw" / "yield" / "crop_production.csv",
+    WORKSPACE_DIR / "Dataset" / "yield" / "crop_production.csv",
+    pathlib.Path("Dataset/yield/crop_production.csv").resolve(),
+    pathlib.Path("backend/data/raw/yield/crop_production.csv").resolve(),
+    pathlib.Path("data/raw/yield/crop_production.csv").resolve(),
+]
+DATA_PATH = next((p for p in candidate_paths if p.exists()), candidate_paths[0])
+MODEL_DIR = BASE_DIR / "models" / "yield"
+REPORT_DIR = BASE_DIR / "data" / "reports"
 MODEL_DIR.mkdir(parents=True, exist_ok=True)
 REPORT_DIR.mkdir(parents=True, exist_ok=True)
 

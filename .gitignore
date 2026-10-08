@@ -27,6 +27,10 @@ dist-ssr/
 *.db
 backend/data/uploads/*
 !backend/data/uploads/.gitkeep
+backend/data/raw/
+backend/data/cleaned/
+backend/data/postgres_temp/
+*.bak*
 
 # IDE & OS
 .vscode/

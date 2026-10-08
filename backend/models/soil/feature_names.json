@@ -30,6 +30,6 @@
     "rice",
     "watermelon"
   ],
-  "test_accuracy": 98.91696750902527,
-  "cv_accuracy": 0.9907873727385923
+  "test_accuracy": 98.19494584837545,
+  "cv_accuracy": 0.9886178861788618
 }

@@ -1,0 +1,17 @@
+============================================================
+  KrishiMitra — Disease Detection Training
+  MobileNetV2 (ImageNet) -> PlantVillage (38 classes)
+============================================================
+============================================================
+STEP 1: DATA CLEANING
+============================================================
+Kept: 4560 images | Dropped: 0
+Classes: 38
+Treatment map saved: 38 entries
+Train: 3192 | Val: 684 | Test: 684
+Model: MobileNetV2 | Trainable: 675,366 / 2,899,238 params
+Device: cpu
+
+============================================================
+STEP 7: TRAINING
+============================================================

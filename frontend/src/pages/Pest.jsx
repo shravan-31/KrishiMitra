@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useFarmStore } from '../store/farmStore'
 import FarmLayout from '../components/FarmLayout'
 import toast from 'react-hot-toast'
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from 'recharts'
+import { Link } from 'react-router-dom'
 
 import { BACKEND_URL } from '../config'
 
@@ -15,6 +16,104 @@ export default function Pest() {
   const [result, setResult] = useState(null)
   const [history, setHistory] = useState([])
   const [isDragOver, setIsDragOver] = useState(false)
+
+  // Camera state & refs
+  const [isCameraActive, setIsCameraActive] = useState(false)
+  const [facingMode, setFacingMode] = useState('environment') // 'environment' (rear) or 'user' (front)
+  const videoRef = useRef(null)
+  const canvasRef = useRef(null)
+  const streamRef = useRef(null)
+  const fileInputRef = useRef(null)
+  const mobileCameraInputRef = useRef(null)
+
+  // Clean stop camera stream
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop())
+      streamRef.current = null
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null
+    }
+    setIsCameraActive(false)
+  }, [])
+
+  // Start device camera
+  const startCamera = useCallback(async (facing = facingMode) => {
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast.error("Camera API not supported in this browser.")
+        return
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop())
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: facing },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+        audio: false,
+      })
+      streamRef.current = stream
+      setIsCameraActive(true)
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        videoRef.current.play().catch(() => {})
+      }
+    } catch (err) {
+      console.error("Camera error:", err)
+      toast.error("Camera access denied or unavailable.")
+      setIsCameraActive(false)
+    }
+  }, [facingMode])
+
+  useEffect(() => {
+    if (isCameraActive && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current
+      videoRef.current.play().catch(() => {})
+    }
+  }, [isCameraActive])
+
+  // Stop camera on unmount
+  useEffect(() => {
+    return () => {
+      stopCamera()
+    }
+  }, [stopCamera])
+
+  // Toggle front/rear camera
+  const toggleFacingMode = useCallback(() => {
+    const nextMode = facingMode === 'environment' ? 'user' : 'environment'
+    setFacingMode(nextMode)
+    startCamera(nextMode)
+  }, [facingMode, startCamera])
+
+  // Snap photo from video frame
+  const capturePhoto = useCallback(() => {
+    if (!videoRef.current || !canvasRef.current) return
+    const video = videoRef.current
+    const canvas = canvasRef.current
+
+    canvas.width = video.videoWidth || 640
+    canvas.height = video.videoHeight || 480
+    const ctx = canvas.getContext('2d')
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        toast.error("Capture failed")
+        return
+      }
+      const file = new File([blob], `pest_capture_${Date.now()}.jpg`, { type: 'image/jpeg' })
+      setSelectedFile(file)
+      setPreviewUrl(URL.createObjectURL(blob))
+      setResult(null)
+      stopCamera()
+      toast.success("Pest photo captured! Click 'Run Pest Scan'")
+    }, 'image/jpeg', 0.95)
+  }, [stopCamera])
 
   const apiFetch = useCallback(async (path, options = {}) => {
     options.credentials = 'include'
@@ -136,43 +235,205 @@ export default function Pest() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'flex-start' }}>
           {/* Upload Zone */}
           <div className="glass-card" style={{ padding: '2rem' }}>
-            <div
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              style={{
-                border: isDragOver ? '2px dashed #10b981' : '2px dashed rgba(255,255,255,0.08)',
-                borderRadius: '16px',
-                padding: '2.5rem',
-                textAlign: 'center',
-                background: isDragOver ? 'rgba(16,185,129,0.04)' : 'rgba(0,0,0,0.15)',
-                transition: 'all 0.2s',
+            {/* Hidden canvas for capturing frame */}
+            <canvas ref={canvasRef} style={{ display: 'none' }} />
+
+            {/* Hidden input for regular file upload */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleFileChange}
+            />
+
+            {/* Hidden input for direct mobile camera capture */}
+            <input
+              ref={mobileCameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              style={{ display: 'none' }}
+              onChange={handleFileChange}
+            />
+
+            {/* ── LIVE CAMERA VIEWFINDER ── */}
+            {isCameraActive ? (
+              <div style={{
                 position: 'relative',
-                cursor: 'pointer',
-                marginBottom: '1.5rem'
-              }}
-            >
-              <input
-                type="file"
-                accept="image/*"
-                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
-                onChange={handleFileChange}
-              />
-              {previewUrl ? (
-                <img src={previewUrl} alt="Preview" style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '10px', objectFit: 'contain' }} />
-              ) : (
-                <div>
-                  <span style={{ fontSize: '3rem', display: 'block', marginBottom: '0.5rem' }}>🐛</span>
-                  <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#e2e8f0' }}>Drag & Drop insect image here</div>
-                  <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>Supports PNG, JPG (Max 10MB) or browse folders</div>
+                borderRadius: '16px',
+                overflow: 'hidden',
+                background: '#000',
+                border: '2px solid #10b981',
+                boxShadow: '0 0 25px rgba(16,185,129,0.3)',
+                marginBottom: '1.25rem'
+              }}>
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  style={{
+                    width: '100%',
+                    height: '280px',
+                    objectFit: 'cover',
+                    display: 'block',
+                    transform: facingMode === 'user' ? 'scaleX(-1)' : 'none'
+                  }}
+                />
+
+                {/* Reticle / Aiming Guide Overlay */}
+                <div style={{
+                  position: 'absolute', top: '15px', left: '15px', right: '15px', bottom: '65px',
+                  border: '2px dashed rgba(16,185,129,0.6)', borderRadius: '12px',
+                  pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                  <div style={{
+                    background: 'rgba(0,0,0,0.6)', padding: '0.35rem 0.75rem',
+                    borderRadius: '20px', color: '#6ee7b7', fontSize: '0.75rem', fontWeight: 700
+                  }}>
+                    🎯 Align insect or crop pest inside frame
+                  </div>
                 </div>
-              )}
-            </div>
+
+                {/* Live Camera Bottom Bar */}
+                <div style={{
+                  position: 'absolute', bottom: 0, left: 0, right: 0,
+                  padding: '0.75rem', background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-around', gap: '0.5rem'
+                }}>
+                  <button
+                    type="button"
+                    onClick={toggleFacingMode}
+                    title="Flip Camera (Front/Rear)"
+                    style={{
+                      background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)',
+                      color: '#fff', borderRadius: '50%', width: '42px', height: '42px',
+                      cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}
+                  >
+                    🔄
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={capturePhoto}
+                    style={{
+                      background: '#10b981', border: '3px solid #fff',
+                      color: '#fff', borderRadius: '30px', padding: '0.55rem 1.4rem',
+                      fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer',
+                      boxShadow: '0 0 15px rgba(16,185,129,0.6)', display: 'flex', alignItems: 'center', gap: '0.4rem'
+                    }}
+                  >
+                    📸 Snap Photo
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={stopCamera}
+                    title="Close Camera"
+                    style={{
+                      background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)',
+                      color: '#f87171', borderRadius: '50%', width: '42px', height: '42px',
+                      cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+            /* ── DRAG & DROP / PREVIEW ZONE ── */
+            ) : (
+              <div>
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => { if (!previewUrl) fileInputRef.current?.click(); }}
+                  style={{
+                    border: isDragOver ? '2px dashed #10b981' : '2px dashed rgba(255,255,255,0.12)',
+                    borderRadius: '16px', padding: previewUrl ? '1rem' : '2.5rem', textAlign: 'center',
+                    background: isDragOver ? 'rgba(16,185,129,0.06)' : 'rgba(0,0,0,0.2)',
+                    transition: 'all 0.2s', position: 'relative', cursor: previewUrl ? 'default' : 'pointer', marginBottom: '1rem'
+                  }}
+                >
+                  {previewUrl ? (
+                    <div>
+                      <img src={previewUrl} alt="Preview" style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '10px', objectFit: 'contain' }} />
+                      <div style={{ marginTop: '0.75rem', display: 'flex', justifyContent: 'center', gap: '0.75rem' }}>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setSelectedFile(null); setPreviewUrl(null); }}
+                          style={{
+                            background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)',
+                            color: '#fca5a5', borderRadius: '8px', padding: '0.35rem 0.75rem',
+                            fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer'
+                          }}
+                        >
+                          🗑️ Remove Photo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); startCamera(); }}
+                          style={{
+                            background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)',
+                            color: '#6ee7b7', borderRadius: '8px', padding: '0.35rem 0.75rem',
+                            fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer'
+                          }}
+                        >
+                          📸 Retake with Camera
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <span style={{ fontSize: '3rem', display: 'block', marginBottom: '0.5rem' }}>🐛</span>
+                      <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#e2e8f0' }}>Upload or Snap Pest Image</div>
+                      <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>PNG, JPG or live camera snapshot (Max 10MB)</div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Action Buttons: Live Camera, Mobile Snap */}
+                {!previewUrl && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => startCamera()}
+                      style={{
+                        background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.35)',
+                        color: '#6ee7b7', borderRadius: '12px', padding: '0.75rem 0.5rem',
+                        fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <span>📸</span> Live Camera
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => mobileCameraInputRef.current?.click()}
+                      style={{
+                        background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.35)',
+                        color: '#93c5fd', borderRadius: '12px', padding: '0.75rem 0.5rem',
+                        fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <span>📱</span> Phone Camera
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             <button
               className="glow-btn"
               onClick={handleScan}
-              disabled={!selectedFile || scanning}
+              disabled={!selectedFile || scanning || isCameraActive}
               style={{
                 width: '100%',
                 padding: '1rem',
@@ -180,7 +441,7 @@ export default function Pest() {
                 color: '#fff',
                 fontSize: '1rem',
                 fontWeight: 700,
-                opacity: (!selectedFile || scanning) ? 0.5 : 1
+                opacity: (!selectedFile || scanning || isCameraActive) ? 0.5 : 1
               }}
             >
               {scanning ? 'Running Neural Net Classifier...' : 'Run Pest Scan'}
@@ -211,22 +472,35 @@ export default function Pest() {
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
-                      <h2 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800 }}>{result.pest_name}</h2>
-                      <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Detected Insect Class</span>
+                      {result.is_uncertain ? (
+                        <div>
+                          <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: '#facc15' }}>
+                            ⚠️ Unidentified Insect / Low Confidence
+                          </h2>
+                          <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+                            Closest match (unconfirmed): <strong style={{ color: '#e2e8f0' }}>{result.pest_name}</strong> ({result.confidence}%)
+                          </span>
+                        </div>
+                      ) : (
+                        <div>
+                          <h2 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800 }}>{result.pest_name}</h2>
+                          <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Detected Insect Class</span>
+                        </div>
+                      )}
                     </div>
                     <span
                       style={{
                         padding: '0.4rem 0.85rem',
                         borderRadius: '20px',
-                        background: `${getSeverityColor(result.infestation_level)}20`,
-                        color: getSeverityColor(result.infestation_level),
+                        background: result.is_uncertain ? 'rgba(234,179,8,0.15)' : `${getSeverityColor(result.infestation_level)}20`,
+                        color: result.is_uncertain ? '#facc15' : getSeverityColor(result.infestation_level),
                         fontSize: '0.75rem',
                         fontWeight: 700,
-                        border: `1px solid ${getSeverityColor(result.infestation_level)}30`,
+                        border: result.is_uncertain ? '1px solid rgba(234,179,8,0.3)' : `1px solid ${getSeverityColor(result.infestation_level)}30`,
                         textTransform: 'uppercase'
                       }}
                     >
-                      {result.infestation_level} Infestation
+                      {result.is_uncertain ? 'Unconfirmed' : `${result.infestation_level} Infestation`}
                     </span>
                   </div>
 
@@ -234,23 +508,43 @@ export default function Pest() {
                     <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>Classification Confidence:</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '6px' }}>
                       <div style={{ flex: 1, height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ width: `${result.confidence}%`, height: '100%', background: '#f59e0b' }} />
+                        <div style={{ width: `${result.confidence}%`, height: '100%', background: result.is_uncertain ? '#ef4444' : '#10b981' }} />
                       </div>
-                      <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>{result.confidence}%</span>
+                      <span style={{ fontWeight: 800, fontSize: '0.9rem', color: result.is_uncertain ? '#f87171' : '#34d399' }}>{result.confidence}%</span>
                     </div>
                   </div>
 
                   {/* Organic & Chemical Treatments */}
                   {result.is_uncertain ? (
-                    <div style={{ background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.4)', borderRadius: '12px', padding: '1.25rem', color: '#fde047' }}>
+                    <div style={{ background: 'rgba(234, 179, 8, 0.08)', border: '1px solid rgba(234, 179, 8, 0.35)', borderRadius: '12px', padding: '1.25rem', color: '#fde047' }}>
                       <h4 style={{ margin: '0 0 0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#facc15', fontSize: '1rem' }}>
-                        ⚠️ Classification Uncertain — Safety Threshold Triggered
+                        ⚠️ AI Safety Guardrail: Confidence Too Low ({result.confidence}%)
                       </h4>
                       <p style={{ margin: 0, fontSize: '0.85rem', color: '#fef08a', lineHeight: 1.5 }}>
-                        {result.message || "The insect or pest could not be identified with sufficient confidence. Chemical recommendations are withheld. Please capture a closer, well-lit photo of the pest or affected leaf."}
+                        The model detected low probability across insect classes. For crop safety, chemical and pesticide recommendations are withheld to prevent accidental damage.
                       </p>
-                      <p style={{ margin: '0.5rem 0 0', fontSize: '0.75rem', color: '#cbd5e1' }}>
-                        Please consult your local Krishi Vigyan Kendra (KVK) extension officer.
+
+                      <div style={{ marginTop: '0.85rem', padding: '0.85rem', background: 'rgba(0,0,0,0.35)', borderRadius: '10px', border: '1px dashed rgba(250,204,21,0.3)' }}>
+                        <div style={{ fontSize: '0.85rem', color: '#e2e8f0', fontWeight: 700, marginBottom: '4px' }}>
+                          🌿 Did you scan a diseased plant leaf instead of an insect?
+                        </div>
+                        <div style={{ fontSize: '0.78rem', color: '#94a3b8', lineHeight: 1.45, marginBottom: '8px' }}>
+                          The <strong>Pest Scanner</strong> only identifies visible bugs (Aphids, Whiteflies, Caterpillars). If your crop leaf has yellow patches, fungal spots, or blight, please use the <strong>Crop Disease Scanner</strong> (trained on 38 plant diseases with full clinical treatment protocols).
+                        </div>
+                        <Link
+                          to="/crop-health"
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                            background: '#10b981', color: '#fff', padding: '0.45rem 0.95rem',
+                            borderRadius: '8px', textDecoration: 'none', fontSize: '0.8rem', fontWeight: 700
+                          }}
+                        >
+                          🌿 Switch to Crop Disease Scanner →
+                        </Link>
+                      </div>
+
+                      <p style={{ margin: '0.75rem 0 0', fontSize: '0.75rem', color: '#cbd5e1' }}>
+                        💡 To scan insects accurately: Hold camera 4-6 inches from the bug and ensure good daylight.
                       </p>
                     </div>
                   ) : (

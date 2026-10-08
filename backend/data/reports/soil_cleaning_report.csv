@@ -1,5 +1,5 @@
-step
-After dedup: 2200 rows
-After drop NaN label: 2200 rows
-Removed 0 invalid pH rows
-After IQR outlier removal: 1846 rows (removed 354)
+step,detail
+"After dedup: 2200 rows",""
+"After drop NaN label: 2200 rows",""
+"Removed 0 invalid pH rows",""
+"After IQR outlier removal: 1846 rows (removed 354)",""
