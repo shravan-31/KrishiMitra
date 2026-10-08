@@ -111,17 +111,6 @@ async def get_crop_forecast(
     
     try:
         res = forecast_market(crop_name=crop_clean, forecast_days=days)
-    except ValueError as ve:
-        # Explicit rejection for unsupported crops (Fix 7)
-        return JSONResponse(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            content={
-                "error": "forecast_not_supported",
-                "message": str(ve),
-                "supported_crops": ["Rice", "Wheat"],
-                "requested_crop": crop_clean
-            }
-        )
     except Exception as ex:
         raise HTTPException(status_code=500, detail=f"Market forecasting failed: {ex}")
         
@@ -138,13 +127,14 @@ async def get_crop_forecast(
     return {
         "daily_prices": forecast_list,
         "trend": res["trend"],
-        "min": min(prices),
-        "max": max(prices),
-        "avg": round(sum(prices) / len(prices), 2),
+        "advisory": res.get("advisory", ""),
+        "min": min(prices) if prices else 0.0,
+        "max": max(prices) if prices else 0.0,
+        "avg": round(sum(prices) / len(prices), 2) if prices else 0.0,
         "percent_change": res.get("percent_change", 0.0),
-        "source": "AgriMind Market LSTM (PyTorch)",
+        "source": res.get("source", "AgriMind APMC Intelligence & Neural Time-Series"),
         "is_forecast": True,
         "supported_crop": True,
         "crop": crop_clean,
-        "notice": "7-Day AI Forecast derived from historical agricultural market trends."
+        "notice": "AI Price Projection based on seasonal market momentum and APMC arrival trends."
     }

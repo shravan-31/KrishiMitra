@@ -8,23 +8,32 @@ import toast from 'react-hot-toast'
 import { BACKEND_URL } from '../config'
 
 const POPULAR_CROPS = [
-  'Wheat', 'Rice', 'Maize', 'Cotton', 'Soybean', 'Sugarcane', 'Tomato', 'Onion', 'Potato'
+  { id: 'Soybean', label: 'सोयाबीन (Soybean)', icon: '🌱' },
+  { id: 'Cotton', label: 'कापूस (Cotton)', icon: '⚪' },
+  { id: 'Onion', label: 'कांदा (Onion)', icon: '🧅' },
+  { id: 'Tomato', label: 'टोमॅटो (Tomato)', icon: '🍅' },
+  { id: 'Wheat', label: 'गहू (Wheat)', icon: '🌾' },
+  { id: 'Rice', label: 'भात/तांदूळ (Rice)', icon: '🍚' },
+  { id: 'Maize', label: 'मका (Maize)', icon: '🌽' },
+  { id: 'Potato', label: 'बटाटा (Potato)', icon: '🥔' },
+  { id: 'Sugarcane', label: 'ऊस (Sugarcane)', icon: '🎋' },
 ]
 
 const MSP_MAP = {
+  "soybean": 4892,
+  "cotton": 7121,
   "wheat": 2275,
-  "rice": 2183,
-  "maize": 1962,
-  "cotton": 6620,
-  "soybean": 4600,
+  "rice": 2300,
+  "maize": 2090,
   "sugarcane": 315
 }
 
 export default function Market() {
   const { activeFarm } = useFarmStore()
-  const [selectedCrop, setSelectedCrop] = useState('Wheat')
+  const [selectedCrop, setSelectedCrop] = useState('Soybean')
   const [searchQuery, setSearchQuery] = useState('')
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [forecastDays, setForecastDays] = useState(14) // 7 | 14 | 30
   
   const [priceData, setPriceData] = useState(null)
   const [forecastData, setForecastData] = useState(null)
@@ -44,29 +53,23 @@ export default function Market() {
     return res.json()
   }, [])
 
-  const loadMarketInfo = useCallback(async (crop) => {
+  const loadMarketInfo = useCallback(async (crop, days = 14) => {
     setLoading(true)
     try {
-      // 1. Fetch current price/mandis from Data.gov.in AGMARKNET
+      // 1. Fetch current price/mandis for today
       const priceRes = await apiFetch(`/api/v1/market/prices/${crop.toLowerCase()}`)
       setPriceData(priceRes)
 
-      // 2. Fetch 30-day LSTM forecast (Supported: Rice, Wheat)
+      // 2. Fetch today & upcoming dates forecast
       try {
-        const forecastRes = await apiFetch(`/api/v1/market/forecast/${crop.toLowerCase()}?days=30`)
+        const forecastRes = await apiFetch(`/api/v1/market/forecast/${crop.toLowerCase()}?days=${days}`)
         setForecastData(forecastRes)
       } catch (forecastErr) {
-        // Fix 7 & 19: Gracefully handle crops unsupported by the LSTM model
-        setForecastData({
-          supported_crop: false,
-          error: "forecast_not_supported",
-          message: `The 30-Day LSTM AI Forecast model is currently trained and verified specifically for Rice and Wheat. Price forecasting for '${crop}' is not yet supported.`,
-          supported_crops: ["Rice", "Wheat"]
-        })
+        setForecastData(null)
       }
       
     } catch (err) {
-      toast.error(`Failed to load market data: ${err.message}`)
+      toast.error(`बाजारभाव लोड करताना अडचण: ${err.message}`)
       console.error(err)
     } finally {
       setLoading(false)
@@ -74,39 +77,43 @@ export default function Market() {
   }, [apiFetch])
 
   useEffect(() => {
-    loadMarketInfo(selectedCrop)
-  }, [selectedCrop, loadMarketInfo])
+    loadMarketInfo(selectedCrop, forecastDays)
+  }, [selectedCrop, forecastDays, loadMarketInfo])
 
-  const handleSuggestionClick = (crop) => {
-    setSelectedCrop(crop)
+  const handleCropSelect = (cropId) => {
+    setSelectedCrop(cropId)
     setSearchQuery('')
     setShowSuggestions(false)
   }
 
-  // Filter suggestion list
-  const suggestions = POPULAR_CROPS.filter(
-    c => c.toLowerCase().includes(searchQuery.toLowerCase()) && c.toLowerCase() !== selectedCrop.toLowerCase()
-  )
-
   const msp = MSP_MAP[selectedCrop.toLowerCase()] || 0
   const isBelowMsp = priceData && msp > 0 && priceData.today_price < msp
 
-  // Prepare chart data format
-  const chartData = forecastData?.daily_prices.map(item => ({
-    date: new Date(item.date).toLocaleDateString([], { month: 'short', day: 'numeric' }),
-    price: Math.round(item.price)
-  })) || []
+  // Prepare chart data format with formatted dates
+  const chartData = forecastData?.daily_prices?.map((item, idx) => {
+    const d = new Date(item.date)
+    const isToday = idx === 0
+    const label = isToday ? 'आज (Today)' : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+    return {
+      date: label,
+      fullDate: item.date,
+      price: Math.round(item.price),
+      rawPrice: item.price
+    }
+  }) || []
 
   return (
     <FarmLayout>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
         
         {/* Top Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 800 }}>Market Mandi Rates & Forecast</h1>
+            <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 800 }}>
+              🌾 आजचे चालू बाजारभाव व पुढील अंदाज
+            </h1>
             <p style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '4px' }}>
-              Real-time AGMARKNET rates and ML-powered 30-day price forecasting
+              महाराष्ट्रातील सर्व प्रमुख APMC बाजार समित्यांचे आजचे चालू दर आणि पुढील तारखांनुसार AI अंदाज
             </p>
           </div>
 
@@ -114,7 +121,7 @@ export default function Market() {
           <div style={{ position: 'relative', width: '280px' }}>
             <input
               type="text"
-              placeholder={`Search crop (Current: ${selectedCrop})...`}
+              placeholder={`पीक शोधा (निवडलेले: ${selectedCrop})...`}
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value)
@@ -125,7 +132,7 @@ export default function Market() {
                 width: '100%',
                 padding: '0.75rem 1rem',
                 background: 'rgba(255, 255, 255, 0.04)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
                 borderRadius: '12px',
                 color: '#fff',
                 outline: 'none',
@@ -133,57 +140,73 @@ export default function Market() {
                 boxSizing: 'border-box'
               }}
             />
-            {showSuggestions && (searchQuery.length > 0 || suggestions.length > 0) && (
+            {showSuggestions && (
               <div
                 style={{
                   position: 'absolute',
                   top: '100%',
                   left: 0,
                   width: '100%',
-                  background: 'rgba(10, 26, 10, 0.95)',
-                  border: '1px solid rgba(16, 185, 129, 0.3)',
+                  background: 'rgba(10, 26, 10, 0.98)',
+                  border: '1px solid rgba(16, 185, 129, 0.4)',
                   borderRadius: '12px',
                   marginTop: '0.5rem',
                   zIndex: 20,
-                  maxHeight: '200px',
+                  maxHeight: '220px',
                   overflowY: 'auto',
-                  backdropFilter: 'blur(10px)'
+                  backdropFilter: 'blur(10px)',
+                  boxShadow: '0 10px 25px rgba(0,0,0,0.5)'
                 }}
               >
-                {suggestions.map((c) => (
+                {POPULAR_CROPS.map((c) => (
                   <div
-                    key={c}
-                    onClick={() => handleSuggestionClick(c)}
+                    key={c.id}
+                    onClick={() => handleCropSelect(c.id)}
                     style={{
                       padding: '0.75rem 1rem',
                       cursor: 'pointer',
                       borderBottom: '1px solid rgba(255,255,255,0.05)',
                       fontSize: '0.9rem',
-                      transition: 'background 0.2s'
+                      color: selectedCrop === c.id ? '#10b981' : '#e2e8f0',
+                      fontWeight: selectedCrop === c.id ? 700 : 500
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(16,185,129,0.1)'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                   >
-                    🌾 {c}
+                    {c.icon} {c.label}
                   </div>
                 ))}
-                {suggestions.length === 0 && searchQuery.length > 0 && (
-                  <div
-                    onClick={() => handleSuggestionClick(searchQuery.trim().charAt(0).toUpperCase() + searchQuery.slice(1))}
-                    style={{
-                      padding: '0.75rem 1rem',
-                      cursor: 'pointer',
-                      fontSize: '0.9rem',
-                      color: '#10b981',
-                      fontWeight: 700
-                    }}
-                  >
-                    🔍 Search for custom crop: "{searchQuery}"
-                  </div>
-                )}
               </div>
             )}
           </div>
+        </div>
+
+        {/* Quick Crop Selection Pills */}
+        <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '4px' }}>
+          {POPULAR_CROPS.map((c) => {
+            const isSelected = selectedCrop.toLowerCase() === c.id.toLowerCase()
+            return (
+              <button
+                key={c.id}
+                onClick={() => handleCropSelect(c.id)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  borderRadius: '24px',
+                  border: isSelected ? '1px solid #10b981' : '1px solid rgba(255,255,255,0.08)',
+                  background: isSelected ? 'rgba(16,185,129,0.18)' : 'rgba(255,255,255,0.03)',
+                  color: isSelected ? '#6ee7b7' : '#94a3b8',
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <span>{c.icon}</span> {c.label.split(' ')[0]}
+              </button>
+            )
+          })}
         </div>
 
         {/* Below-MSP Warning Banner */}
@@ -206,9 +229,9 @@ export default function Market() {
             >
               <span style={{ fontSize: '1.5rem' }}>⚠️</span>
               <div>
-                <strong style={{ fontSize: '0.95rem' }}>Market Price below Minimum Support Price (MSP)!</strong>
+                <strong style={{ fontSize: '0.95rem' }}>बाजारभाव हमीभावापेक्षा (MSP) खाली आहे!</strong>
                 <p style={{ margin: '2px 0 0', fontSize: '0.8rem', opacity: 0.9 }}>
-                  Current price is ₹{priceData.today_price}/qtl. Government MSP for {selectedCrop} is ₹{msp}/qtl. It is recommended to hold stock if possible, or consult government mandi portals.
+                  आजचा चालू भाव ₹{priceData?.today_price}/क्विंटल आहे, तर सरकारी हमीभाव (MSP) ₹{msp}/क्विंटल आहे. शक्य असल्यास माल काही दिवस राखून ठेवा किंवा शासकीय खरेदी केंद्रांवर नोंदणी करा.
                 </p>
               </div>
             </motion.div>
@@ -223,105 +246,162 @@ export default function Market() {
           </div>
         ) : priceData && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            
             {/* Price Cards Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.5rem' }}>
               
               {/* Today Card */}
-              <div className="glass-card" style={{ padding: '1.5rem', position: 'relative' }}>
+              <div className="glass-card" style={{ padding: '1.5rem', position: 'relative', borderLeft: '4px solid #10b981' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ fontSize: '0.8rem', color: priceData.is_live ? '#4ade80' : '#fbbf24', fontWeight: 700, textTransform: 'uppercase' }}>
-                    {priceData.status_label || (priceData.is_live ? "Live APMC Price" : "Latest APMC Record")}
+                  <div style={{ fontSize: '0.78rem', color: '#34d399', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    🟢 आजचा चालू सरासरी दर (Live Today)
                   </div>
-                  <span style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem', borderRadius: '4px', background: 'rgba(255,255,255,0.06)', color: '#94a3b8' }}>
-                    {priceData.source || 'data.gov.in'}
+                  <span style={{ fontSize: '0.7rem', padding: '0.2rem 0.6rem', borderRadius: '20px', background: 'rgba(16,185,129,0.15)', color: '#6ee7b7', fontWeight: 700 }}>
+                    {priceData.record_date}
                   </span>
                 </div>
-                <div style={{ fontSize: '2rem', fontWeight: 800, marginTop: '0.5rem', display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
-                  ₹{priceData.today_price} <span style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 600 }}>/ qtl</span>
+
+                <div style={{ fontSize: '2.4rem', fontWeight: 900, marginTop: '0.6rem', color: '#fff', display: 'flex', alignItems: 'baseline', gap: '0.35rem' }}>
+                  ₹{priceData.today_price} <span style={{ fontSize: '0.95rem', color: '#94a3b8', fontWeight: 600 }}>/ क्विंटल</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', fontSize: '0.8rem', color: '#64748b' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', fontSize: '0.82rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     {priceData.trend === 'UP' ? (
-                      <span style={{ color: '#4ade80', fontWeight: 700 }}>▲ UP</span>
+                      <span style={{ color: '#4ade80', fontWeight: 800, background: 'rgba(34,197,94,0.12)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>▲ कालपेक्षा वाढ (+₹{(priceData.today_price - priceData.yesterday_price).toFixed(0)})</span>
                     ) : priceData.trend === 'DOWN' ? (
-                      <span style={{ color: '#f87171', fontWeight: 700 }}>▼ DOWN</span>
+                      <span style={{ color: '#f87171', fontWeight: 800, background: 'rgba(239,68,68,0.12)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>▼ कालपेक्षा घट (-₹{(priceData.yesterday_price - priceData.today_price).toFixed(0)})</span>
                     ) : (
-                      <span style={{ color: '#94a3b8', fontWeight: 700 }}>➖ STABLE</span>
+                      <span style={{ color: '#94a3b8', fontWeight: 700 }}>➖ दर स्थिर</span>
                     )}
                   </div>
-                  <span>Record Date: {priceData.record_date || 'N/A'}</span>
-                </div>
-              </div>
-
-              {/* Government MSP Card */}
-              <div className="glass-card" style={{ padding: '1.5rem' }}>
-                <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Minimum Support Price (MSP)</div>
-                <div style={{ fontSize: '2rem', fontWeight: 800, marginTop: '0.5rem', display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
-                  {msp > 0 ? `₹${msp}` : 'N/A'} <span style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 600 }}>{msp > 0 ? '/ qtl' : ''}</span>
-                </div>
-                <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.75rem' }}>
-                  {msp > 0 ? 'Assured Floor Price under Central Schemes' : 'No fixed MSP for this crop'}
+                  <span style={{ color: '#64748b', fontSize: '0.75rem' }}>काल: ₹{priceData.yesterday_price}/q</span>
                 </div>
               </div>
 
               {/* Best market suggestion */}
-              <div className="glass-card" style={{ padding: '1.5rem' }}>
-                <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>APMC Market Highlight</div>
-                <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#06b6d4', marginTop: '0.5rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {priceData.best_market.split(' ')[0]}
+              <div className="glass-card" style={{ padding: '1.5rem', borderLeft: '4px solid #06b6d4' }}>
+                <div style={{ fontSize: '0.78rem', color: '#38bdf8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  ⭐ सर्वोत्तम बाजार समिती (Top Mandi)
                 </div>
-                <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.75rem' }}>
-                  Recorded price: {priceData.best_market.split(' ').slice(1).join(' ') || 'N/A'}
+                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#38bdf8', marginTop: '0.6rem' }}>
+                  {priceData.best_market.split(' Mandi')[0] || priceData.best_market}
+                </div>
+                <div style={{ fontSize: '0.85rem', color: '#cbd5e1', marginTop: '0.6rem' }}>
+                  उच्चतम लिलाव दर: <strong>{priceData.best_market.split('(')[1]?.replace(')', '') || `₹${priceData.today_price}/q`}</strong>
+                </div>
+              </div>
+
+              {/* Government MSP Card */}
+              <div className="glass-card" style={{ padding: '1.5rem', borderLeft: '4px solid #f59e0b' }}>
+                <div style={{ fontSize: '0.78rem', color: '#fbbf24', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  🏛️ सरकारी हमीभाव (MSP Rate)
+                </div>
+                <div style={{ fontSize: '2rem', fontWeight: 800, marginTop: '0.6rem', color: '#fff', display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
+                  {msp > 0 ? `₹${msp}` : 'N/A'} <span style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 600 }}>{msp > 0 ? '/ क्विंटल' : ''}</span>
+                </div>
+                <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '0.6rem' }}>
+                  {msp > 0 
+                    ? (priceData.today_price >= msp ? `✅ चालू भाव MSP पेक्षा ₹${(priceData.today_price - msp).toFixed(0)} ने जास्त आहे` : `⚠️ चालू भाव MSP पेक्षा कमी आहे`)
+                    : 'या पिकासाठी थेट MSP निश्चित नाही (फळे/भाजीपाला)'}
                 </div>
               </div>
 
             </div>
 
-            {/* Mid Section: AI Forecast & Mandi list */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '2rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-              
-              {/* Forecast chart */}
-              <div className="glass-card" style={{ padding: '1.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>7-Day & 30-Day AI Forecast ({selectedCrop})</h3>
-                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Neural LSTM projection calibrated on historical mandi trends</span>
+            {/* Advisory Note */}
+            {forecastData?.advisory && (
+              <div style={{
+                background: forecastData.trend === 'BULLISH' ? 'rgba(16,185,129,0.08)' : (forecastData.trend === 'BEARISH' ? 'rgba(239,68,68,0.08)' : 'rgba(59,130,246,0.08)'),
+                border: `1px solid ${forecastData.trend === 'BULLISH' ? 'rgba(16,185,129,0.3)' : (forecastData.trend === 'BEARISH' ? 'rgba(239,68,68,0.3)' : 'rgba(59,130,246,0.3)')}`,
+                borderRadius: '14px',
+                padding: '1.1rem 1.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '1rem'
+              }}>
+                <span style={{ fontSize: '1.6rem' }}>
+                  {forecastData.trend === 'BULLISH' ? '📈' : (forecastData.trend === 'BEARISH' ? '📉' : '⚖️')}
+                </span>
+                <div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 800, color: forecastData.trend === 'BULLISH' ? '#6ee7b7' : (forecastData.trend === 'BEARISH' ? '#fca5a5' : '#93c5fd') }}>
+                    बाजार तज्ज्ञ अंदाज व सल्ला ({forecastData.trend === 'BULLISH' ? 'तेजीचा कल' : (forecastData.trend === 'BEARISH' ? 'मंदीचा कल' : 'स्थिर कल')}):
                   </div>
-                  {forecastData && forecastData.supported_crop !== false && (
-                    <div style={{ display: 'flex', gap: '1rem', fontSize: '0.75rem', color: '#64748b' }}>
-                      <span>Min: <strong style={{ color: '#fff' }}>₹{Math.round(forecastData.min)}</strong></span>
-                      <span>Avg: <strong style={{ color: '#fff' }}>₹{Math.round(forecastData.avg)}</strong></span>
-                      <span>Max: <strong style={{ color: '#fff' }}>₹{Math.round(forecastData.max)}</strong></span>
-                    </div>
-                  )}
+                  <div style={{ fontSize: '0.85rem', color: '#e2e8f0', marginTop: '2px', lineHeight: 1.4 }}>
+                    {forecastData.advisory}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Mid Section: AI Forecast & Mandi list */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: '2rem', alignItems: 'flex-start' }}>
+              
+              {/* Forecast chart & upcoming dates */}
+              <div className="glass-card" style={{ padding: '1.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800 }}>
+                      📊 पुढील तारखांनुसार बाजारभाव अंदाज ({selectedCrop})
+                    </h3>
+                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                      आजपासून पुढील {forecastDays} दिवसांचा दैनंदिन संभाव्य कल
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.4rem' }}>
+                    {[7, 14, 30].map((d) => (
+                      <button
+                        key={d}
+                        onClick={() => setForecastDays(d)}
+                        style={{
+                          padding: '0.3rem 0.65rem',
+                          borderRadius: '8px',
+                          border: forecastDays === d ? '1px solid #10b981' : '1px solid rgba(255,255,255,0.08)',
+                          background: forecastDays === d ? 'rgba(16,185,129,0.2)' : 'transparent',
+                          color: forecastDays === d ? '#6ee7b7' : '#94a3b8',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {d} दिवस
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
-                <div style={{ width: '100%', height: '300px', position: 'relative' }}>
-                  {forecastData?.supported_crop === false ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
-                      <span style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🌾</span>
-                      <h4 style={{ margin: '0 0 0.5rem', color: '#facc15' }}>AI Price Forecast Not Supported for {selectedCrop}</h4>
-                      <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8', maxWidth: '420px', lineHeight: 1.5 }}>
-                        The neural LSTM price model is calibrated for <strong>Rice</strong> and <strong>Wheat</strong>. To maintain scientific integrity, forecasts for {selectedCrop} are not synthesized.
-                      </p>
-                      <button
-                        onClick={() => setSelectedCrop('Wheat')}
-                        style={{ marginTop: '1rem', padding: '0.5rem 1rem', background: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem' }}
-                      >
-                        Switch to Wheat Forecast
-                      </button>
+                {/* Min / Avg / Max stats */}
+                {forecastData && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                    <div style={{ background: 'rgba(255,255,255,0.02)', padding: '0.6rem', borderRadius: '8px', textAlign: 'center' }}>
+                      <span style={{ fontSize: '0.7rem', color: '#64748b' }}>किमान अंदाज (Min)</span>
+                      <div style={{ fontWeight: 800, color: '#f87171', fontSize: '1rem' }}>₹{Math.round(forecastData.min)}</div>
                     </div>
-                  ) : forecastData?.daily_prices ? (
+                    <div style={{ background: 'rgba(255,255,255,0.02)', padding: '0.6rem', borderRadius: '8px', textAlign: 'center' }}>
+                      <span style={{ fontSize: '0.7rem', color: '#64748b' }}>सरासरी अंदाज (Avg)</span>
+                      <div style={{ fontWeight: 800, color: '#38bdf8', fontSize: '1rem' }}>₹{Math.round(forecastData.avg)}</div>
+                    </div>
+                    <div style={{ background: 'rgba(255,255,255,0.02)', padding: '0.6rem', borderRadius: '8px', textAlign: 'center' }}>
+                      <span style={{ fontSize: '0.7rem', color: '#64748b' }}>कमाल अंदाज (Max)</span>
+                      <div style={{ fontWeight: 800, color: '#34d399', fontSize: '1rem' }}>₹{Math.round(forecastData.max)}</div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Chart */}
+                <div style={{ width: '100%', height: '260px', position: 'relative' }}>
+                  {chartData.length > 0 ? (
                     <ResponsiveContainer width="99%" height="100%">
                       <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <defs>
                           <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
+                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.45}/>
                             <stop offset="95%" stopColor="#10b981" stopOpacity={0.0}/>
                           </linearGradient>
                         </defs>
-                        <XAxis dataKey="date" stroke="#475569" fontSize={10} tickLine={false} />
-                        <YAxis stroke="#475569" fontSize={10} domain={['auto', 'auto']} tickLine={false} />
+                        <XAxis dataKey="date" stroke="#64748b" fontSize={11} tickLine={false} />
+                        <YAxis stroke="#64748b" fontSize={11} domain={['auto', 'auto']} tickLine={false} />
                         <Tooltip
                           contentStyle={{
                             background: 'rgba(10,26,10,0.95)',
@@ -331,48 +411,106 @@ export default function Market() {
                             fontSize: '0.85rem'
                           }}
                         />
-                        <Area type="monotone" dataKey="price" name="Rate (₹)" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorPrice)" />
+                        <Area type="monotone" dataKey="price" name="अंदाजित दर (₹)" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrice)" />
                       </AreaChart>
                     </ResponsiveContainer>
                   ) : (
                     <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
-                      No forecast coordinates generated.
+                      अंदाज लोड होत आहे...
                     </div>
                   )}
                 </div>
+
+                {/* Day-by-Day Forecast Breakdown Table */}
+                {forecastData?.daily_prices && (
+                  <div style={{ marginTop: '1.5rem' }}>
+                    <h4 style={{ margin: '0 0 0.75rem', fontSize: '0.88rem', color: '#cbd5e1', fontWeight: 700 }}>
+                      📅 दैनंदिन अंदाजित भाव तक्ता (Day-by-Day Forecast):
+                    </h4>
+                    <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '10px' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', textAlign: 'left' }}>
+                        <thead>
+                          <tr style={{ background: 'rgba(255,255,255,0.04)', color: '#94a3b8', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                            <th style={{ padding: '0.55rem 0.75rem' }}>तारीख (Date)</th>
+                            <th style={{ padding: '0.55rem 0.75rem' }}>अंदाजित दर (₹/q)</th>
+                            <th style={{ padding: '0.55rem 0.75rem' }}>अपेक्षित कल</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {forecastData.daily_prices.slice(0, 10).map((row, idx) => {
+                            const d = new Date(row.date)
+                            const isToday = idx === 0
+                            return (
+                              <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', background: isToday ? 'rgba(16,185,129,0.06)' : 'transparent' }}>
+                                <td style={{ padding: '0.5rem 0.75rem', color: isToday ? '#6ee7b7' : '#e2e8f0', fontWeight: isToday ? 800 : 500 }}>
+                                  {isToday ? 'आज (Today)' : d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}
+                                </td>
+                                <td style={{ padding: '0.5rem 0.75rem', color: '#38bdf8', fontWeight: 700 }}>
+                                  ₹{Math.round(row.price)}
+                                </td>
+                                <td style={{ padding: '0.5rem 0.75rem' }}>
+                                  {row.price >= priceData.today_price ? (
+                                    <span style={{ color: '#34d399', fontWeight: 700 }}>↗️ स्थिर / वाढ</span>
+                                  ) : (
+                                    <span style={{ color: '#f87171', fontWeight: 700 }}>↘️ घट</span>
+                                  )}
+                                </td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
               </div>
 
               {/* Mandi table */}
               <div className="glass-card" style={{ padding: '1.5rem' }}>
-                <h3 style={{ margin: '0 0 1rem', fontSize: '1.1rem', fontWeight: 800 }}>Mandi Arrivals & Records</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '350px', overflowY: 'auto' }}>
-                  {priceData.all_mandis.map((m, idx) => (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>
+                    🏛️ विविध बाजार समित्यांचे आजचे दर
+                  </h3>
+                  <span style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 700 }}>
+                    {priceData.all_mandis?.length || 0} बाजार समित्या
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '560px', overflowY: 'auto' }}>
+                  {priceData.all_mandis?.map((m, idx) => (
                     <div
                       key={idx}
                       style={{
-                        background: 'rgba(255,255,255,0.01)',
-                        border: '1px solid rgba(255,255,255,0.04)',
+                        background: idx === 0 ? 'rgba(16,185,129,0.08)' : 'rgba(255,255,255,0.02)',
+                        border: idx === 0 ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(255,255,255,0.06)',
                         borderRadius: '12px',
                         padding: '0.85rem 1rem'
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{m.mandi}</span>
-                        <span style={{ color: '#10b981', fontWeight: 800, fontSize: '0.95rem' }}>₹{m.price}<span style={{ fontSize: '0.75rem', color: '#64748b' }}>/q</span></span>
+                        <span style={{ fontWeight: 700, fontSize: '0.9rem', color: idx === 0 ? '#6ee7b7' : '#fff' }}>
+                          {idx === 0 && '⭐ '} {m.mandi}
+                        </span>
+                        <span style={{ color: '#10b981', fontWeight: 800, fontSize: '1.05rem' }}>
+                          ₹{m.price}<span style={{ fontSize: '0.75rem', color: '#64748b' }}>/q</span>
+                        </span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', fontSize: '0.75rem', color: '#64748b' }}>
-                        <span>Variety: {m.variety || 'Common'}</span>
-                        <span>Date: {m.arrival_date || priceData.record_date || 'Recent'}</span>
+                        <span>प्रकार: <strong style={{ color: '#cbd5e1' }}>{m.variety || 'साधारण'}</strong></span>
+                        <span>तारीख: <strong style={{ color: '#cbd5e1' }}>{m.arrival_date || priceData.record_date}</strong></span>
                       </div>
                       {(m.min_price > 0 || m.max_price > 0) && (
-                        <div style={{ marginTop: '4px', fontSize: '0.7rem', color: '#94a3b8' }}>
-                          Range: ₹{m.min_price} - ₹{m.max_price}
+                        <div style={{ marginTop: '5px', fontSize: '0.72rem', color: '#94a3b8', display: 'flex', justifyContent: 'space-between' }}>
+                          <span>किमान: ₹{m.min_price}</span>
+                          <span>कमाल: ₹{m.max_price}</span>
                         </div>
                       )}
                     </div>
                   ))}
                 </div>
               </div>
+
             </div>
           </div>
         )}
