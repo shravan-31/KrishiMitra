@@ -368,6 +368,7 @@ export default function FarmLayout({ children }) {
           <SidebarLink to="/market" emoji="💰" active={location.pathname === '/market'}>Market Prices</SidebarLink>
           <SidebarLink to="/expenses" emoji="📒" active={location.pathname === '/expenses'}>Expense Tracker</SidebarLink>
           <SidebarLink to="/schemes" emoji="🏛️" active={location.pathname === '/schemes'}>Govt Schemes</SidebarLink>
+          <SidebarLink to="/drought" emoji="🛡️" active={location.pathname === '/drought'}>Drought Defense</SidebarLink>
           <SidebarLink to="/languages" emoji="🗣️" active={location.pathname === '/languages'}>Multilingual</SidebarLink>
 
           <div style={{ flex: 1 }} />

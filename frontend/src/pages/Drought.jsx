@@ -1,0 +1,729 @@
+import React, { useState, useEffect, useCallback } from 'react'
+import { motion } from 'framer-motion'
+import { useFarmStore } from '../store/farmStore'
+import FarmLayout from '../components/FarmLayout'
+import toast from 'react-hot-toast'
+import { BACKEND_URL } from '../config'
+
+export default function Drought() {
+  const { activeFarm } = useFarmStore()
+  
+  // Assessment inputs
+  const [formData, setFormData] = useState({
+    crop_name: 'Cotton',
+    acres: activeFarm?.area_acres || 3.0,
+    water_source: 'Borewell',
+    daily_water_hours: 1.5,
+    pump_hp: 3.0,
+    irrigation_type: 'Drip Irrigation',
+    soil_type: activeFarm?.soil_type ? `${activeFarm.soil_type} Soil` : 'Medium Black Clay',
+    growth_stage: 'Flowering & Pod Formation',
+    district: activeFarm?.district || 'Latur'
+  })
+
+  // Analysis result state
+  const [analysis, setAnalysis] = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  // Catalogs
+  const [resilientCrops, setResilientCrops] = useState([])
+  const [schemes, setSchemes] = useState([])
+  const [activeTab, setActiveTab] = useState('advisor') // 'advisor' | 'crops' | 'schemes'
+
+  const apiFetch = useCallback(async (path, options = {}) => {
+    options.credentials = 'include'
+    options.headers = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    }
+    const res = await fetch(`${BACKEND_URL}${path}`, options)
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'API failure' }))
+      throw new Error(err.detail || 'API failure')
+    }
+    return res.json()
+  }, [])
+
+  // Initial load of catalog data
+  useEffect(() => {
+    async function loadCatalogs() {
+      try {
+        const [cropsRes, schemesRes] = await Promise.all([
+          apiFetch('/api/v1/drought/crops'),
+          apiFetch('/api/v1/drought/schemes')
+        ])
+        setResilientCrops(cropsRes?.drought_resilient_crops || [])
+        setSchemes(schemesRes?.schemes || [])
+      } catch (err) {
+        console.error('Failed to load drought catalogs:', err)
+      }
+    }
+    loadCatalogs()
+  }, [apiFetch])
+
+  // Trigger analysis
+  const handleAnalyze = async (e) => {
+    if (e) e.preventDefault()
+    setLoading(true)
+    try {
+      const data = await apiFetch('/api/v1/drought/analyze', {
+        method: 'POST',
+        body: JSON.stringify(formData)
+      })
+      setAnalysis(data)
+      toast.success('Drought water stress assessment completed!')
+    } catch (err) {
+      toast.error(err.message || 'Failed to complete drought assessment')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Run initial calculation on page load
+  useEffect(() => {
+    handleAnalyze()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const getSeverityColor = (level) => {
+    switch (level) {
+      case 'CRITICAL':
+        return { text: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)', border: 'rgba(239, 68, 68, 0.4)' }
+      case 'HIGH':
+        return { text: '#f97316', bg: 'rgba(249, 115, 22, 0.15)', border: 'rgba(249, 115, 22, 0.4)' }
+      case 'MODERATE':
+        return { text: '#eab308', bg: 'rgba(234, 179, 8, 0.15)', border: 'rgba(234, 179, 8, 0.4)' }
+      default:
+        return { text: '#10b981', bg: 'rgba(16, 185, 129, 0.15)', border: 'rgba(16, 185, 129, 0.4)' }
+    }
+  }
+
+  const severityColor = getSeverityColor(analysis?.stress_level || 'OPTIMAL')
+
+  return (
+    <FarmLayout>
+      <div style={{ maxWidth: '1240px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        
+        {/* Header Section */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
+              <span style={{ fontSize: '2rem' }}>🛡️</span>
+              <h1 style={{ margin: 0, fontSize: '2.1rem', fontWeight: 800, background: 'linear-gradient(135deg, #f59e0b, #ef4444, #06b6d4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                Drought Defense & Water Shield
+              </h1>
+            </div>
+            <p style={{ color: '#94a3b8', margin: '0 0 0 3rem', fontSize: '0.95rem' }}>
+              Precision water budgeting, irrigation optimization, survival forecasting, and emergency protocols for drought-affected farms in Maharashtra.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.5rem', background: 'rgba(255,255,255,0.04)', padding: '0.35rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <button
+              onClick={() => setActiveTab('advisor')}
+              style={{
+                padding: '0.5rem 1rem',
+                borderRadius: '8px',
+                border: 'none',
+                background: activeTab === 'advisor' ? '#10b981' : 'transparent',
+                color: activeTab === 'advisor' ? '#022c22' : '#cbd5e1',
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                transition: 'all 0.2s'
+              }}
+            >
+              💧 Water Advisor
+            </button>
+            <button
+              onClick={() => setActiveTab('crops')}
+              style={{
+                padding: '0.5rem 1rem',
+                borderRadius: '8px',
+                border: 'none',
+                background: activeTab === 'crops' ? '#10b981' : 'transparent',
+                color: activeTab === 'crops' ? '#022c22' : '#cbd5e1',
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                transition: 'all 0.2s'
+              }}
+            >
+              🌾 Drought-Resilient Crops
+            </button>
+            <button
+              onClick={() => setActiveTab('schemes')}
+              style={{
+                padding: '0.5rem 1rem',
+                borderRadius: '8px',
+                border: 'none',
+                background: activeTab === 'schemes' ? '#10b981' : 'transparent',
+                color: activeTab === 'schemes' ? '#022c22' : '#cbd5e1',
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                transition: 'all 0.2s'
+              }}
+            >
+              🏛️ Relief Subsidies
+            </button>
+          </div>
+        </div>
+
+        {/* TAB 1: WATER STRESS ADVISOR */}
+        {activeTab === 'advisor' && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: '2rem', alignItems: 'start' }}>
+            
+            {/* Input Form Card */}
+            <div className="glass-card" style={{ padding: '1.75rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                <span style={{ fontSize: '1.4rem' }}>⚙️</span>
+                <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#f8fafc' }}>
+                  Farm Water Audit Parameters
+                </h3>
+              </div>
+
+              <form onSubmit={handleAnalyze} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '4px' }}>
+                    Current Cultivated Crop
+                  </label>
+                  <select
+                    className="glass-input"
+                    value={formData.crop_name}
+                    onChange={(e) => setFormData({ ...formData, crop_name: e.target.value })}
+                  >
+                    <option value="Cotton">Cotton (Kapas)</option>
+                    <option value="Soybean">Soybean</option>
+                    <option value="Sugarcane">Sugarcane (Us)</option>
+                    <option value="Onion">Onion (Kanda)</option>
+                    <option value="Tomato">Tomato</option>
+                    <option value="Wheat">Wheat (Gahu)</option>
+                    <option value="Maize">Maize (Makkai)</option>
+                    <option value="Chickpea">Chickpea (Gram / Harbara)</option>
+                    <option value="Sorghum">Sorghum (Jowar)</option>
+                    <option value="Pearl Millet">Pearl Millet (Bajra)</option>
+                    <option value="Pomegranate">Pomegranate (Dalimb)</option>
+                    <option value="Potato">Potato (Batata)</option>
+                    <option value="Rice">Rice (Paddy)</option>
+                  </select>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '4px' }}>
+                      Land Area (Acres): {formData.acres}
+                    </label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="0.1"
+                      max="100"
+                      className="glass-input"
+                      value={formData.acres}
+                      onChange={(e) => setFormData({ ...formData, acres: parseFloat(e.target.value) || 1.0 })}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '4px' }}>
+                      Primary Water Source
+                    </label>
+                    <select
+                      className="glass-input"
+                      value={formData.water_source}
+                      onChange={(e) => setFormData({ ...formData, water_source: e.target.value })}
+                    >
+                      <option value="Borewell">Borewell (Deep)</option>
+                      <option value="Open Well">Open Well (Vihir)</option>
+                      <option value="Farm Pond">Farm Pond (Shettale)</option>
+                      <option value="Canal / Lift">Canal / Lift Irrigation</option>
+                      <option value="Water Tanker">Purchased Water Tanker</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '4px' }}>
+                      Pump Power (HP)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="0.5"
+                      max="25"
+                      className="glass-input"
+                      value={formData.pump_hp}
+                      onChange={(e) => setFormData({ ...formData, pump_hp: parseFloat(e.target.value) || 1.0 })}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '4px' }}>
+                      Daily Run Time (Hours)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="0.2"
+                      max="24"
+                      className="glass-input"
+                      value={formData.daily_water_hours}
+                      onChange={(e) => setFormData({ ...formData, daily_water_hours: parseFloat(e.target.value) || 0.5 })}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '4px' }}>
+                    Irrigation Method
+                  </label>
+                  <select
+                    className="glass-input"
+                    value={formData.irrigation_type}
+                    onChange={(e) => setFormData({ ...formData, irrigation_type: e.target.value })}
+                  >
+                    <option value="Drip Irrigation">Drip Irrigation (90% Water Efficiency)</option>
+                    <option value="Sprinkler Irrigation">Sprinkler Irrigation (75% Water Efficiency)</option>
+                    <option value="Flood Irrigation">Flood / Furrow Irrigation (50% Water Efficiency - Heavy Loss)</option>
+                  </select>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '4px' }}>
+                      Soil Texture
+                    </label>
+                    <select
+                      className="glass-input"
+                      value={formData.soil_type}
+                      onChange={(e) => setFormData({ ...formData, soil_type: e.target.value })}
+                    >
+                      <option value="Medium Black Clay">Medium Black Clay (Good Retention)</option>
+                      <option value="Deep Black Cotton">Deep Black Cotton Soil (High Retention)</option>
+                      <option value="Shallow Murrum / Gravelly">Shallow Murrum / Gravelly (Dries Fast)</option>
+                      <option value="Sandy Loam">Sandy Loam (Low Retention)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '4px' }}>
+                      Current Growth Stage
+                    </label>
+                    <select
+                      className="glass-input"
+                      value={formData.growth_stage}
+                      onChange={(e) => setFormData({ ...formData, growth_stage: e.target.value })}
+                    >
+                      <option value="Early Vegetative / Seedling">Early Vegetative / Seedling</option>
+                      <option value="Flowering & Pod Formation">Flowering & Pod Formation (Critical)</option>
+                      <option value="Fruit Setting & Boll Development">Fruit Setting & Boll Development (Critical)</option>
+                      <option value="Maturity & Grain Hardening">Maturity & Grain Hardening</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '4px' }}>
+                    District (Maharashtra)
+                  </label>
+                  <select
+                    className="glass-input"
+                    value={formData.district}
+                    onChange={(e) => setFormData({ ...formData, district: e.target.value })}
+                  >
+                    <option value="Latur">Latur (Marathwada - Severe Scarcity)</option>
+                    <option value="Beed">Beed (Marathwada - Drought Hotspot)</option>
+                    <option value="Dharashiv">Dharashiv / Osmanabad</option>
+                    <option value="Solapur">Solapur (Rain-shadow Belt)</option>
+                    <option value="Jalna">Jalna</option>
+                    <option value="Chhatrapati Sambhajinagar">Chhatrapati Sambhajinagar (Aurangabad)</option>
+                    <option value="Ahmednagar">Ahmednagar</option>
+                    <option value="Pune">Pune (Eastern Talukas - Baramati/Indapur)</option>
+                    <option value="Nashik">Nashik (Yeola/Malegaon)</option>
+                    <option value="Sangli">Sangli (Atpadi/Jath)</option>
+                    <option value="Satara">Satara (Maan/Khatav)</option>
+                  </select>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="glow-btn"
+                  style={{
+                    marginTop: '0.5rem',
+                    padding: '0.85rem',
+                    borderRadius: '12px',
+                    color: '#fff',
+                    fontWeight: 700,
+                    fontSize: '0.95rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {loading ? 'Evaluating Water Deficit...' : '⚡ Calculate Drought Defense Plan'}
+                </button>
+              </form>
+            </div>
+
+            {/* Analysis Results View */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {analysis && (
+                <>
+                  {/* Status & Survival Forecast Banner */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="glass-card"
+                    style={{
+                      padding: '1.75rem',
+                      borderRadius: '16px',
+                      background: severityColor.bg,
+                      border: `1px solid ${severityColor.border}`,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '1rem'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <span style={{ fontSize: '2rem' }}>
+                          {analysis.stress_level === 'CRITICAL' ? '🚨' : analysis.stress_level === 'HIGH' ? '⚠️' : analysis.stress_level === 'MODERATE' ? '⚡' : '✅'}
+                        </span>
+                        <div>
+                          <div style={{ fontSize: '0.8rem', color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Water Stress Index</div>
+                          <h2 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800, color: severityColor.text }}>
+                            {analysis.stress_level} STRESS ({analysis.water_stress_index}%)
+                          </h2>
+                        </div>
+                      </div>
+
+                      <div style={{ textAlign: 'right', background: 'rgba(0,0,0,0.3)', padding: '0.6rem 1.2rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Crop Survival Horizon</div>
+                        <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#f8fafc' }}>
+                          ~{analysis.estimated_survival_days} Days
+                        </div>
+                      </div>
+                    </div>
+
+                    <p style={{ margin: 0, fontSize: '0.92rem', color: '#e2e8f0', lineHeight: 1.5 }}>
+                      {analysis.summary}
+                    </p>
+
+                    {/* Progress Bar */}
+                    <div style={{ width: '100%', height: '8px', background: 'rgba(0,0,0,0.4)', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div
+                        style={{
+                          height: '100%',
+                          width: `${Math.min(100, analysis.water_stress_index)}%`,
+                          background: severityColor.text,
+                          transition: 'width 0.5s ease-in-out'
+                        }}
+                      />
+                    </div>
+                  </motion.div>
+
+                  {/* Water Volume Metrics Grid */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+                    <div className="glass-card" style={{ padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '4px' }}>Daily Crop Need</div>
+                      <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#60a5fa' }}>
+                        {analysis.water_balance.crop_daily_demand_liters.toLocaleString()} <span style={{ fontSize: '0.8rem' }}>L/day</span>
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>For {formData.acres} acres of {formData.crop_name}</div>
+                    </div>
+
+                    <div className="glass-card" style={{ padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '4px' }}>Effective Water Delivered</div>
+                      <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#34d399' }}>
+                        {analysis.water_balance.effective_supply_liters.toLocaleString()} <span style={{ fontSize: '0.8rem' }}>L/day</span>
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>
+                        At {analysis.water_balance.irrigation_efficiency_pct}% irrigation efficiency
+                      </div>
+                    </div>
+
+                    <div className="glass-card" style={{ padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '4px' }}>
+                        {analysis.water_balance.water_deficit_liters > 0 ? 'Water Shortage' : 'Water Surplus'}
+                      </div>
+                      <div style={{ fontSize: '1.3rem', fontWeight: 800, color: analysis.water_balance.water_deficit_liters > 0 ? '#f87171' : '#4ade80' }}>
+                        {analysis.water_balance.water_deficit_liters > 0 ? `-${analysis.water_balance.water_deficit_liters.toLocaleString()}` : `+${analysis.water_balance.water_surplus_liters.toLocaleString()}`} <span style={{ fontSize: '0.8rem' }}>L/day</span>
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>
+                        {analysis.water_balance.water_deficit_liters > 0 ? 'Deficit requires defense tactics' : 'Adequate moisture available'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Precision Drip Irrigation Plan */}
+                  <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                      <span style={{ fontSize: '1.3rem' }}>🕒</span>
+                      <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#f8fafc' }}>
+                        Optimized Precision Irrigation Schedule
+                      </h3>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '12px' }}>
+                        <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '4px' }}>Recommended Watering Window</div>
+                        <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#38bdf8' }}>
+                          {analysis.drip_schedule.optimal_watering_window}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>
+                          Evaporative loss during 11 AM - 4 PM reaches 35%. Early morning prevents transpiration shock.
+                        </div>
+                      </div>
+
+                      <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '12px' }}>
+                        <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '4px' }}>Recommended Run Cycle</div>
+                        <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#4ade80' }}>
+                          {analysis.drip_schedule.recommended_run_time_per_session}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>
+                          Frequency: {analysis.drip_schedule.watering_frequency} | Saved: {analysis.drip_schedule.water_saved_percent}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '0.85rem', borderRadius: '10px', fontSize: '0.85rem', color: '#86efac' }}>
+                      💡 <strong>Action Tip:</strong> {analysis.drip_schedule.tip}
+                    </div>
+                  </div>
+
+                  {/* Emergency Protocols & Field Advice */}
+                  <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                      <span style={{ fontSize: '1.3rem' }}>🛠️</span>
+                      <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#f8fafc' }}>
+                        Emergency Defense Protocols
+                      </h3>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
+                      <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', padding: '1rem', borderRadius: '12px' }}>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fbbf24', marginBottom: '0.35rem' }}>
+                          🌾 Soil Mulching (Moisture Retention)
+                        </div>
+                        <div style={{ fontSize: '0.82rem', color: '#cbd5e1', lineHeight: 1.4 }}>
+                          {analysis.emergency_protocols.mulching}
+                        </div>
+                      </div>
+
+                      <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', padding: '1rem', borderRadius: '12px' }}>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#60a5fa', marginBottom: '0.35rem' }}>
+                          🌿 Anti-Transpirant Foliar Spray
+                        </div>
+                        <div style={{ fontSize: '0.82rem', color: '#cbd5e1', lineHeight: 1.4 }}>
+                          {analysis.emergency_protocols.anti_transpirant_spray}
+                        </div>
+                      </div>
+
+                      <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', padding: '1rem', borderRadius: '12px' }}>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#34d399', marginBottom: '0.35rem' }}>
+                          🚜 Alternate Furrow Irrigation
+                        </div>
+                        <div style={{ fontSize: '0.82rem', color: '#cbd5e1', lineHeight: 1.4 }}>
+                          {analysis.emergency_protocols.alternate_furrow_irrigation}
+                        </div>
+                      </div>
+
+                      <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', padding: '1rem', borderRadius: '12px' }}>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#f43f5e', marginBottom: '0.35rem' }}>
+                          🎯 Critical Stage Moisture Prioritization
+                        </div>
+                        <div style={{ fontSize: '0.82rem', color: '#cbd5e1', lineHeight: 1.4 }}>
+                          {analysis.emergency_protocols.stage_prioritization}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1rem' }}>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#94a3b8', marginBottom: '0.5rem', textTransform: 'uppercase' }}>
+                        Specific Action Recommendations:
+                      </div>
+                      <ul style={{ margin: 0, paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                        {analysis.actionable_recommendations.map((rec, i) => (
+                          <li key={i} style={{ fontSize: '0.86rem', color: '#e2e8f0', lineHeight: 1.4 }}>
+                            {rec}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+          </div>
+        )}
+
+        {/* TAB 2: DROUGHT-RESILIENT CROPS CATALOG */}
+        {activeTab === 'crops' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <h2 style={{ margin: '0 0 0.5rem', fontSize: '1.3rem', fontWeight: 800, color: '#34d399' }}>
+                University-Certified Drought Resilient Crops & Seed Varieties
+              </h2>
+              <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.9rem' }}>
+                Recommended by Mahatma Phule Krishi Vidyapeeth (MPKV Rahuri) and Vasantrao Naik Marathwada Krishi Vidyapeeth (VNMKV Parbhani) for dryland rain-shadow regions of Maharashtra.
+              </p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '1.5rem' }}>
+              {resilientCrops.map((c, idx) => (
+                <div
+                  key={idx}
+                  className="glass-card"
+                  style={{
+                    padding: '1.5rem',
+                    borderRadius: '16px',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    gap: '1rem'
+                  }}
+                >
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                      <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#f8fafc' }}>
+                        {c.crop}
+                      </h3>
+                      <span style={{ fontSize: '0.75rem', background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', padding: '0.2rem 0.6rem', borderRadius: '20px', fontWeight: 700, border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                        {c.water_savings}
+                      </span>
+                    </div>
+
+                    <div style={{ fontSize: '0.85rem', color: '#fbbf24', fontWeight: 600, marginBottom: '0.75rem' }}>
+                      Variety: {c.variety}
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.8rem', color: '#94a3b8', background: 'rgba(0,0,0,0.2)', padding: '0.75rem', borderRadius: '10px', marginBottom: '0.75rem' }}>
+                      <div>⏱️ <strong>Duration:</strong> {c.duration_days}</div>
+                      <div>💧 <strong>Irrigations:</strong> {c.water_turns}</div>
+                      <div>🌾 <strong>Yield:</strong> {c.yield_potential}</div>
+                      <div>🏛️ <strong>Center:</strong> {c.institution}</div>
+                    </div>
+
+                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#cbd5e1', lineHeight: 1.4 }}>
+                      {c.benefits}
+                    </p>
+                  </div>
+
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Certified Certified Dryland Variety</span>
+                    <a
+                      href="https://mahadbt.maharashtra.gov.in"
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ fontSize: '0.8rem', color: '#38bdf8', textDecoration: 'none', fontWeight: 600 }}
+                    >
+                      Check Seed Subsidy →
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: GOVERNMENT RELIEF SUBSIDIES */}
+        {activeTab === 'schemes' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <h2 style={{ margin: '0 0 0.5rem', fontSize: '1.3rem', fontWeight: 800, color: '#38bdf8' }}>
+                Government Drought Relief & Financial Assistance Schemes
+              </h2>
+              <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.9rem' }}>
+                Financial grants, drip subsidies, solar pumps, and crop insurance compensation applicable across Maharashtra districts.
+              </p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '1.5rem' }}>
+              {schemes.map((s, idx) => (
+                <div
+                  key={idx}
+                  className="glass-card"
+                  style={{
+                    padding: '1.5rem',
+                    borderRadius: '16px',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    gap: '1rem'
+                  }}
+                >
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                      <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#f8fafc' }}>
+                        {s.name}
+                      </h3>
+                      <span style={{ fontSize: '0.75rem', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', padding: '0.2rem 0.6rem', borderRadius: '20px', fontWeight: 700, border: '1px solid rgba(56, 189, 248, 0.3)' }}>
+                        {s.benefit}
+                      </span>
+                    </div>
+
+                    <div style={{ fontSize: '0.82rem', color: '#a7f3d0', fontWeight: 600, marginBottom: '0.75rem' }}>
+                      Eligibility: {s.eligibility}
+                    </div>
+
+                    <p style={{ margin: '0 0 1rem', fontSize: '0.85rem', color: '#cbd5e1', lineHeight: 1.5 }}>
+                      {s.details}
+                    </p>
+
+                    <div style={{ background: 'rgba(0,0,0,0.25)', padding: '0.75rem', borderRadius: '10px' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600, marginBottom: '4px' }}>
+                        Required Documents:
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+                        {s.documents_needed.map((doc, dIdx) => (
+                          <span
+                            key={dIdx}
+                            style={{
+                              fontSize: '0.75rem',
+                              background: 'rgba(255,255,255,0.06)',
+                              padding: '0.2rem 0.5rem',
+                              borderRadius: '6px',
+                              color: '#e2e8f0'
+                            }}
+                          >
+                            📄 {doc}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Official Government Portal</span>
+                    <a
+                      href={s.portal_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        padding: '0.4rem 0.9rem',
+                        background: '#10b981',
+                        color: '#022c22',
+                        borderRadius: '8px',
+                        textDecoration: 'none',
+                        fontWeight: 700,
+                        fontSize: '0.8rem'
+                      }}
+                    >
+                      Apply on Portal ↗
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+      </div>
+    </FarmLayout>
+  )
+}

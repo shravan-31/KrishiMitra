@@ -33,6 +33,7 @@ import Languages from './pages/Languages';
 import Weather from './pages/Weather';
 import Login from './pages/Login';
 import Report from './pages/Report';
+import Drought from './pages/Drought';
 
 
 function AnimatedRoutes() {
@@ -189,6 +190,14 @@ function AnimatedRoutes() {
           element={
             <ProtectedRoute>
               <Report />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/drought"
+          element={
+            <ProtectedRoute>
+              <Drought />
             </ProtectedRoute>
           }
         />
