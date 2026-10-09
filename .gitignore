@@ -12,15 +12,17 @@ venv/
 .venv/
 env/
 *.egg-info/
-dist/
 build/
 
 # Node
 node_modules/
 .npm
-dist/
 dist-ssr/
 *.local
+
+# Allow compiled production frontend bundle for direct Render hosting
+!frontend/dist/
+!frontend/dist/**
 
 # Database & local data
 *.sqlite3
