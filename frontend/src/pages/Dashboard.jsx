@@ -3,27 +3,30 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useFarmStore } from '../store/farmStore'
 import FarmLayout from '../components/FarmLayout'
+import { useTranslation } from '../i18n'
 
 import { BACKEND_URL } from '../config'
 
 const FEATURES = [
-  { name: '🔬 Disease Detection', path: '/disease', desc: 'Identify crop diseases from images', color: '#ef4444', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSR5SdpZo8jgkELYT6aBxnW0h3CIXetvuXduw&s' },
-  { name: '🌱 Soil Analysis', path: '/soil', desc: 'NPK recommendations & soil health insights', color: '#22c55e', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS58IuoIBTZH9EuQHKjREpaY33XYE3npLCNHQ&s' },
-  { name: '⛅ Weather Advisory', path: '/weather', desc: 'Risk advisories, rainfall and forecast guidance', color: '#0ea5e9', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQC5AwE7hGhEIbOGFIOvQrwWC9OZzNE9cgnng&s' },
-  { name: '🐛 Pest Detection', path: '/pest', desc: 'Identify insects and control tips quickly', color: '#f59e0b', image: 'https://www.livemint.com/lm-img/img/2025/07/02/600x338/2-0-1290266725-Farmer-Pesticides11-20171127PG-0_1679594906526_1751468290344.jpg' },
-  { name: '📊 Yield Prediction', path: '/yield', desc: 'Project harvest potential with AI insights', color: '#8b5cf6', image: 'https://www.sblcorp.ai/wp-content/uploads/2024/06/yield-prediction.webp' },
-  { name: '📍 Crop Recommender', path: '/crops', desc: 'Find profitable crops for your field', color: '#06b6d4', image: 'https://storage.googleapis.com/kaggle-datasets-images/1449477/2397200/500fc4e03b13ef8d2482d646c960966a/dataset-cover.jpg?t=2021-07-05-13-18-58' },
-  { name: '📅 Crop Calendar', path: '/calendar', desc: 'Schedule agronomy actions by growth stage', color: '#d97706', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQkmWat4oVUxbkC9qjztvDmnZ8pVr1fV8io1A&s' },
-  { name: '💚 Farm Health', path: '/health', desc: 'Track complete farm health analytics', color: '#10b981', image: 'https://media.istockphoto.com/id/1360520451/photo/top-view-of-soil-in-hands-for-check-the-quality-of-the-soil-for-control-soil-quality-before.jpg?s=612x612&w=0&k=20&c=WPFd_l7Zz92G2glH8RHujjQnh0GLxKxJ5qlV8cKy5aM=' },
-  { name: '🤖 AI Chat Assistant', path: '/chat', desc: 'Ask KrishiMitra for farm advice', color: '#6366f1', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS9LxLSoebLfgpAH-QKPf5r9DyNEHegJ5CzYQ&s' },
-  { name: '💰 Market Prices', path: '/market', desc: 'Check mandi rates and price trends', color: '#f59e0b', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR82Skah6uSOFG_XYD_eU-UasAwVJjJQoSC6A&s' },
-  { name: '📒 Expense Tracker', path: '/expenses', desc: 'Log expenses and seasonal P&L', color: '#ec4899', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSedch_2ecliNl5opcklePx8Ts1C7gM-OTexg&s' },
-  { name: '🏛️ Govt Schemes', path: '/schemes', desc: 'Subsidy alerts and eligibility guidance', color: '#14b8a6', image: 'https://akm-img-a-in.tosshub.com/indiatoday/images/story/201908/Add_a_subheading_1_.png?VersionId=MoNEvek00g1J_WpgxJkZkiQbvUs3SVU7' },
-  { name: '🗣️ Multilingual', path: '/languages', desc: 'Instant local translation and support', color: '#84cc16', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRtkNG_gNWb7pJviv4iS3QP5FGiL6GR9HQFUg&s' }
+  { key: 'disease', path: '/disease', color: '#ef4444', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSR5SdpZo8jgkELYT6aBxnW0h3CIXetvuXduw&s' },
+  { key: 'soil', path: '/soil', color: '#22c55e', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS58IuoIBTZH9EuQHKjREpaY33XYE3npLCNHQ&s' },
+  { key: 'weather', path: '/weather', color: '#0ea5e9', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQC5AwE7hGhEIbOGFIOvQrwWC9OZzNE9cgnng&s' },
+  { key: 'pest', path: '/pest', color: '#f59e0b', image: 'https://www.livemint.com/lm-img/img/2025/07/02/600x338/2-0-1290266725-Farmer-Pesticides11-20171127PG-0_1679594906526_1751468290344.jpg' },
+  { key: 'yield', path: '/yield', color: '#8b5cf6', image: 'https://www.sblcorp.ai/wp-content/uploads/2024/06/yield-prediction.webp' },
+  { key: 'crops', path: '/crops', color: '#06b6d4', image: 'https://storage.googleapis.com/kaggle-datasets-images/1449477/2397200/500fc4e03b13ef8d2482d646c960966a/dataset-cover.jpg?t=2021-07-05-13-18-58' },
+  { key: 'calendar', path: '/calendar', color: '#d97706', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQkmWat4oVUxbkC9qjztvDmnZ8pVr1fV8io1A&s' },
+  { key: 'health', path: '/health', color: '#10b981', image: 'https://media.istockphoto.com/id/1360520451/photo/top-view-of-soil-in-hands-for-check-the-quality-of-the-soil-for-control-soil-quality-before.jpg?s=612x612&w=0&k=20&c=WPFd_l7Zz92G2glH8RHujjQnh0GLxKxJ5qlV8cKy5aM=' },
+  { key: 'chat', path: '/chat', color: '#6366f1', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS9LxLSoebLfgpAH-QKPf5r9DyNEHegJ5CzYQ&s' },
+  { key: 'market', path: '/market', color: '#f59e0b', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR82Skah6uSOFG_XYD_eU-UasAwVJjJQoSC6A&s' },
+  { key: 'expenses', path: '/expenses', color: '#ec4899', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSedch_2ecliNl5opcklePx8Ts1C7gM-OTexg&s' },
+  { key: 'schemes', path: '/schemes', color: '#14b8a6', image: 'https://akm-img-a-in.tosshub.com/indiatoday/images/story/201908/Add_a_subheading_1_.png?VersionId=MoNEvek00g1J_WpgxJkZkiQbvUs3SVU7' },
+  { key: 'drought', path: '/drought', color: '#0284c7', image: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=600&q=80' },
+  { key: 'languages', path: '/languages', color: '#84cc16', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRtkNG_gNWb7pJviv4iS3QP5FGiL6GR9HQFUg&s' }
 ]
 
 export default function Dashboard() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const { activeFarm, healthScore, setFarms, updateHealth } = useFarmStore()
   const [stats, setStats] = useState({ activeCrops: 0, expenses: 0, scans: 0, daysSinceSoil: 'N/A' })
   const [recentAlerts, setRecentAlerts] = useState([])
@@ -143,21 +146,21 @@ export default function Dashboard() {
               </svg>
               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                 <span style={{ fontSize: '2rem', fontWeight: 800 }}>{healthScore}%</span>
-                <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700 }}>HEALTH</span>
+                <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700 }}>{t('dashboard.healthLabel')}</span>
               </div>
             </div>
 
             <div>
-              <h2 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800 }}>{activeFarm ? activeFarm.farm_name : 'No Farm Registered'}</h2>
+              <h2 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800 }}>{activeFarm ? activeFarm.farm_name : t('dashboard.noFarmRegistered')}</h2>
               <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '4px 0 1rem' }}>
-                {activeFarm ? `${activeFarm.location || 'Unknown location'}, ${activeFarm.state || 'India'}` : 'Boundary not configured'}
+                {activeFarm ? `${activeFarm.location || t('dashboard.unknownLocation')}, ${activeFarm.state || 'India'}` : t('dashboard.boundaryNotConfigured')}
               </p>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <span style={{ background: 'rgba(16, 185, 129, 0.08)', color: '#10b981', padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase' }}>
-                  {activeFarm?.soil_type || 'Standard'} Soil
+                  {activeFarm?.soil_type || 'Standard'} {t('common.soil')}
                 </span>
                 <span style={{ background: 'rgba(6, 182, 212, 0.08)', color: '#06b6d4', padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700 }}>
-                  {activeFarm?.area_acres || 0} Acres
+                  {activeFarm?.area_acres || 0} {t('common.acres')}
                 </span>
               </div>
             </div>
@@ -165,10 +168,10 @@ export default function Dashboard() {
 
           {/* Quick Stats Grid */}
           <div style={{ flex: '2 1 500px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '1rem' }}>
-            <StatCard emoji="🌾" value={stats.activeCrops} label="Growing Crops" />
-            <StatCard emoji="🎛️" value={recentAlerts.length} label="New Alerts" />
-            <StatCard emoji="📒" value={`₹${stats.expenses}`} label="Expenses Logged" />
-            <StatCard emoji="🔬" value={stats.daysSinceSoil} label="Since Last Soil Test" />
+            <StatCard emoji="🌾" value={stats.activeCrops} label={t('dashboard.statGrowingCrops')} />
+            <StatCard emoji="🎛️" value={recentAlerts.length} label={t('dashboard.statNewAlerts')} />
+            <StatCard emoji="📒" value={`₹${stats.expenses}`} label={t('dashboard.statExpensesLogged')} />
+            <StatCard emoji="🔬" value={stats.daysSinceSoil} label={t('dashboard.statSinceSoilTest')} />
           </div>
 
         </div>
@@ -190,7 +193,7 @@ export default function Dashboard() {
                 box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 1px rgba(74, 222, 128, 0.15);
               }
             `}</style>
-            <h3 style={{ margin: '0 0 1.25rem', fontSize: '1.25rem', fontWeight: 800 }}>Agronomy & Diagnostic Intelligence</h3>
+            <h3 style={{ margin: '0 0 1.25rem', fontSize: '1.25rem', fontWeight: 800 }}>{t('dashboard.overviewTitle')}</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.25rem' }}>
               {FEATURES.map((feat, idx) => (
                 <motion.div
@@ -225,7 +228,7 @@ export default function Dashboard() {
                     />
                     <img 
                       src={feat.image} 
-                      alt={feat.name}
+                      alt={t(`dashboard.features.${feat.key}.name`)}
                       className="feature-card-img"
                       style={{
                         width: '100%',
@@ -243,11 +246,11 @@ export default function Dashboard() {
                   {/* Card Details Area */}
                   <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', flex: 1, zIndex: 2, background: 'rgba(10, 26, 10, 0.45)' }}>
                     <div>
-                      <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>{feat.name}</h4>
-                      <p style={{ color: '#94a3b8', fontSize: '0.8rem', marginTop: '6px', lineHeight: 1.4, minHeight: '38px' }}>{feat.desc}</p>
+                      <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>{t(`dashboard.features.${feat.key}.name`)}</h4>
+                      <p style={{ color: '#94a3b8', fontSize: '0.8rem', marginTop: '6px', lineHeight: 1.4, minHeight: '38px' }}>{t(`dashboard.features.${feat.key}.desc`)}</p>
                     </div>
                     <span style={{ fontSize: '0.75rem', fontWeight: 700, color: feat.color, marginTop: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                      Access Portal <span>→</span>
+                      {t('dashboard.accessPortal')} <span>→</span>
                     </span>
                   </div>
                 </motion.div>
@@ -257,12 +260,12 @@ export default function Dashboard() {
 
           {/* Recent Warnings Logs panel */}
           <div className="glass-card" style={{ padding: '1.5rem' }}>
-            <h3 style={{ margin: '0 0 1rem', fontSize: '1.1rem', fontWeight: 800 }}>Recent Warnings</h3>
+            <h3 style={{ margin: '0 0 1rem', fontSize: '1.1rem', fontWeight: 800 }}>{t('dashboard.recentWarnings')}</h3>
             
             {recentAlerts.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#64748b' }}>
                 <span style={{ fontSize: '2rem' }}>✅</span>
-                <p style={{ fontSize: '0.8rem', margin: '8px 0 0' }}>All clear! No active notifications.</p>
+                <p style={{ fontSize: '0.8rem', margin: '8px 0 0' }}>{t('dashboard.allClear')}</p>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -288,7 +291,7 @@ export default function Dashboard() {
                     </div>
                     <div style={{ fontWeight: 600, fontSize: '0.85rem', marginTop: '4px' }}>{a.title}</div>
                     <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px', lineHeight: 1.3 }}>{a.message}</div>
-                    <div style={{ fontSize: '0.65rem', color: '#10b981', marginTop: '6px', textAlign: 'right', fontWeight: 700 }}>✓ Mark read</div>
+                    <div style={{ fontSize: '0.65rem', color: '#10b981', marginTop: '6px', textAlign: 'right', fontWeight: 700 }}>✓ {t('alerts.markRead')}</div>
                   </div>
                 ))}
               </div>

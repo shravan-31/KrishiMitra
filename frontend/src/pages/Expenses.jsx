@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recha
 import { useFarmStore } from '../store/farmStore'
 import FarmLayout from '../components/FarmLayout'
 import toast from 'react-hot-toast'
+import { useTranslation } from '../i18n'
 
 import { BACKEND_URL } from '../config'
 
@@ -11,6 +12,7 @@ const CATEGORIES = ['Seed', 'Fertilizer', 'Pesticide', 'Machinery', 'Labor', 'Ir
 
 export default function Expenses() {
   const { activeFarm } = useFarmStore()
+  const { t } = useTranslation()
   const [expenses, setExpenses] = useState([])
   const [summary, setSummary] = useState(null)
   
@@ -49,11 +51,11 @@ export default function Expenses() {
       setSummary(summ)
     } catch (err) {
       console.error(err)
-      toast.error('Failed to load ledger records')
+      toast.error(t('expenses.loadError'))
     } finally {
       setLoading(false)
     }
-  }, [activeFarm, apiFetch])
+  }, [activeFarm, apiFetch, t])
 
   useEffect(() => {
     loadFinancials()
@@ -63,7 +65,7 @@ export default function Expenses() {
     e.preventDefault()
     if (!activeFarm) return
     if (!amount || parseFloat(amount) <= 0) {
-      toast.error('Please enter a valid amount')
+      toast.error(t('expenses.validAmountError'))
       return
     }
 
@@ -79,15 +81,14 @@ export default function Expenses() {
           date
         })
       })
-      toast.success('Expense logged successfully')
+      toast.success(t('expenses.logSuccess'))
       setAmount('')
       setDescription('')
       // Reload lists
       await loadFinancials()
     } catch (err) {
-      toast.error(`Logging failed: ${err.message}`)
+      toast.error(err.message || t('messages.somethingWentWrong'))
     } finally {
-      setSubmitting(true)
       setSubmitting(false)
     }
   }
@@ -119,9 +120,9 @@ export default function Expenses() {
         
         {/* Header */}
         <div>
-          <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 800 }}>Financial Ledger</h1>
+          <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 800 }}>{t('expenses.title')}</h1>
           <p style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '4px' }}>
-            Track seasonal production inputs, harvest revenues, and overall farm yields
+            {t('expenses.subtitle')}
           </p>
         </div>
 
@@ -145,9 +146,9 @@ export default function Expenses() {
             >
               <span style={{ fontSize: '1.5rem' }}>🏛️</span>
               <div>
-                <strong style={{ fontSize: '0.95rem' }}>Eligible: Kisan Credit Card (KCC) Scheme</strong>
+                <strong style={{ fontSize: '0.95rem' }}>{t('expenses.kccTitle')}</strong>
                 <p style={{ margin: '2px 0 0', fontSize: '0.8rem', opacity: 0.9 }}>
-                  Your seasonal farm expenses have exceeded ₹50,000 (Current: ₹{summary.total_expense.toLocaleString()}). You may qualify for low-interest credit up to ₹3 lakh at a subsidized 4% rate. Check the Government Schemes tab to apply.
+                  {t('expenses.kccDesc', { amount: summary.total_expense.toLocaleString() })}
                 </p>
               </div>
             </motion.div>
@@ -159,23 +160,23 @@ export default function Expenses() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem' }}>
             
             <div className="glass-card" style={{ padding: '1.5rem' }}>
-              <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Total Expenses</div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>{t('expenses.totalExpense')}</div>
               <div style={{ fontSize: '2rem', fontWeight: 800, marginTop: '0.5rem', color: '#f87171' }}>
                 ₹{summary.total_expense.toLocaleString()}
               </div>
-              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '6px' }}>Current year inputs ledger</div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '6px' }}>{t('expenses.totalExpenseSub')}</div>
             </div>
 
             <div className="glass-card" style={{ padding: '1.5rem' }}>
-              <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Estimated Revenue</div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>{t('expenses.totalIncome')}</div>
               <div style={{ fontSize: '2rem', fontWeight: 800, marginTop: '0.5rem', color: '#4ade80' }}>
                 ₹{summary.total_revenue.toLocaleString()}
               </div>
-              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '6px' }}>Calculated from yield forecasts</div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '6px' }}>{t('expenses.totalIncomeSub')}</div>
             </div>
 
             <div className="glass-card" style={{ padding: '1.5rem' }}>
-              <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Net Profit / Loss</div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>{t('expenses.netProfit')}</div>
               <div style={{
                 fontSize: '2rem',
                 fontWeight: 800,
@@ -185,7 +186,7 @@ export default function Expenses() {
                 ₹{summary.profit_loss.toLocaleString()}
               </div>
               <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '6px' }}>
-                {summary.profit_loss >= 0 ? 'Surplus season balance' : 'Deficit balance'}
+                {summary.profit_loss >= 0 ? t('expenses.surplusBalance') : t('expenses.deficitBalance')}
               </div>
             </div>
 
@@ -197,11 +198,11 @@ export default function Expenses() {
           
           {/* Form */}
           <div className="glass-card" style={{ padding: '1.5rem' }}>
-            <h3 style={{ margin: '0 0 1.25rem', fontSize: '1.1rem', fontWeight: 800 }}>Log Farm Expense</h3>
+            <h3 style={{ margin: '0 0 1.25rem', fontSize: '1.1rem', fontWeight: 800 }}>{t('expenses.logExpense')}</h3>
             <form onSubmit={handleAddExpense} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>Category</label>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>{t('expenses.category')}</label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
@@ -217,13 +218,15 @@ export default function Expenses() {
                   }}
                 >
                   {CATEGORIES.map(c => (
-                    <option key={c} value={c} style={{ background: '#0a1a0a' }}>{c}</option>
+                    <option key={c} value={c} style={{ background: '#0a1a0a' }}>
+                      {t(`expenses.cat${c}`)}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>Amount (₹)</label>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>{t('expenses.amount')}</label>
                 <input
                   type="number"
                   placeholder="e.g. 5000"
@@ -243,7 +246,7 @@ export default function Expenses() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>Description</label>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>{t('expenses.notes')}</label>
                 <input
                   type="text"
                   placeholder="e.g. Urea fertilizer 2 bags"
@@ -263,7 +266,7 @@ export default function Expenses() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>Transaction Date</label>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '6px', fontWeight: 600 }}>{t('expenses.date')}</label>
                 <input
                   type="date"
                   value={date}
@@ -282,7 +285,7 @@ export default function Expenses() {
               </div>
 
               <button type="submit" disabled={submitting || !activeFarm} className="glow-btn" style={{ padding: '0.75rem 1rem', color: '#fff', fontWeight: 700, borderRadius: '10px', marginTop: '0.5rem' }}>
-                {submitting ? 'Saving...' : 'Add Transaction'}
+                {submitting ? t('expenses.savingBtn') : t('expenses.addExpenseBtn')}
               </button>
 
             </form>
@@ -293,7 +296,7 @@ export default function Expenses() {
             
             {/* Chart */}
             <div className="glass-card" style={{ padding: '1.5rem' }}>
-              <h3 style={{ margin: '0 0 1rem', fontSize: '1.1rem', fontWeight: 800 }}>Seasonal Expense Breakdown</h3>
+              <h3 style={{ margin: '0 0 1rem', fontSize: '1.1rem', fontWeight: 800 }}>{t('expenses.breakdownTitle')}</h3>
               <div style={{ width: '100%', height: '220px', position: 'relative' }}>
                 {chartData.length > 0 ? (
                   <ResponsiveContainer width="99%" height="100%">
@@ -309,12 +312,12 @@ export default function Expenses() {
                           fontSize: '0.85rem'
                         }}
                       />
-                      <Bar dataKey="expenses" fill="#10b981" radius={[4, 4, 0, 0]} name="Expense (₹)" />
+                      <Bar dataKey="expenses" fill="#10b981" radius={[4, 4, 0, 0]} name={t('expenses.amount')} />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
                   <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
-                    No seasonal records to plot.
+                    {t('expenses.noChartData')}
                   </div>
                 )}
               </div>
@@ -322,20 +325,20 @@ export default function Expenses() {
 
             {/* List */}
             <div className="glass-card" style={{ padding: '1.5rem' }}>
-              <h3 style={{ margin: '0 0 1rem', fontSize: '1.1rem', fontWeight: 800 }}>Ledger History</h3>
+              <h3 style={{ margin: '0 0 1rem', fontSize: '1.1rem', fontWeight: 800 }}>{t('expenses.historyTitle')}</h3>
               {expenses.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#64748b' }}>
-                  No transactions recorded for this farm.
+                  {t('expenses.noExpenses')}
                 </div>
               ) : (
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                     <thead>
                       <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#64748b', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase' }}>
-                        <th style={{ padding: '0.75rem 0.5rem' }}>Date</th>
-                        <th style={{ padding: '0.75rem 0.5rem' }}>Category</th>
-                        <th style={{ padding: '0.75rem 0.5rem' }}>Description</th>
-                        <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Amount</th>
+                        <th style={{ padding: '0.75rem 0.5rem' }}>{t('expenses.colDate')}</th>
+                        <th style={{ padding: '0.75rem 0.5rem' }}>{t('expenses.colCategory')}</th>
+                        <th style={{ padding: '0.75rem 0.5rem' }}>{t('expenses.colDescription')}</th>
+                        <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>{t('expenses.colAmount')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -352,7 +355,7 @@ export default function Expenses() {
                               fontSize: '0.75rem',
                               fontWeight: 700
                             }}>
-                              {exp.category}
+                              {t(`expenses.cat${exp.category}`) || exp.category}
                             </span>
                           </td>
                           <td style={{ padding: '0.85rem 0.5rem', color: '#94a3b8' }}>{exp.description || '—'}</td>

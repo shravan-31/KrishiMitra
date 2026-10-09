@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useFarmStore } from '../store/farmStore'
 import FarmLayout from '../components/FarmLayout'
 import toast from 'react-hot-toast'
+import { useTranslation } from '../i18n'
 
 import { BACKEND_URL } from '../config'
 
@@ -12,6 +13,7 @@ const STATES = [
 ]
 
 export default function Crops() {
+  const { t } = useTranslation()
   const { activeFarm } = useFarmStore()
   
   // Recommend form state
@@ -55,14 +57,14 @@ export default function Crops() {
           setNitrogen(Math.round(latest.nitrogen))
           setPhosphorus(Math.round(latest.phosphorus))
           setPotassium(Math.round(latest.potassium))
-          toast.success("Pre-filled metrics from your latest soil report!")
+          toast.success(t('crops.soilPrefilledToast'))
         }
       } catch (err) {
         console.error("Could not load latest soil metrics:", err)
       }
     }
     loadLatestSoil()
-  }, [activeFarm, apiFetch])
+  }, [activeFarm, apiFetch, t])
 
   const handleRecommend = async (e) => {
     e.preventDefault()
@@ -87,9 +89,9 @@ export default function Crops() {
         body: JSON.stringify(payload)
       })
       setRecommendations(data || [])
-      toast.success("Crop recommendations matching soil parameters loaded!")
+      toast.success(t('crops.recsLoadedToast'))
     } catch (err) {
-      toast.error(err.message || "Failed to load recommendations")
+      toast.error(err.message || t('common.error'))
     } finally {
       setLoading(false)
     }
@@ -103,7 +105,7 @@ export default function Crops() {
       const data = await apiFetch(`/api/v1/crops/calendar/${crop.crop_name}/${locationName}`)
       setCalendar(data)
     } catch (err) {
-      toast.error("Failed to load crop calendar")
+      toast.error(t('common.error'))
     } finally {
       setLoadingCalendar(false)
     }
@@ -123,9 +125,9 @@ export default function Crops() {
         method: 'POST',
         body: JSON.stringify(payload)
       })
-      toast.success(`${selectedCrop.crop_name} registered as growing crop in your farm ledger!`)
+      toast.success(t('crops.cropRegisteredToast', { crop: selectedCrop.crop_name }))
     } catch (err) {
-      toast.error("Failed to register crop")
+      toast.error(t('crops.registerFailedToast'))
     }
   }
 
@@ -133,20 +135,20 @@ export default function Crops() {
     <FarmLayout>
       <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800 }}>Crop Recommender & Schedules</h1>
-          <p style={{ color: '#64748b', marginTop: '4px' }}>Analyze NPK concentrations, moisture availability, and local regional demands to target high-yield, high-margin crops.</p>
+          <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800 }}>{t('crops.title')}</h1>
+          <p style={{ color: '#64748b', marginTop: '4px' }}>{t('crops.subtitle')}</p>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: '2rem', alignItems: 'flex-start' }}>
           
           {/* Recommend parameters */}
           <div className="glass-card" style={{ padding: '2rem' }}>
-            <h3 style={{ margin: '0 0 1.5rem', fontSize: '1.25rem', fontWeight: 800 }}>Target Parameters</h3>
+            <h3 style={{ margin: '0 0 1.5rem', fontSize: '1.25rem', fontWeight: 800 }}>{t('crops.targetParameters')}</h3>
             <form onSubmit={handleRecommend} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>Location Territory</label>
+                  <label style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>{t('crops.locationTerritory')}</label>
                   <select
                     value={locationName}
                     onChange={(e) => setLocationName(e.target.value)}
@@ -157,7 +159,7 @@ export default function Crops() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>Seasonality</label>
+                  <label style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>{t('crops.seasonality')}</label>
                   <select
                     value={season}
                     onChange={(e) => setSeason(e.target.value)}
@@ -171,22 +173,22 @@ export default function Crops() {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>Water Access / Irrigation level</label>
+                <label style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>{t('crops.waterAccess')}</label>
                 <select
                   value={water}
                   onChange={(e) => setWater(e.target.value)}
                   style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: '0.9rem', outline: 'none' }}
                 >
-                  <option value="HIGH" style={{ background: '#0a1a0a' }}>High Water (Irrigation Canal / Tube-well)</option>
-                  <option value="MEDIUM" style={{ background: '#0a1a0a' }}>Medium Water (Rain-fed with backup pond)</option>
-                  <option value="LOW" style={{ background: '#0a1a0a' }}>Low Water (Arid / dry land / rain-fed only)</option>
+                  <option value="HIGH" style={{ background: '#0a1a0a' }}>{t('crops.highWater')}</option>
+                  <option value="MEDIUM" style={{ background: '#0a1a0a' }}>{t('crops.mediumWater')}</option>
+                  <option value="LOW" style={{ background: '#0a1a0a' }}>{t('crops.lowWater')}</option>
                 </select>
               </div>
 
-              <SliderInput label="Soil pH" min={4.0} max={9.0} step={0.1} value={ph} onChange={setPh} />
-              <SliderInput label="Nitrogen (N)" min={0} max={150} step={5} value={nitrogen} onChange={setNitrogen} />
-              <SliderInput label="Phosphorus (P)" min={0} max={120} step={5} value={phosphorus} onChange={setPhosphorus} />
-              <SliderInput label="Potassium (K)" min={0} max={250} step={5} value={potassium} onChange={setPotassium} />
+              <SliderInput label={t('crops.ph')} min={4.0} max={9.0} step={0.1} value={ph} onChange={setPh} />
+              <SliderInput label={t('crops.nitrogen')} min={0} max={150} step={5} value={nitrogen} onChange={setNitrogen} />
+              <SliderInput label={t('crops.phosphorus')} min={0} max={120} step={5} value={phosphorus} onChange={setPhosphorus} />
+              <SliderInput label={t('crops.potassium')} min={0} max={250} step={5} value={potassium} onChange={setPotassium} />
 
               <button
                 type="submit"
@@ -203,7 +205,7 @@ export default function Crops() {
                   opacity: loading ? 0.5 : 1
                 }}
               >
-                {loading ? 'Evaluating agronomy matrix...' : 'Generate Crop Recommendations'}
+                {loading ? t('crops.generating') : t('crops.generateBtn')}
               </button>
             </form>
           </div>
@@ -213,7 +215,7 @@ export default function Crops() {
             
             {/* Recommendations Grid */}
             <div className="glass-card" style={{ padding: '2rem', minHeight: '260px' }}>
-              <h3 style={{ margin: '0 0 1.25rem', fontSize: '1.15rem', fontWeight: 800 }}>Matching Crops</h3>
+              <h3 style={{ margin: '0 0 1.25rem', fontSize: '1.15rem', fontWeight: 800 }}>{t('crops.matchingCrops')}</h3>
               {loading ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <Skeleton width="60%" height="20px" />
@@ -241,19 +243,19 @@ export default function Crops() {
                       <div>
                         <div style={{ fontWeight: 800, fontSize: '1rem' }}>🌾 {crop.crop_name}</div>
                         <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
-                          Water: {crop.water_need} | Demand: {crop.market_demand}
+                          {t('crops.waterNeed')} {crop.water_need} | {t('crops.marketDemand')} {crop.market_demand}
                         </div>
                       </div>
                       <div style={{ textAlign: 'right' }}>
                         <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#34d399' }}>{crop.profitability_score}%</span>
-                        <div style={{ fontSize: '0.65rem', color: '#64748b' }}>MARGIN</div>
+                        <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{t('crops.marginBadge')}</div>
                       </div>
                     </motion.div>
                   ))}
                 </div>
               ) : (
                 <div style={{ textAlign: 'center', padding: '2rem 0', color: '#64748b' }}>
-                  Select parameters and recommend matching crop indexes.
+                  {t('crops.selectParamsPrompt')}
                 </div>
               )}
             </div>
@@ -269,12 +271,12 @@ export default function Crops() {
                   style={{ padding: '2rem', overflow: 'hidden' }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                    <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800 }}>📅 {selectedCrop.crop_name} Calendar</h3>
+                    <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800 }}>{t('crops.cropCalendarTitle', { crop: selectedCrop.crop_name })}</h3>
                     <button
                       onClick={handleRegisterCrop}
                       style={{ padding: '0.4rem 0.8rem', borderRadius: '8px', background: 'rgba(16,185,129,0.15)', color: '#34d399', border: '1px solid rgba(16,185,129,0.3)', cursor: 'pointer', fontWeight: 700, fontSize: '0.75rem' }}
                     >
-                      + Register Growing
+                      {t('crops.registerGrowingBtn')}
                     </button>
                   </div>
 
@@ -284,24 +286,24 @@ export default function Crops() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '0.85rem' }}>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                         <div style={{ background: 'rgba(0,0,0,0.1)', padding: '0.75rem 1rem', borderRadius: '10px' }}>
-                          <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700 }}>SOWING WINDOW</span>
+                          <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700 }}>{t('crops.sowingWindow')}</span>
                           <div style={{ fontWeight: 800, marginTop: '2px', color: '#60a5fa' }}>{calendar.sowing_window}</div>
                         </div>
                         <div style={{ background: 'rgba(0,0,0,0.1)', padding: '0.75rem 1rem', borderRadius: '10px' }}>
-                          <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700 }}>HARVEST WINDOW</span>
+                          <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700 }}>{t('crops.harvestWindow')}</span>
                           <div style={{ fontWeight: 800, marginTop: '2px', color: '#eab308' }}>{calendar.harvest_window}</div>
                         </div>
                       </div>
 
                       <div>
-                        <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Recommended Fertilizers</span>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>{t('crops.recommendedFertilizers')}</span>
                         <ul style={{ margin: '4px 0 0', paddingLeft: '1.2rem', color: '#94a3b8', lineHeight: 1.5 }}>
                           {calendar.fertilizer_schedule?.map((f, i) => <li key={i}>{f}</li>)}
                         </ul>
                       </div>
 
                       <div>
-                        <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Irrigation Schedule</span>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>{t('crops.irrigationSchedule')}</span>
                         <ul style={{ margin: '4px 0 0', paddingLeft: '1.2rem', color: '#94a3b8', lineHeight: 1.5 }}>
                           {calendar.irrigation_schedule?.map((irr, i) => <li key={i}>{irr}</li>)}
                         </ul>

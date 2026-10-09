@@ -8,6 +8,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useTranslation } from '../i18n';
 
 const loadingStyles = {
   container: {
@@ -44,6 +45,7 @@ const loadingStyles = {
 
 export default function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
+  const { t } = useTranslation();
 
   if (loading) {
     return (
@@ -54,8 +56,8 @@ export default function ProtectedRoute({ children }) {
           }
         `}</style>
         <div style={loadingStyles.spinner} />
-        <p style={loadingStyles.text}>Loading your farm data...</p>
-        <p style={loadingStyles.subtext}>Authenticating with KrishiMitra</p>
+        <p style={loadingStyles.text}>{t('common.loadingFarmData')}</p>
+        <p style={loadingStyles.subtext}>{t('common.authenticating')}</p>
       </div>
     );
   }

@@ -5,10 +5,12 @@ import FarmLayout from '../components/FarmLayout'
 import toast from 'react-hot-toast'
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from 'recharts'
 import { Link } from 'react-router-dom'
+import { useTranslation } from '../i18n'
 
 import { BACKEND_URL } from '../config'
 
 export default function Pest() {
+  const { t } = useTranslation()
   const { activeFarm } = useFarmStore()
   const [selectedFile, setSelectedFile] = useState(null)
   const [previewUrl, setPreviewUrl] = useState(null)
@@ -42,7 +44,7 @@ export default function Pest() {
   const startCamera = useCallback(async (facing = facingMode) => {
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        toast.error("Camera API not supported in this browser.")
+        toast.error(t('pest.cameraUnsupported'))
         return
       }
       if (streamRef.current) {
@@ -64,10 +66,10 @@ export default function Pest() {
       }
     } catch (err) {
       console.error("Camera error:", err)
-      toast.error("Camera access denied or unavailable.")
+      toast.error(t('pest.cameraDenied'))
       setIsCameraActive(false)
     }
-  }, [facingMode])
+  }, [facingMode, t])
 
   useEffect(() => {
     if (isCameraActive && videoRef.current && streamRef.current) {
@@ -103,7 +105,7 @@ export default function Pest() {
 
     canvas.toBlob((blob) => {
       if (!blob) {
-        toast.error("Capture failed")
+        toast.error(t('pest.captureFailed'))
         return
       }
       const file = new File([blob], `pest_capture_${Date.now()}.jpg`, { type: 'image/jpeg' })
@@ -111,9 +113,9 @@ export default function Pest() {
       setPreviewUrl(URL.createObjectURL(blob))
       setResult(null)
       stopCamera()
-      toast.success("Pest photo captured! Click 'Run Pest Scan'")
+      toast.success(t('pest.pestCaptured'))
     }, 'image/jpeg', 0.95)
-  }, [stopCamera])
+  }, [stopCamera, t])
 
   const apiFetch = useCallback(async (path, options = {}) => {
     options.credentials = 'include'
@@ -147,7 +149,7 @@ export default function Pest() {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
       if (file.size > 10 * 1024 * 1024) {
-        toast.error("File size must be under 10MB")
+        toast.error(t('pest.fileSizeLimit'))
         return
       }
       setSelectedFile(file)
@@ -171,11 +173,11 @@ export default function Pest() {
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0]
       if (!file.type.startsWith('image/')) {
-        toast.error("Only image files are accepted")
+        toast.error(t('pest.onlyImages'))
         return
       }
       if (file.size > 10 * 1024 * 1024) {
-        toast.error("File size must be under 10MB")
+        toast.error(t('pest.fileSizeLimit'))
         return
       }
       setSelectedFile(file)
@@ -205,10 +207,10 @@ export default function Pest() {
 
       const data = await res.json()
       setResult(data)
-      toast.success("Pest classification complete!")
+      toast.success(t('pest.scanComplete'))
       loadHistory()
     } catch (err) {
-      toast.error(err.message || "Diagnostics failed")
+      toast.error(err.message || t('errors.networkError'))
     } finally {
       setScanning(false)
     }
@@ -228,8 +230,8 @@ export default function Pest() {
     <FarmLayout>
       <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800 }}>Insect Pest Scanner</h1>
-          <p style={{ color: '#64748b', marginTop: '4px' }}>Analyze field camera scans to detect insect infestations, density mappings, and receive organic control advice.</p>
+          <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800 }}>{t('pest.title')}</h1>
+          <p style={{ color: '#64748b', marginTop: '4px' }}>{t('pest.subtitle')}</p>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'flex-start' }}>
@@ -292,7 +294,7 @@ export default function Pest() {
                     background: 'rgba(0,0,0,0.6)', padding: '0.35rem 0.75rem',
                     borderRadius: '20px', color: '#6ee7b7', fontSize: '0.75rem', fontWeight: 700
                   }}>
-                    🎯 Align insect or crop pest inside frame
+                    {t('pest.alignGuide')}
                   </div>
                 </div>
 
@@ -305,7 +307,7 @@ export default function Pest() {
                   <button
                     type="button"
                     onClick={toggleFacingMode}
-                    title="Flip Camera (Front/Rear)"
+                    title={t('pest.flipCamera')}
                     style={{
                       background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)',
                       color: '#fff', borderRadius: '50%', width: '42px', height: '42px',
@@ -325,13 +327,13 @@ export default function Pest() {
                       boxShadow: '0 0 15px rgba(16,185,129,0.6)', display: 'flex', alignItems: 'center', gap: '0.4rem'
                     }}
                   >
-                    📸 Snap Photo
+                    {t('pest.snapPhoto')}
                   </button>
 
                   <button
                     type="button"
                     onClick={stopCamera}
-                    title="Close Camera"
+                    title={t('pest.closeCamera')}
                     style={{
                       background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)',
                       color: '#f87171', borderRadius: '50%', width: '42px', height: '42px',
@@ -371,7 +373,7 @@ export default function Pest() {
                             fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer'
                           }}
                         >
-                          🗑️ Remove Photo
+                          {t('pest.removePhoto')}
                         </button>
                         <button
                           type="button"
@@ -382,15 +384,15 @@ export default function Pest() {
                             fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer'
                           }}
                         >
-                          📸 Retake with Camera
+                          {t('pest.retakeWithCamera')}
                         </button>
                       </div>
                     </div>
                   ) : (
                     <div>
                       <span style={{ fontSize: '3rem', display: 'block', marginBottom: '0.5rem' }}>🐛</span>
-                      <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#e2e8f0' }}>Upload or Snap Pest Image</div>
-                      <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>PNG, JPG or live camera snapshot (Max 10MB)</div>
+                      <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#e2e8f0' }}>{t('pest.uploadOrSnap')}</div>
+                      <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>{t('pest.formatHint')}</div>
                     </div>
                   )}
                 </div>
@@ -409,7 +411,7 @@ export default function Pest() {
                         transition: 'all 0.2s'
                       }}
                     >
-                      <span>📸</span> Live Camera
+                      <span>📸</span> {t('pest.cameraTab')}
                     </button>
 
                     <button
@@ -423,7 +425,7 @@ export default function Pest() {
                         transition: 'all 0.2s'
                       }}
                     >
-                      <span>📱</span> Phone Camera
+                      <span>📱</span> {t('pest.phoneCamera')}
                     </button>
                   </div>
                 )}
@@ -444,7 +446,7 @@ export default function Pest() {
                 opacity: (!selectedFile || scanning || isCameraActive) ? 0.5 : 1
               }}
             >
-              {scanning ? 'Running Neural Net Classifier...' : 'Run Pest Scan'}
+              {scanning ? t('pest.analyzing') : t('pest.analyzeBtn')}
             </button>
           </div>
 
@@ -475,16 +477,16 @@ export default function Pest() {
                       {result.is_uncertain ? (
                         <div>
                           <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: '#facc15' }}>
-                            ⚠️ Unidentified Insect / Low Confidence
+                            {t('pest.unidentifiedInsect')}
                           </h2>
                           <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
-                            Closest match (unconfirmed): <strong style={{ color: '#e2e8f0' }}>{result.pest_name}</strong> ({result.confidence}%)
+                            {t('pest.closestMatch', { pest: result.pest_name, confidence: result.confidence })}
                           </span>
                         </div>
                       ) : (
                         <div>
                           <h2 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800 }}>{result.pest_name}</h2>
-                          <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Detected Insect Class</span>
+                          <span style={{ fontSize: '0.85rem', color: '#64748b' }}>{t('pest.detectedTitle')}</span>
                         </div>
                       )}
                     </div>
@@ -500,12 +502,12 @@ export default function Pest() {
                         textTransform: 'uppercase'
                       }}
                     >
-                      {result.is_uncertain ? 'Unconfirmed' : `${result.infestation_level} Infestation`}
+                      {result.is_uncertain ? t('pest.unconfirmed') : `${result.infestation_level} ${t('pest.infestationSuffix')}`}
                     </span>
                   </div>
 
                   <div>
-                    <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>Classification Confidence:</span>
+                    <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>{t('pest.confidence')}</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '6px' }}>
                       <div style={{ flex: 1, height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
                         <div style={{ width: `${result.confidence}%`, height: '100%', background: result.is_uncertain ? '#ef4444' : '#10b981' }} />
@@ -518,18 +520,18 @@ export default function Pest() {
                   {result.is_uncertain ? (
                     <div style={{ background: 'rgba(234, 179, 8, 0.08)', border: '1px solid rgba(234, 179, 8, 0.35)', borderRadius: '12px', padding: '1.25rem', color: '#fde047' }}>
                       <h4 style={{ margin: '0 0 0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#facc15', fontSize: '1rem' }}>
-                        ⚠️ AI Safety Guardrail: Confidence Too Low ({result.confidence}%)
+                        {t('pest.confidenceTooLow', { confidence: result.confidence })}
                       </h4>
                       <p style={{ margin: 0, fontSize: '0.85rem', color: '#fef08a', lineHeight: 1.5 }}>
-                        The model detected low probability across insect classes. For crop safety, chemical and pesticide recommendations are withheld to prevent accidental damage.
+                        {t('pest.lowConfidenceDesc')}
                       </p>
 
                       <div style={{ marginTop: '0.85rem', padding: '0.85rem', background: 'rgba(0,0,0,0.35)', borderRadius: '10px', border: '1px dashed rgba(250,204,21,0.3)' }}>
                         <div style={{ fontSize: '0.85rem', color: '#e2e8f0', fontWeight: 700, marginBottom: '4px' }}>
-                          🌿 Did you scan a diseased plant leaf instead of an insect?
+                          {t('pest.leafMismatchTitle')}
                         </div>
                         <div style={{ fontSize: '0.78rem', color: '#94a3b8', lineHeight: 1.45, marginBottom: '8px' }}>
-                          The <strong>Pest Scanner</strong> only identifies visible bugs (Aphids, Whiteflies, Caterpillars). If your crop leaf has yellow patches, fungal spots, or blight, please use the <strong>Crop Disease Scanner</strong> (trained on 38 plant diseases with full clinical treatment protocols).
+                          {t('pest.leafMismatchDesc')}
                         </div>
                         <Link
                           to="/crop-health"
@@ -539,23 +541,23 @@ export default function Pest() {
                             borderRadius: '8px', textDecoration: 'none', fontSize: '0.8rem', fontWeight: 700
                           }}
                         >
-                          🌿 Switch to Crop Disease Scanner →
+                          {t('pest.switchToDiseaseBtn')}
                         </Link>
                       </div>
 
                       <p style={{ margin: '0.75rem 0 0', fontSize: '0.75rem', color: '#cbd5e1' }}>
-                        💡 To scan insects accurately: Hold camera 4-6 inches from the bug and ensure good daylight.
+                        {t('pest.accuracyScanTip')}
                       </p>
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                       <div style={{ background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.15)', borderRadius: '12px', padding: '1rem' }}>
-                        <h4 style={{ margin: '0 0 0.25rem', color: '#4ade80', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase' }}>Organic Control Protocol</h4>
+                        <h4 style={{ margin: '0 0 0.25rem', color: '#4ade80', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase' }}>{t('pest.organicProtocol')}</h4>
                         <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8', lineHeight: 1.4 }}>{result.organic_control}</p>
                       </div>
 
                       <div style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: '12px', padding: '1rem' }}>
-                        <h4 style={{ margin: '0 0 0.25rem', color: '#ef4444', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase' }}>Chemical Control Protocol</h4>
+                        <h4 style={{ margin: '0 0 0.25rem', color: '#ef4444', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase' }}>{t('pest.chemicalProtocol')}</h4>
                         <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8', lineHeight: 1.4 }}>{result.chemical_control}</p>
                       </div>
                     </div>
@@ -563,7 +565,7 @@ export default function Pest() {
 
                   {result.top5 && result.top5.length > 0 && (
                     <div>
-                      <h4 style={{ margin: '0 0 0.5rem', fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>Confidence Distribution</h4>
+                      <h4 style={{ margin: '0 0 0.5rem', fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>{t('pest.confidenceDistribution')}</h4>
                       <div style={{ height: '120px', width: '100%', minWidth: 0 }}>
                         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                           <BarChart data={result.top5} layout="vertical" margin={{ left: 0, right: 10, top: 0, bottom: 0 }}>
@@ -583,8 +585,8 @@ export default function Pest() {
               ) : (
                 <div style={{ textAlign: 'center', color: '#64748b' }}>
                   <span style={{ fontSize: '3.5rem', display: 'block', marginBottom: '0.75rem' }}>🐛</span>
-                  <h3 style={{ margin: 0, color: '#e2e8f0' }}>No Diagnostics Performed</h3>
-                  <p style={{ fontSize: '0.85rem', maxWidth: '300px', margin: '4px auto 0' }}>Upload field insect pictures to classify pest severity levels and recommended control methods.</p>
+                  <h3 style={{ margin: 0, color: '#e2e8f0' }}>{t('pest.noDiagnosticsTitle')}</h3>
+                  <p style={{ fontSize: '0.85rem', maxWidth: '300px', margin: '4px auto 0' }}>{t('pest.noDiagnosticsDesc')}</p>
                 </div>
               )}
             </AnimatePresence>
@@ -593,19 +595,19 @@ export default function Pest() {
 
         {/* History Table */}
         <div className="glass-card" style={{ padding: '2rem' }}>
-          <h3 style={{ margin: '0 0 1.25rem', fontSize: '1.25rem', fontWeight: 800 }}>Pest Scan History</h3>
+          <h3 style={{ margin: '0 0 1.25rem', fontSize: '1.25rem', fontWeight: 800 }}>{t('pest.historyTitle')}</h3>
           {history.length === 0 ? (
-            <p style={{ color: '#64748b', fontSize: '0.9rem' }}>No past diagnostic scans recorded for this farm boundary.</p>
+            <p style={{ color: '#64748b', fontSize: '0.9rem' }}>{t('pest.noHistoryRecorded')}</p>
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#64748b' }}>
-                    <th style={{ padding: '0.75rem 1rem' }}>Image</th>
-                    <th style={{ padding: '0.75rem 1rem' }}>Detected Pest</th>
-                    <th style={{ padding: '0.75rem 1rem' }}>Infestation Level</th>
-                    <th style={{ padding: '0.75rem 1rem' }}>Organic Control</th>
-                    <th style={{ padding: '0.75rem 1rem' }}>Scanned At</th>
+                    <th style={{ padding: '0.75rem 1rem' }}>{t('pest.tableImage')}</th>
+                    <th style={{ padding: '0.75rem 1rem' }}>{t('pest.tableDetectedPest')}</th>
+                    <th style={{ padding: '0.75rem 1rem' }}>{t('pest.tableInfestation')}</th>
+                    <th style={{ padding: '0.75rem 1rem' }}>{t('pest.tableOrganic')}</th>
+                    <th style={{ padding: '0.75rem 1rem' }}>{t('pest.tableScannedAt')}</th>
                   </tr>
                 </thead>
                 <tbody>

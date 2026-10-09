@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import FarmLayout from '../components/FarmLayout'
 import toast from 'react-hot-toast'
+import { useTranslation, SUPPORTED_LANGUAGES } from '../i18n'
+import LanguageSelector from '../components/LanguageSelector'
 
 import { BACKEND_URL } from '../config'
 
@@ -19,6 +21,7 @@ const TARGET_LANGUAGES = [
 ]
 
 export default function Languages() {
+  const { t, i18n } = useTranslation()
   const [text, setText] = useState('')
   const [targetLang, setTargetLang] = useState('hi')
   const [translatedText, setTranslatedText] = useState('')
@@ -27,7 +30,7 @@ export default function Languages() {
 
   const handleTranslate = async () => {
     if (!text.trim()) {
-      toast.error('Please enter some text to translate')
+      toast.error(t('validation.required'))
       return
     }
 
@@ -49,9 +52,9 @@ export default function Languages() {
       const data = await res.json()
       setTranslatedText(data.translated_text)
       setDetectedLang(data.detected_source_language)
-      toast.success('Translation complete!')
+      toast.success(t('messages.analysisCompleted'))
     } catch (err) {
-      toast.error(err.message)
+      toast.error(err.message || t('messages.somethingWentWrong'))
     } finally {
       setLoading(false)
     }
@@ -68,16 +71,74 @@ export default function Languages() {
     "Heavy rain expected next week. Postpone irrigation schedule."
   ]
 
+  const activeLangObj = SUPPORTED_LANGUAGES.find(l => l.code === i18n.language) || SUPPORTED_LANGUAGES[0]
+
   return (
     <FarmLayout>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         
         {/* Header */}
         <div>
-          <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 800 }}>Multilingual Translation Sandbox</h1>
+          <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 800 }}>{t('languages.title')}</h1>
           <p style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '4px' }}>
-            Translate crop diagnostics and agronomy logs between English and 10 local Indian regional languages
+            {t('languages.subtitle')}
           </p>
+        </div>
+
+        {/* Global Platform Language Selector Card */}
+        <div className="glass-card" style={{ padding: '1.75rem', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(6, 182, 212, 0.05) 100%)', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#34d399' }}>
+                🌐 {t('languages.selectLangTitle')}
+              </h3>
+              <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: '4px 0 0' }}>
+                {t('languages.selectLangDesc')}
+              </p>
+            </div>
+            <div style={{ padding: '0.4rem 0.85rem', background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '20px', fontSize: '0.8rem', color: '#6ee7b7', fontWeight: 600 }}>
+              {t('languages.activeNotice', { lang: activeLangObj.nativeName })}
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+            {SUPPORTED_LANGUAGES.map((lang) => {
+              const isSelected = i18n.language === lang.code
+              return (
+                <button
+                  key={lang.code}
+                  type="button"
+                  onClick={() => {
+                    i18n.changeLanguage(lang.code)
+                    toast.success(t('messages.languageChanged', { lang: lang.nativeName }))
+                  }}
+                  style={{
+                    padding: '1.25rem',
+                    borderRadius: '16px',
+                    border: isSelected ? '2px solid #10b981' : '1px solid rgba(255, 255, 255, 0.08)',
+                    background: isSelected ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.02)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'all 0.2s',
+                    boxShadow: isSelected ? '0 0 20px rgba(16, 185, 129, 0.25)' : 'none'
+                  }}
+                >
+                  <span style={{ fontSize: '2.2rem' }}>{lang.flag}</span>
+                  <div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 800, color: isSelected ? '#34d399' : '#fff' }}>
+                      {lang.nativeName}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                      {lang.label} {isSelected && '✓'}
+                    </div>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
         </div>
 
         {/* Core Layout */}
@@ -86,12 +147,12 @@ export default function Languages() {
           {/* Input Panel */}
           <div className="glass-card" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>Source Text</h3>
-              <p style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '2px' }}>Type farm logs, advice notes, or disease alerts</p>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>{t('languages.sourceText')}</h3>
+              <p style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '2px' }}>{t('languages.sandboxDesc')}</p>
             </div>
 
             <textarea
-              placeholder="Type farm logs or notes in English..."
+              placeholder={t('languages.typePrompt')}
               value={text}
               onChange={(e) => setText(e.target.value)}
               style={{
@@ -111,7 +172,7 @@ export default function Languages() {
             />
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-              <span style={{ fontSize: '0.75rem', color: '#64748b', width: '100%', fontWeight: 700 }}>QUICK SAMPLES</span>
+              <span style={{ fontSize: '0.75rem', color: '#64748b', width: '100%', fontWeight: 700 }}>{t('languages.quickPhrases')}</span>
               {SAMPLE_PHRASES.map((phrase, idx) => (
                 <button
                   key={idx}
@@ -140,7 +201,7 @@ export default function Languages() {
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Target Language:</span>
+                <span style={{ fontSize: '0.85rem', color: '#64748b' }}>{t('languages.targetLanguage')}:</span>
                 <select
                   value={targetLang}
                   onChange={(e) => setTargetLang(e.target.value)}
@@ -172,7 +233,7 @@ export default function Languages() {
                   borderRadius: '10px'
                 }}
               >
-                {loading ? 'Translating...' : 'Translate'}
+                {loading ? t('languages.translating') : t('languages.translateBtn')}
               </button>
             </div>
           </div>
@@ -181,12 +242,12 @@ export default function Languages() {
           <div className="glass-card" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>Translation Output</h3>
-                <p style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '2px' }}>Result from public neural translation API</p>
+                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>{t('languages.translatedResult')}</h3>
+                <p style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '2px' }}>Neural Agronomic Translation</p>
               </div>
               {detectedLang && (
                 <span style={{ background: 'rgba(6,182,212,0.1)', color: '#06b6d4', border: '1px solid rgba(6,182,212,0.2)', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700 }}>
-                  Source Detected: {detectedLang.toUpperCase()}
+                  Source: {detectedLang.toUpperCase()}
                 </span>
               )}
             </div>
@@ -206,11 +267,11 @@ export default function Languages() {
                 boxSizing: 'border-box'
               }}
             >
-              {translatedText || 'Translated output will appear here...'}
+              {translatedText || t('common.loading')}
             </div>
             
             <div style={{ marginTop: 'auto', fontSize: '0.75rem', color: '#64748b', lineHeight: 1.4 }}>
-              * Translates dynamically using Google Translate engines. In offline scenarios, offline dictionary indices serve basic agronomic vocabulary mappings.
+              * KrishiMitra multilingual framework ensures 100% offline coverage for primary UI in Marathi, Hindi & English.
             </div>
           </div>
 
@@ -220,3 +281,4 @@ export default function Languages() {
     </FarmLayout>
   )
 }
+

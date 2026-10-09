@@ -1,23 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useFarmStore } from '../store/farmStore'
 import FarmLayout from '../components/FarmLayout'
 import toast from 'react-hot-toast'
+import { useTranslation } from '../i18n'
 
 import { BACKEND_URL } from '../config'
 
-const TASK_TYPES = [
-  { value: 'irrigation', label: '💧 Irrigation' },
-  { value: 'fertilizer', label: '🌱 Fertilizer' },
-  { value: 'pesticide', label: '🔬 Pesticide' },
-  { value: 'harvest', label: '🌾 Harvesting' },
-  { value: 'sowing', label: '🌱 Sowing' },
-  { value: 'pruning', label: '🌿 Pruning' },
-  { value: 'tillage', label: '🚜 Tillage' },
-  { value: 'other', label: '📋 Other' }
-]
-
 export default function Calendar() {
+  const { t } = useTranslation()
   const { activeFarm } = useFarmStore()
   
   // List states
@@ -32,6 +23,17 @@ export default function Calendar() {
   const [urgency, setUrgency] = useState('NORMAL')
   const [cost, setCost] = useState(0)
   const [submitting, setSubmitting] = useState(false)
+
+  const taskTypes = useMemo(() => [
+    { value: 'irrigation', label: t('calendar.typeIrrigation', '💧 Irrigation') },
+    { value: 'fertilizer', label: t('calendar.typeFertilizer', '🌱 Fertilizer') },
+    { value: 'pesticide', label: t('calendar.typePesticide', '🔬 Pesticide') },
+    { value: 'harvest', label: t('calendar.typeHarvest', '🌾 Harvesting') },
+    { value: 'sowing', label: t('calendar.typeSowing', '🌱 Sowing') },
+    { value: 'pruning', label: t('calendar.typePruning', '🌿 Pruning') },
+    { value: 'tillage', label: t('calendar.typeTillage', '🚜 Tillage') },
+    { value: 'other', label: t('calendar.typeOther', '📋 Other') }
+  ], [t])
 
   const apiFetch = useCallback(async (path, options = {}) => {
     options.credentials = 'include'
@@ -55,11 +57,11 @@ export default function Calendar() {
       setTasks(data || [])
     } catch (err) {
       console.error(err)
-      toast.error("Failed to load crop calendar tasks")
+      toast.error(t('calendar.loadError', "Failed to load crop calendar tasks"))
     } finally {
       setLoading(false)
     }
-  }, [activeFarm, apiFetch])
+  }, [activeFarm, apiFetch, t])
 
   useEffect(() => {
     loadTasks()
@@ -69,11 +71,11 @@ export default function Calendar() {
     e.preventDefault()
     if (!activeFarm) return
     if (!taskName.trim()) {
-      toast.error("Please enter a task name")
+      toast.error(t('calendar.enterNameError', "Please enter a task name"))
       return
     }
     if (!scheduledAt) {
-      toast.error("Please choose a schedule date/time")
+      toast.error(t('calendar.enterDateError', "Please choose a schedule date/time"))
       return
     }
 
@@ -84,7 +86,7 @@ export default function Calendar() {
       task_type: taskType,
       scheduled_at: new Date(scheduledAt).toISOString(),
       urgency: urgency,
-      cost_estimate: parseFloat(cost)
+      cost_estimate: parseFloat(cost) || 0
     }
 
     try {
@@ -92,14 +94,14 @@ export default function Calendar() {
         method: 'POST',
         body: JSON.stringify(payload)
       })
-      toast.success("Task scheduled on your crop calendar!")
+      toast.success(t('calendar.taskAddedSuccess', "Task scheduled on your crop calendar!"))
       setTaskName('')
       setScheduledAt('')
       setCost(0)
       setUrgency('NORMAL')
       loadTasks()
     } catch (err) {
-      toast.error(err.message || "Failed to schedule task")
+      toast.error(err.message || t('calendar.updateError', "Failed to schedule task"))
     } finally {
       setSubmitting(false)
     }
@@ -110,10 +112,10 @@ export default function Calendar() {
       await apiFetch(`/calendar/${task.id}/complete?completed=${!task.completed}`, {
         method: 'PUT'
       })
-      toast.success(task.completed ? "Task marked incomplete" : "Task completed!")
+      toast.success(task.completed ? t('calendar.markedIncomplete', "Task marked incomplete") : t('calendar.markedCompleted', "Task completed!"))
       loadTasks()
     } catch (err) {
-      toast.error("Failed to update task state")
+      toast.error(t('calendar.updateError', "Failed to update task state"))
     }
   }
 
@@ -122,14 +124,14 @@ export default function Calendar() {
       await apiFetch(`/calendar/${taskId}`, {
         method: 'DELETE'
       })
-      toast.success("Task removed from crop calendar")
+      toast.success(t('calendar.taskDeleted', "Task removed from crop calendar"))
       loadTasks()
     } catch (err) {
-      toast.error("Failed to delete task")
+      toast.error(t('calendar.deleteError', "Failed to delete task"))
     }
   }
 
-  const filteredTasks = tasks.filter(t => filterType === 'all' || t.task_type === filterType)
+  const filteredTasks = tasks.filter(tItem => filterType === 'all' || tItem.task_type === filterType)
 
   const getUrgencyStyles = (u) => {
     switch (String(u).toUpperCase()) {
@@ -139,12 +141,20 @@ export default function Calendar() {
     }
   }
 
+  const getUrgencyLabel = (u) => {
+    switch (String(u).toUpperCase()) {
+      case 'CRITICAL': return t('calendar.urgencyCritical', 'Critical')
+      case 'HIGH': return t('calendar.urgencyHigh', 'High')
+      default: return t('calendar.urgencyNormal', 'Normal')
+    }
+  }
+
   return (
     <FarmLayout>
       <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800 }}>Agronomy Task Calendar</h1>
-          <p style={{ color: '#64748b', marginTop: '4px' }}>Log and check off field activities, scheduled sprays, fertilizer timing, and harvesting windows.</p>
+          <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800 }}>{t('calendar.title', 'Agronomy Task Calendar')}</h1>
+          <p style={{ color: '#64748b', marginTop: '4px' }}>{t('calendar.subtitle', 'Log and check off field activities, scheduled sprays, fertilizer timing, and harvesting windows.')}</p>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '2rem', alignItems: 'flex-start' }}>
@@ -152,7 +162,7 @@ export default function Calendar() {
           {/* Calendar List Panel */}
           <div className="glass-card" style={{ padding: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-              <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800 }}>Scheduled Activities</h3>
+              <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800 }}>{t('calendar.scheduledActivities', 'Scheduled Activities')}</h3>
               
               {/* Type filter */}
               <select
@@ -160,8 +170,8 @@ export default function Calendar() {
                 onChange={(e) => setFilterType(e.target.value)}
                 style={{ padding: '0.4rem 0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: '0.8rem', outline: 'none' }}
               >
-                <option value="all">All Types</option>
-                {TASK_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                <option value="all">{t('calendar.allTypes', 'All Types')}</option>
+                {taskTypes.map(tOption => <option key={tOption.value} value={tOption.value}>{tOption.label}</option>)}
               </select>
             </div>
 
@@ -174,7 +184,7 @@ export default function Calendar() {
             ) : filteredTasks.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#64748b' }}>
                 <span style={{ fontSize: '3rem' }}>📅</span>
-                <p style={{ fontSize: '0.9rem', margin: '8px 0 0' }}>No tasks scheduled. Add one using the form on the right!</p>
+                <p style={{ fontSize: '0.9rem', margin: '8px 0 0' }}>{t('calendar.noTasks', 'No tasks scheduled. Add one using the form on the right!')}</p>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -212,13 +222,13 @@ export default function Calendar() {
                           {task.task_name}
                         </div>
                         <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px', display: 'flex', gap: '0.5rem' }}>
-                          <span>{TASK_TYPES.find(t => t.value === task.task_type)?.label || '📋 Action'}</span>
+                          <span>{taskTypes.find(tOption => tOption.value === task.task_type)?.label || '📋 Action'}</span>
                           <span>•</span>
                           <span>{new Date(task.scheduled_at).toLocaleDateString()} at {new Date(task.scheduled_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                           {task.cost_estimate > 0 && (
                             <>
                               <span>•</span>
-                              <span>Est: ₹{task.cost_estimate}</span>
+                              <span>{t('calendar.estCost', 'Est: ₹{{cost}}', { cost: task.cost_estimate })}</span>
                             </>
                           )}
                         </div>
@@ -233,7 +243,7 @@ export default function Calendar() {
                         fontWeight: 700,
                         ...getUrgencyStyles(task.urgency)
                       }}>
-                        {task.urgency}
+                        {getUrgencyLabel(task.urgency)}
                       </span>
                       <button
                         onClick={() => handleDeleteTask(task.id)}
@@ -252,14 +262,14 @@ export default function Calendar() {
 
           {/* Scheduling Form Panel */}
           <div className="glass-card" style={{ padding: '2rem' }}>
-            <h3 style={{ margin: '0 0 1.5rem', fontSize: '1.25rem', fontWeight: 800 }}>Schedule Activity</h3>
+            <h3 style={{ margin: '0 0 1.5rem', fontSize: '1.25rem', fontWeight: 800 }}>{t('calendar.scheduleActivity', 'Schedule Activity')}</h3>
             <form onSubmit={handleAddTask} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>Task / Operation Name</label>
+                <label style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>{t('calendar.taskName', 'Task / Operation Name')}</label>
                 <input
                   type="text"
-                  placeholder="e.g. Apply NPK fertilizer, Weed weeding"
+                  placeholder={t('calendar.taskNamePlaceholder', 'e.g. Apply NPK fertilizer, Weed weeding')}
                   value={taskName}
                   onChange={(e) => setTaskName(e.target.value)}
                   style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: '0.9rem', outline: 'none' }}
@@ -268,33 +278,33 @@ export default function Calendar() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>Task Category</label>
+                  <label style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>{t('calendar.taskCategory', 'Task Category')}</label>
                   <select
                     value={taskType}
                     onChange={(e) => setTaskType(e.target.value)}
                     style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: '0.9rem', outline: 'none' }}
                   >
-                    {TASK_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                    {taskTypes.map(tOption => <option key={tOption.value} value={tOption.value}>{tOption.label}</option>)}
                   </select>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>Urgency</label>
+                  <label style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>{t('calendar.urgency', 'Urgency')}</label>
                   <select
                     value={urgency}
                     onChange={(e) => setUrgency(e.target.value)}
                     style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.2)', color: '#fff', fontSize: '0.9rem', outline: 'none' }}
                   >
-                    <option value="NORMAL">Normal</option>
-                    <option value="HIGH">High</option>
-                    <option value="CRITICAL">Critical</option>
+                    <option value="NORMAL">{t('calendar.urgencyNormal', 'Normal')}</option>
+                    <option value="HIGH">{t('calendar.urgencyHigh', 'High')}</option>
+                    <option value="CRITICAL">{t('calendar.urgencyCritical', 'Critical')}</option>
                   </select>
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '1rem' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>Scheduled Date & Time</label>
+                  <label style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>{t('calendar.scheduledDateTime', 'Scheduled Date & Time')}</label>
                   <input
                     type="datetime-local"
                     value={scheduledAt}
@@ -304,7 +314,7 @@ export default function Calendar() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>Cost Estimate (₹)</label>
+                  <label style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>{t('calendar.costEstimate', 'Cost Estimate (₹)')}</label>
                   <input
                     type="number"
                     placeholder="0"
@@ -330,7 +340,7 @@ export default function Calendar() {
                   opacity: submitting ? 0.5 : 1
                 }}
               >
-                {submitting ? 'Scheduling activity...' : 'Add to Crop Calendar'}
+                {submitting ? t('calendar.submittingBtn', 'Scheduling activity...') : t('calendar.addBtn', 'Add to Crop Calendar')}
               </button>
             </form>
           </div>

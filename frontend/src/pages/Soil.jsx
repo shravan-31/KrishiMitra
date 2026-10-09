@@ -4,10 +4,12 @@ import { useFarmStore } from '../store/farmStore'
 import FarmLayout from '../components/FarmLayout'
 import toast from 'react-hot-toast'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { useTranslation } from '../i18n'
 
 import { BACKEND_URL } from '../config'
 
 export default function Soil() {
+  const { t } = useTranslation()
   const { activeFarm } = useFarmStore()
   const [ph, setPh] = useState(6.5)
   const [nitrogen, setNitrogen] = useState(60)
@@ -78,10 +80,10 @@ export default function Soil() {
 
       const data = await res.json()
       setResult(data)
-      toast.success("Soil analysis complete! Database and alerts updated.")
+      toast.success(t('soil.analysisCompleteToast'))
       loadHistory()
     } catch (err) {
-      toast.error(err.message || "Soil analysis failed")
+      toast.error(err.message || t('common.error'))
     } finally {
       setSubmitting(false)
     }
@@ -96,24 +98,24 @@ export default function Soil() {
     <FarmLayout>
       <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800 }}>Soil Health Intelligence</h1>
-          <p style={{ color: '#64748b', marginTop: '4px' }}>Input electrochemical readings to assess nutrient status, NPK deficiencies, crop recommendations, and fertilizer dosage forecasts.</p>
+          <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800 }}>{t('soil.title')}</h1>
+          <p style={{ color: '#64748b', marginTop: '4px' }}>{t('soil.subtitle')}</p>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '2rem', alignItems: 'flex-start' }}>
           
           {/* Sliders Form Card */}
           <div className="glass-card" style={{ padding: '2rem' }}>
-            <h3 style={{ margin: '0 0 1.5rem', fontSize: '1.2rem', fontWeight: 800 }}>Nutrients & Sensors</h3>
+            <h3 style={{ margin: '0 0 1.5rem', fontSize: '1.2rem', fontWeight: 800 }}>{t('soil.nutrientsAndSensors')}</h3>
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               
-              <SliderInput label="Soil pH (Potential Hydrogen)" min={0} max={14} step={0.1} value={ph} onChange={setPh} suffix="" />
-              <SliderInput label="Nitrogen (N) Content (mg/kg)" min={0} max={150} step={1} value={nitrogen} onChange={setNitrogen} suffix=" mg/kg" />
-              <SliderInput label="Phosphorus (P) Content (mg/kg)" min={0} max={120} step={1} value={phosphorus} onChange={setPhosphorus} suffix=" mg/kg" />
-              <SliderInput label="Potassium (K) Content (mg/kg)" min={0} max={250} step={1} value={potassium} onChange={setPotassium} suffix=" mg/kg" />
-              <SliderInput label="Soil Moisture Level" min={0} max={100} step={1} value={moisture} onChange={setMoisture} suffix="%" />
-              <SliderInput label="Electrical Conductivity (EC) (dS/m)" min={0} max={5} step={0.1} value={ec} onChange={setEc} suffix=" dS/m" />
-              <SliderInput label="Soil Temperature" min={0} max={50} step={1} value={temperature} onChange={setTemperature} suffix="°C" />
+              <SliderInput label={t('soil.phInputLabel')} min={0} max={14} step={0.1} value={ph} onChange={setPh} suffix="" />
+              <SliderInput label={t('soil.nInputLabel')} min={0} max={150} step={1} value={nitrogen} onChange={setNitrogen} suffix=" mg/kg" />
+              <SliderInput label={t('soil.pInputLabel')} min={0} max={120} step={1} value={phosphorus} onChange={setPhosphorus} suffix=" mg/kg" />
+              <SliderInput label={t('soil.kInputLabel')} min={0} max={250} step={1} value={potassium} onChange={setPotassium} suffix=" mg/kg" />
+              <SliderInput label={t('soil.moistureInputLabel')} min={0} max={100} step={1} value={moisture} onChange={setMoisture} suffix="%" />
+              <SliderInput label={t('soil.ecInputLabel')} min={0} max={5} step={0.1} value={ec} onChange={setEc} suffix=" dS/m" />
+              <SliderInput label={t('soil.tempInputLabel')} min={0} max={50} step={1} value={temperature} onChange={setTemperature} suffix="°C" />
 
               <button
                 type="submit"
@@ -130,7 +132,7 @@ export default function Soil() {
                   opacity: submitting ? 0.5 : 1
                 }}
               >
-                {submitting ? 'Calculating soil health matrix...' : 'Analyze Soil Metrics'}
+                {submitting ? t('soil.analyzing') : t('soil.analyzeBtn')}
               </button>
             </form>
           </div>
@@ -178,21 +180,23 @@ export default function Soil() {
                       </svg>
                       <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                         <span style={{ fontSize: '1.6rem', fontWeight: 800 }}>{result.soil_health_score}%</span>
-                        <span style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700 }}>HEALTH</span>
+                        <span style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700 }}>{t('soil.healthBadge')}</span>
                       </div>
                     </div>
 
                     <div>
-                      <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800 }}>Soil Health Report</h3>
+                      <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800 }}>{t('soil.reportTitle')}</h3>
                       <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: '4px 0 0', lineHeight: 1.4 }}>
-                        Your soil index is {result.soil_health_score >= 80 ? 'Excellent' : result.soil_health_score >= 60 ? 'Optimal' : 'Needs attention'}. Deficiencies have been registered to your ledger.
+                        {t('soil.reportDesc', {
+                          rating: result.soil_health_score >= 80 ? t('soil.ratingExcellent') : result.soil_health_score >= 60 ? t('soil.ratingOptimal') : t('soil.ratingNeedsAttention')
+                        })}
                       </p>
                     </div>
                   </div>
 
                   {/* Recommended Crops Grid */}
                   <div>
-                    <h4 style={{ margin: '0 0 0.75rem', fontSize: '0.9rem', color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Recommended Crops</h4>
+                    <h4 style={{ margin: '0 0 0.75rem', fontSize: '0.9rem', color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('soil.recommendedCropsTitle')}</h4>
                     <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                       {result.recommended_crops?.map((crop, idx) => (
                         <div key={idx} style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', color: '#34d399', borderRadius: '12px', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 700 }}>
@@ -204,17 +208,17 @@ export default function Soil() {
 
                   {/* NPK Status bars */}
                   <div>
-                    <h4 style={{ margin: '0 0 0.75rem', fontSize: '0.9rem', color: '#64748b', fontWeight: 700 }}>Nutrient Status</h4>
+                    <h4 style={{ margin: '0 0 0.75rem', fontSize: '0.9rem', color: '#64748b', fontWeight: 700 }}>{t('soil.nutrientStatusTitle')}</h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                      <NutrientBar label="Nitrogen (N)" status={result.nutrient_status?.nitrogen} />
-                      <NutrientBar label="Phosphorus (P)" status={result.nutrient_status?.phosphorus} />
-                      <NutrientBar label="Potassium (K)" status={result.nutrient_status?.potassium} />
+                      <NutrientBar label={t('soil.nitrogenLabel')} status={result.nutrient_status?.nitrogen} t={t} />
+                      <NutrientBar label={t('soil.phosphorusLabel')} status={result.nutrient_status?.phosphorus} t={t} />
+                      <NutrientBar label={t('soil.potassiumLabel')} status={result.nutrient_status?.potassium} t={t} />
                     </div>
                   </div>
 
                   {/* Fertilizer Advice Card */}
                   <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '12px', padding: '1.25rem' }}>
-                    <h4 style={{ margin: '0 0 0.5rem', color: '#eab308', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Agronomy Advisor Output</h4>
+                    <h4 style={{ margin: '0 0 0.5rem', color: '#eab308', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('soil.advisorOutputTitle')}</h4>
                     <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8', lineHeight: 1.5 }}>
                       {result.fertilizer_advice}
                     </p>
@@ -224,8 +228,8 @@ export default function Soil() {
               ) : (
                 <div style={{ textAlign: 'center', color: '#64748b' }}>
                   <span style={{ fontSize: '3.5rem', display: 'block', marginBottom: '0.75rem' }}>🌱</span>
-                  <h3 style={{ margin: 0, color: '#e2e8f0' }}>No Metrics Submitted</h3>
-                  <p style={{ fontSize: '0.85rem', maxWidth: '320px', margin: '4px auto 0' }}>Adjust nutrients using the sliders and trigger analysis to diagnose soil health indices.</p>
+                  <h3 style={{ margin: 0, color: '#e2e8f0' }}>{t('soil.noMetricsTitle')}</h3>
+                  <p style={{ fontSize: '0.85rem', maxWidth: '320px', margin: '4px auto 0' }}>{t('soil.noMetricsDesc')}</p>
                 </div>
               )}
             </AnimatePresence>
@@ -236,20 +240,20 @@ export default function Soil() {
         <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '2rem', alignItems: 'stretch' }}>
           {/* History list */}
           <div className="glass-card" style={{ padding: '2rem' }}>
-            <h3 style={{ margin: '0 0 1.25rem', fontSize: '1.25rem', fontWeight: 800 }}>Historical Soil Audits</h3>
+            <h3 style={{ margin: '0 0 1.25rem', fontSize: '1.25rem', fontWeight: 800 }}>{t('soil.historyAuditsTitle')}</h3>
             {history.length === 0 ? (
-              <p style={{ color: '#64748b', fontSize: '0.9rem' }}>No historical reports on record for this farm.</p>
+              <p style={{ color: '#64748b', fontSize: '0.9rem' }}>{t('soil.noHistoricalReports')}</p>
             ) : (
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#64748b' }}>
-                      <th style={{ padding: '0.75rem' }}>Tested Date</th>
-                      <th style={{ padding: '0.75rem' }}>pH</th>
-                      <th style={{ padding: '0.75rem' }}>N-P-K</th>
-                      <th style={{ padding: '0.75rem' }}>Moisture</th>
-                      <th style={{ padding: '0.75rem' }}>EC</th>
-                      <th style={{ padding: '0.75rem' }}>Score</th>
+                      <th style={{ padding: '0.75rem' }}>{t('soil.tableTestedDate')}</th>
+                      <th style={{ padding: '0.75rem' }}>{t('soil.tablePh')}</th>
+                      <th style={{ padding: '0.75rem' }}>{t('soil.tableNpk')}</th>
+                      <th style={{ padding: '0.75rem' }}>{t('soil.tableMoisture')}</th>
+                      <th style={{ padding: '0.75rem' }}>{t('soil.tableEc')}</th>
+                      <th style={{ padding: '0.75rem' }}>{t('soil.tableScore')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -271,11 +275,11 @@ export default function Soil() {
 
           {/* Trend Chart */}
           <div className="glass-card" style={{ padding: '2rem', display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ margin: '0 0 1.25rem', fontSize: '1.25rem', fontWeight: 800 }}>Health Index Trend</h3>
+            <h3 style={{ margin: '0 0 1.25rem', fontSize: '1.25rem', fontWeight: 800 }}>{t('soil.trendChartTitle')}</h3>
             <div style={{ flex: 1, minHeight: '220px', width: '100%' }}>
               {history.length < 2 ? (
                 <div style={{ height: '100%', display: 'flex', alignItems: 'center', justify: 'center', color: '#64748b', fontSize: '0.85rem', textAlign: 'center' }}>
-                  Need at least 2 reports to plot health progress trends.
+                  {t('soil.needTwoReports')}
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
@@ -284,7 +288,7 @@ export default function Soil() {
                     <XAxis dataKey="tested_at" tickFormatter={(t) => new Date(t).toLocaleDateString(undefined, {month:'short', day:'numeric'})} tick={{fill:'#64748b', fontSize:10}} />
                     <YAxis domain={[40, 100]} tick={{fill:'#64748b', fontSize:10}} />
                     <Tooltip contentStyle={{ background: '#0a1a0a', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '10px' }} labelFormatter={(l) => new Date(l).toLocaleDateString()} />
-                    <Line type="monotone" dataKey="soil_health_score" stroke="#10b981" strokeWidth={3} dot={{ fill: '#10b981', r: 4 }} activeDot={{ r: 6 }} name="Health Index" />
+                    <Line type="monotone" dataKey="soil_health_score" stroke="#10b981" strokeWidth={3} dot={{ fill: '#10b981', r: 4 }} activeDot={{ r: 6 }} name={t('soil.soilHealthTitle')} />
                   </LineChart>
                 </ResponsiveContainer>
               )}
@@ -325,12 +329,12 @@ function SliderInput({ label, min, max, step, value, onChange, suffix }) {
   )
 }
 
-function NutrientBar({ label, status }) {
+function NutrientBar({ label, status, t }) {
   const getStatusDetails = (s) => {
     switch (String(s).toUpperCase()) {
-      case 'DEFICIENT': return { color: '#ef4444', percent: 30, text: 'Deficient (Low)' }
-      case 'EXCESS': return { color: '#eab308', percent: 100, text: 'Excess (High)' }
-      default: return { color: '#22c55e', percent: 70, text: 'Optimal' }
+      case 'DEFICIENT': return { color: '#ef4444', percent: 30, text: t('soil.statusDeficient') }
+      case 'EXCESS': return { color: '#eab308', percent: 100, text: t('soil.statusExcess') }
+      default: return { color: '#22c55e', percent: 70, text: t('soil.statusOptimal') }
     }
   }
 

@@ -3,10 +3,12 @@ import { motion } from 'framer-motion'
 import { useFarmStore } from '../store/farmStore'
 import FarmLayout from '../components/FarmLayout'
 import toast from 'react-hot-toast'
+import { useTranslation } from '../i18n'
 
 import { BACKEND_URL } from '../config'
 
 export default function Health() {
+  const { t } = useTranslation()
   const { activeFarm } = useFarmStore()
   const [healthData, setHealthData] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -32,11 +34,11 @@ export default function Health() {
       const data = await apiFetch(`/api/v1/health/${activeFarm.id}`)
       setHealthData(data)
     } catch (err) {
-      toast.error(err.message || "Failed to load farm health analytics")
+      toast.error(err.message || t('health.loadError'))
     } finally {
       setLoading(false)
     }
-  }, [activeFarm, apiFetch])
+  }, [activeFarm, apiFetch, t])
 
   useEffect(() => {
     loadHealth()
@@ -61,8 +63,8 @@ export default function Health() {
     <FarmLayout>
       <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800 }}>Complete Farm Health Analytics</h1>
-          <p style={{ color: '#64748b', marginTop: '4px' }}>Real-time weighted indexes compiled from soil composition, diagnostic leaf logs, pest densities, and meteorological risks.</p>
+          <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800 }}>{t('health.title')}</h1>
+          <p style={{ color: '#64748b', marginTop: '4px' }}>{t('health.subtitle')}</p>
         </div>
 
         {loading ? (
@@ -75,7 +77,7 @@ export default function Health() {
             
             {/* Left Card: Score Summary */}
             <div className="glass-card" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '1.5rem' }}>
-              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>Overall Health Index</h3>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>{t('health.overallIndexTitle')}</h3>
               
               {/* Gauge */}
               <div style={{ position: 'relative', width: '130px', height: '130px' }}>
@@ -104,7 +106,7 @@ export default function Health() {
                 </svg>
                 <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                   <span style={{ fontSize: '2.2rem', fontWeight: 800 }}>{score}%</span>
-                  <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700 }}>HEALTH SCORE</span>
+                  <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700 }}>{t('health.healthScore')}</span>
                 </div>
               </div>
 
@@ -120,38 +122,38 @@ export default function Health() {
                   margin: '0 auto',
                   ...getGradeColor(healthData.grade)
                 }}>
-                  Grade: {healthData.grade}
+                  {t('health.grade', { grade: healthData.grade })}
                 </span>
                 <span style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>
-                  {score >= 80 ? 'Excellent Standing' : score >= 60 ? 'Optimal Conditions' : 'Needs Agronomic Attention'}
+                  {score >= 80 ? t('health.conditionExcellent') : score >= 60 ? t('health.conditionOptimal') : t('health.conditionAttention')}
                 </span>
               </div>
             </div>
 
             {/* Right Card: Component Breakdown Progress Indicators */}
             <div className="glass-card" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800 }}>Component Vector Analysis</h3>
+              <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800 }}>{t('health.componentAnalysis')}</h3>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <HealthBar label="Soil Chemistry Stability" score={healthData.breakdown?.soil?.score} status={healthData.breakdown?.soil?.status} color="#22c55e" emoji="🌱" />
-                <HealthBar label="Pathogen Resistance index" score={healthData.breakdown?.disease?.score} status={healthData.breakdown?.disease?.status} color="#ef4444" emoji="🔬" />
-                <HealthBar label="Infestation Control level" score={healthData.breakdown?.pest?.score} status={healthData.breakdown?.pest?.status} color="#f59e0b" emoji="🐛" />
-                <HealthBar label="Microclimate Safety index" score={healthData.breakdown?.weather?.score} status={healthData.breakdown?.weather?.status} color="#0ea5e9" emoji="⛅" />
-                <HealthBar label="Hydration & Irrigation Index" score={healthData.breakdown?.irrigation?.score} status={healthData.breakdown?.irrigation?.status} color="#3b82f6" emoji="💧" />
+                <HealthBar label={t('health.soilStability')} score={healthData.breakdown?.soil?.score} status={healthData.breakdown?.soil?.status} color="#22c55e" emoji="🌱" />
+                <HealthBar label={t('health.pathogenResistance')} score={healthData.breakdown?.disease?.score} status={healthData.breakdown?.disease?.status} color="#ef4444" emoji="🔬" />
+                <HealthBar label={t('health.infestationControl')} score={healthData.breakdown?.pest?.score} status={healthData.breakdown?.pest?.status} color="#f59e0b" emoji="🐛" />
+                <HealthBar label={t('health.microclimateSafety')} score={healthData.breakdown?.weather?.score} status={healthData.breakdown?.weather?.status} color="#0ea5e9" emoji="⛅" />
+                <HealthBar label={t('health.hydrationIndex')} score={healthData.breakdown?.irrigation?.score} status={healthData.breakdown?.irrigation?.status} color="#3b82f6" emoji="💧" />
               </div>
             </div>
 
           </div>
         ) : (
           <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#64748b' }}>
-            <p>Ensure a farm boundary is active to trace health indicators.</p>
+            <p>{t('health.noFarmPrompt')}</p>
           </div>
         )}
 
         {/* Actionable Recommendations panel */}
         {!loading && healthData && (
           <div className="glass-card" style={{ padding: '2rem' }}>
-            <h3 style={{ margin: '0 0 1.25rem', fontSize: '1.25rem', fontWeight: 800 }}>Targeted Remediation Advisories</h3>
+            <h3 style={{ margin: '0 0 1.25rem', fontSize: '1.25rem', fontWeight: 800 }}>{t('health.recommendationsTitle')}</h3>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
               {healthData.recommendations?.map((rec, idx) => (
@@ -168,7 +170,7 @@ export default function Health() {
                   }}
                 >
                   <span style={{ fontSize: '0.75rem', fontWeight: 700, color: rec.component === 'General' ? '#10b981' : '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    {rec.component} Advisory
+                    {t('health.advisoryBadge', { component: rec.component })}
                   </span>
                   <div style={{ fontSize: '0.85rem', color: '#94a3b8', lineHeight: 1.5 }}>
                     {rec.message}

@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import toast from 'react-hot-toast';
+import { useTranslation } from '../i18n';
+import LanguageSelector from '../components/LanguageSelector';
 import {
   Sprout,
   Activity,
@@ -26,6 +28,7 @@ import {
 } from 'lucide-react';
 
 export default function Landing() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('growers'); // 'growers' or 'enterprise'
@@ -147,13 +150,13 @@ export default function Landing() {
   const handleFormSubmit = (e) => {
     e.preventDefault();
     if (!contactForm.name || !contactForm.email || !contactForm.message) {
-      toast.error('Please complete all required fields.');
+      toast.error(t('landing.contactRequiredError'));
       return;
     }
     setSubmitting(true);
     setTimeout(() => {
       setSubmitting(false);
-      toast.success('Thank you! Your request has been received. Our team will contact you shortly.');
+      toast.success(t('landing.contactSuccessToast'));
       setContactForm({
         name: '',
         email: '',
@@ -259,40 +262,41 @@ export default function Landing() {
             className="hover-accent"
             style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', transition: 'color 0.2s' }}
           >
-            About Us
+            {t('landing.navAbout')}
           </button>
           <button
             onClick={() => scrollToSection('solutions')}
             className="hover-accent"
             style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', transition: 'color 0.2s' }}
           >
-            Solutions
+            {t('landing.navSolutions')}
           </button>
           <button
             onClick={() => scrollToSection('benefits')}
             className="hover-accent"
             style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', transition: 'color 0.2s' }}
           >
-            Unique Benefits
+            {t('landing.navBenefits')}
           </button>
           <button
             onClick={() => scrollToSection('faq')}
             className="hover-accent"
             style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', transition: 'color 0.2s' }}
           >
-            FAQ
+            {t('landing.navFaq')}
           </button>
           <button
             onClick={() => scrollToSection('contact')}
             className="hover-accent"
             style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', transition: 'color 0.2s' }}
           >
-            Contact
+            {t('landing.navContact')}
           </button>
         </nav>
 
-        {/* Enter Platform Button */}
-        <div>
+        {/* Enter Platform Button & Language Selector */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          <LanguageSelector variant="pill" />
           <button
             onClick={() => navigate(user ? '/dashboard' : '/login')}
             className="premium-btn"
@@ -307,7 +311,7 @@ export default function Landing() {
               cursor: 'pointer'
             }}
           >
-            {user ? 'Enter Platform' : 'Sign In'}
+            {user ? t('landing.signIn') : t('login.googleSignIn')}
           </button>
         </div>
       </header>
@@ -346,7 +350,7 @@ export default function Landing() {
                 gap: '0.5rem'
               }}
             >
-              <span>✨</span> Next-Gen Smart Agriculture
+              <span>✨</span> {t('landing.badge')}
             </div>
 
             {/* Main Headline */}
@@ -363,7 +367,7 @@ export default function Landing() {
                 textAlign: 'left'
               }}
             >
-              The End-to-End Smart Agriculture Intelligence Platform
+              {t('landing.heroTitle1')} — {t('landing.heroTitle2')}
             </h1>
 
             {/* Subtitle */}
@@ -378,7 +382,7 @@ export default function Landing() {
                 maxWidth: '620px'
               }}
             >
-              KrishiMitra connects plant diagnostics, soil analysis, yield forecasts, mandi rates, and weather intelligence in a single unified dashboard, helping growers and agronomy teams make faster, data-driven decisions.
+              {t('landing.heroSubtitle')}
             </p>
 
             {/* CTAs */}
@@ -400,7 +404,7 @@ export default function Landing() {
                   gap: '0.5rem'
                 }}
               >
-                Launch Platform <ArrowRight size={18} />
+                {t('landing.launchPlatform')} <ArrowRight size={18} />
               </button>
               <button
                 onClick={() => scrollToSection('contact')}
@@ -424,7 +428,7 @@ export default function Landing() {
                   e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
                 }}
               >
-                Book a Demo
+                {t('landing.bookDemo')}
               </button>
             </div>
           </div>
@@ -448,16 +452,16 @@ export default function Landing() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '1rem', marginBottom: '1.25rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', background: '#4ade80' }}></span>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#94a3b8' }}>AI ENGINE ACTIVE</span>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#94a3b8' }}>{t('landing.aiEngineActive')}</span>
                 </div>
-                <span style={{ fontSize: '0.75rem', background: 'rgba(74,222,128,0.1)', color: '#4ade80', padding: '0.15rem 0.5rem', borderRadius: '10px', fontWeight: 600 }}>v3.5 Live</span>
+                <span style={{ fontSize: '0.75rem', background: 'rgba(74,222,128,0.1)', color: '#4ade80', padding: '0.15rem 0.5rem', borderRadius: '10px', fontWeight: 600 }}>{t('landing.liveVersion')}</span>
               </div>
 
               {/* Scanner Screen Simulation */}
               <div style={{ background: 'rgba(0,0,0,0.25)', borderRadius: '16px', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.03)', position: 'relative' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                  <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Diagnostic Target</span>
-                  <span style={{ fontSize: '0.85rem', color: '#f97316', fontWeight: 700 }}>Tomato Leaf #042</span>
+                  <span style={{ fontSize: '0.85rem', color: '#64748b' }}>{t('landing.diagnosticTarget')}</span>
+                  <span style={{ fontSize: '0.85rem', color: '#f97316', fontWeight: 700 }}>{t('landing.tomatoLeafSample')}</span>
                 </div>
                 <div style={{ height: '140px', background: 'url(https://images.unsplash.com/photo-1592417817098-8f3d6eb19675?auto=format&fit=crop&w=600&q=80)', backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: '10px', overflow: 'hidden', position: 'relative', border: '1px solid rgba(255,255,255,0.05)' }}>
                   <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(2, 6, 2, 0.8) 100%)' }} />
@@ -485,12 +489,12 @@ export default function Landing() {
                 {/* Metrics */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '1rem' }}>
                   <div style={{ background: 'rgba(255,255,255,0.02)', padding: '0.65rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.03)' }}>
-                    <div style={{ color: '#64748b', fontSize: '0.7rem', textTransform: 'uppercase' }}>Confidence</div>
+                    <div style={{ color: '#64748b', fontSize: '0.7rem', textTransform: 'uppercase' }}>{t('landing.confidenceLabel')}</div>
                     <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#4ade80', marginTop: '2px' }}>98.4%</div>
                   </div>
                   <div style={{ background: 'rgba(255,255,255,0.02)', padding: '0.65rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.03)' }}>
-                    <div style={{ color: '#64748b', fontSize: '0.7rem', textTransform: 'uppercase' }}>Anomaly</div>
-                    <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#f87171', marginTop: '2px' }}>Early Blight</div>
+                    <div style={{ color: '#64748b', fontSize: '0.7rem', textTransform: 'uppercase' }}>{t('landing.anomalyLabel')}</div>
+                    <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#f87171', marginTop: '2px' }}>{t('landing.earlyBlightSample')}</div>
                   </div>
                 </div>
               </div>
@@ -526,15 +530,15 @@ export default function Landing() {
                 }}
               >
                 <div style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#f97316' }}>
-                  <TrendingUp size={20} /> Analytics & BI Insights
+                  <TrendingUp size={20} /> {t('landing.analyticsTitle')}
                 </div>
                 
                 {/* Stylized bar graphs using pure HTML/CSS */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '4px', fontWeight: 600 }}>
-                      <span>Yield Index (Acre-to-Quintal ratio)</span>
-                      <span style={{ color: '#4ade80' }}>+12.4% vs last season</span>
+                      <span>{t('landing.yieldIndex')}</span>
+                      <span style={{ color: '#4ade80' }}>{t('landing.yieldIndexChange')}</span>
                     </div>
                     <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
                       <div style={{ width: '82%', height: '100%', background: 'linear-gradient(90deg, #4ade80, #34d399)', borderRadius: '4px' }}></div>
@@ -543,8 +547,8 @@ export default function Landing() {
 
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '4px', fontWeight: 600 }}>
-                      <span>Pest Resistance Index</span>
-                      <span style={{ color: '#60a5fa' }}>Stable</span>
+                      <span>{t('landing.pestIndex')}</span>
+                      <span style={{ color: '#60a5fa' }}>{t('landing.pestStable')}</span>
                     </div>
                     <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
                       <div style={{ width: '65%', height: '100%', background: 'linear-gradient(90deg, #60a5fa, #3b82f6)', borderRadius: '4px' }}></div>
@@ -553,8 +557,8 @@ export default function Landing() {
 
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '4px', fontWeight: 600 }}>
-                      <span>NPK Balance Factor</span>
-                      <span style={{ color: '#fb923c' }}>Action Recommended</span>
+                      <span>{t('landing.npkFactor')}</span>
+                      <span style={{ color: '#fb923c' }}>{t('landing.actionRecommended')}</span>
                     </div>
                     <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
                       <div style={{ width: '48%', height: '100%', background: 'linear-gradient(90deg, #fb923c, #f97316)', borderRadius: '4px' }}></div>
@@ -566,13 +570,13 @@ export default function Landing() {
 
             {/* Copy Content */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-              <span style={{ color: '#f97316', fontWeight: 700, fontSize: '0.95rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>What We Do</span>
-              <h2 style={{ fontSize: '2.6rem', fontWeight: 800, margin: '0 0 1.25rem', lineHeight: 1.2 }}>Empowering Agriculture With Intelligent Insights</h2>
+              <span style={{ color: '#f97316', fontWeight: 700, fontSize: '0.95rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>{t('landing.whatWeDo')}</span>
+              <h2 style={{ fontSize: '2.6rem', fontWeight: 800, margin: '0 0 1.25rem', lineHeight: 1.2 }}>{t('landing.empoweringTitle')}</h2>
               <p style={{ color: '#94a3b8', lineHeight: 1.6, fontSize: '1.05rem', marginBottom: '1.5rem' }}>
-                KrishiMitra was established to bridge the gap between advanced research-grade AI tools and on-the-ground agricultural activities. We deliver robust software tools tailored to standardise agricultural workflows, prevent crop losses, and enhance long-term food security.
+                {t('landing.aboutDesc1')}
               </p>
               <p style={{ color: '#94a3b8', lineHeight: 1.6, fontSize: '1.05rem', marginBottom: '2rem' }}>
-                Our main cloud platform organizes spatial farm layouts, records NPK levels, detects leaf diseases in seconds via optical scanning, forecasts crop calendar stages, logs expenses, and monitors local mandi rates.
+                {t('landing.aboutDesc2')}
               </p>
               <button
                 onClick={() => scrollToSection('solutions')}
@@ -588,7 +592,7 @@ export default function Landing() {
                   cursor: 'pointer'
                 }}
               >
-                Read About Our Modules
+                {t('landing.readModules')}
               </button>
             </div>
           </div>
@@ -606,10 +610,10 @@ export default function Landing() {
       >
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-            <span style={{ color: '#4ade80', fontWeight: 700, fontSize: '0.95rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Solutions Matrix</span>
-            <h2 style={{ fontSize: '2.6rem', fontWeight: 800, margin: '0.5rem 0 1rem' }}>Tailored Agricultural Solutions</h2>
+            <span style={{ color: '#4ade80', fontWeight: 700, fontSize: '0.95rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('landing.solutionsBadge')}</span>
+            <h2 style={{ fontSize: '2.6rem', fontWeight: 800, margin: '0.5rem 0 1rem' }}>{t('landing.solutionsTitle')}</h2>
             <p style={{ color: '#94a3b8', maxWidth: '600px', margin: '0 auto', fontSize: '1.05rem', lineHeight: 1.5 }}>
-              Choose a profile to see how KrishiMitra optimizes workflows based on your agronomic role and operational scale.
+              {t('landing.solutionsSubtitle')}
             </p>
 
             {/* Tabs Selector */}
@@ -628,7 +632,7 @@ export default function Landing() {
                   transition: 'all 0.3s'
                 }}
               >
-                For Farmers & Growers
+                {t('landing.tabGrowers')}
               </button>
               <button
                 onClick={() => setActiveTab('enterprise')}
@@ -644,7 +648,7 @@ export default function Landing() {
                   transition: 'all 0.3s'
                 }}
               >
-                For Agronomists & Enterprise
+                {t('landing.tabEnterprise')}
               </button>
             </div>
           </div>
@@ -662,30 +666,30 @@ export default function Landing() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '4rem', alignItems: 'center' }}>
                   {/* Left Bullet points */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                    <h3 style={{ fontSize: '1.8rem', fontWeight: 800, margin: 0, color: '#f97316' }}>Maximize Farm Yields & Soil Health</h3>
+                    <h3 style={{ fontSize: '1.8rem', fontWeight: 800, margin: 0, color: '#f97316' }}>{t('landing.growersHeroTitle')}</h3>
                     <p style={{ color: '#94a3b8', fontSize: '1.05rem', lineHeight: 1.5, margin: 0 }}>
-                      Empowering individual farmers and farming co-operatives with direct, user-friendly diagnostic systems that require zero technical training.
+                      {t('landing.growersHeroDesc')}
                     </p>
                     <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                       <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
                         <CheckCircle2 style={{ color: '#4ade80', flexShrink: 0, marginTop: '2px' }} size={20} />
                         <div>
-                          <strong style={{ display: 'block', color: '#fff', fontSize: '1rem' }}>Instant Disease & Pest Scans</strong>
-                          <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Upload leaf images in real-time to get detailed diagnosis and treatment protocols.</span>
+                          <strong style={{ display: 'block', color: '#fff', fontSize: '1rem' }}>{t('landing.growerBullet1Title')}</strong>
+                          <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>{t('landing.growerBullet1Desc')}</span>
                         </div>
                       </li>
                       <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
                         <CheckCircle2 style={{ color: '#4ade80', flexShrink: 0, marginTop: '2px' }} size={20} />
                         <div>
-                          <strong style={{ display: 'block', color: '#fff', fontSize: '1rem' }}>NPK Soil Advisory & Fertilizer Calculators</strong>
-                          <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Enter soil properties to get recommendations tailored to your crop selection.</span>
+                          <strong style={{ display: 'block', color: '#fff', fontSize: '1rem' }}>{t('landing.growerBullet2Title')}</strong>
+                          <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>{t('landing.growerBullet2Desc')}</span>
                         </div>
                       </li>
                       <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
                         <CheckCircle2 style={{ color: '#4ade80', flexShrink: 0, marginTop: '2px' }} size={20} />
                         <div>
-                          <strong style={{ display: 'block', color: '#fff', fontSize: '1rem' }}>Regional Mandi Price Forecasting</strong>
-                          <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Know current crop values across regional mandis to log and maximize sales profits.</span>
+                          <strong style={{ display: 'block', color: '#fff', fontSize: '1rem' }}>{t('landing.growerBullet3Title')}</strong>
+                          <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>{t('landing.growerBullet3Desc')}</span>
                         </div>
                       </li>
                     </ul>
@@ -704,30 +708,30 @@ export default function Landing() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '4rem', alignItems: 'center' }}>
                   {/* Left Bullet points */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                    <h3 style={{ fontSize: '1.8rem', fontWeight: 800, margin: 0, color: '#4ade80' }}>Enterprise R&D & Variety Testing</h3>
+                    <h3 style={{ fontSize: '1.8rem', fontWeight: 800, margin: 0, color: '#4ade80' }}>{t('landing.enterpriseHeroTitle')}</h3>
                     <p style={{ color: '#94a3b8', fontSize: '1.05rem', lineHeight: 1.5, margin: 0 }}>
-                      Providing seed companies, corporate farms, and agronomy researchers with complete workflow transparency, data backups, and multi-spectral indices.
+                      {t('landing.enterpriseHeroDesc')}
                     </p>
                     <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                       <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
                         <CheckCircle2 style={{ color: '#4ade80', flexShrink: 0, marginTop: '2px' }} size={20} />
                         <div>
-                          <strong style={{ display: 'block', color: '#fff', fontSize: '1rem' }}>Multi-Farm Layout & Asset Mapping</strong>
-                          <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Manage large geographic grids, boundaries, and regional acreage stats from a single hub.</span>
+                          <strong style={{ display: 'block', color: '#fff', fontSize: '1rem' }}>{t('landing.enterpriseBullet1Title')}</strong>
+                          <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>{t('landing.enterpriseBullet1Desc')}</span>
                         </div>
                       </li>
                       <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
                         <CheckCircle2 style={{ color: '#4ade80', flexShrink: 0, marginTop: '2px' }} size={20} />
                         <div>
-                          <strong style={{ display: 'block', color: '#fff', fontSize: '1rem' }}>Predictive Yield Modeling</strong>
-                          <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Utilize historical telemetry, fertilizer schedules, and meteorological data to project seasonal yields.</span>
+                          <strong style={{ display: 'block', color: '#fff', fontSize: '1rem' }}>{t('landing.enterpriseBullet2Title')}</strong>
+                          <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>{t('landing.enterpriseBullet2Desc')}</span>
                         </div>
                       </li>
                       <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
                         <CheckCircle2 style={{ color: '#4ade80', flexShrink: 0, marginTop: '2px' }} size={20} />
                         <div>
-                          <strong style={{ display: 'block', color: '#fff', fontSize: '1rem' }}>Real-time Risk Alerts Integration</strong>
-                          <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Automatically trigger warnings for pest outbreaks, frost, heat waves, and moisture deficits.</span>
+                          <strong style={{ display: 'block', color: '#fff', fontSize: '1rem' }}>{t('landing.enterpriseBullet3Title')}</strong>
+                          <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>{t('landing.enterpriseBullet3Desc')}</span>
                         </div>
                       </li>
                     </ul>
@@ -761,10 +765,10 @@ export default function Landing() {
       >
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-            <span style={{ color: '#f97316', fontWeight: 700, fontSize: '0.95rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Platform Modules</span>
-            <h2 style={{ fontSize: '2.6rem', fontWeight: 800, margin: '0.5rem 0 1rem' }}>KrishiMitra Core Modules</h2>
+            <span style={{ color: '#f97316', fontWeight: 700, fontSize: '0.95rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('landing.platformModules')}</span>
+            <h2 style={{ fontSize: '2.6rem', fontWeight: 800, margin: '0.5rem 0 1rem' }}>{t('landing.featuresTitle')}</h2>
             <p style={{ color: '#94a3b8', maxWidth: '600px', margin: '0 auto', fontSize: '1.05rem', lineHeight: 1.5 }}>
-              A fully integrated, modular digital solution tailored for diagnostic accuracy and long-term farm tracking.
+              {t('landing.featuresSubtitle')}
             </p>
           </div>
 
@@ -776,9 +780,9 @@ export default function Landing() {
               <div style={{ width: '50px', height: '50px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444' }}>
                 <Sprout size={24} />
               </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>AI Diagnostics Portal</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>{t('landing.diseaseCardTitle')}</h3>
               <p style={{ color: '#94a3b8', fontSize: '0.95rem', lineHeight: 1.5, margin: 0 }}>
-                Instant identification of crop leaf diseases and insect pest classes via neural network image analysis. Includes control advisories.
+                {t('landing.diseaseCardDesc')}
               </p>
             </div>
 
@@ -787,9 +791,9 @@ export default function Landing() {
               <div style={{ width: '50px', height: '50px', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.25)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#22c55e' }}>
                 <Layers size={24} />
               </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>Soil & Crop Recommendation</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>{t('landing.soilCardTitle')}</h3>
               <p style={{ color: '#94a3b8', fontSize: '0.95rem', lineHeight: 1.5, margin: 0 }}>
-                Provides intelligent NPK ratios, soil parameter mapping, and suggestions for the most profitable crops to plant based on climate parameters.
+                {t('landing.soilCardDesc')}
               </p>
             </div>
 
@@ -798,9 +802,9 @@ export default function Landing() {
               <div style={{ width: '50px', height: '50px', background: 'rgba(14, 165, 233, 0.1)', border: '1px solid rgba(14, 165, 233, 0.25)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0ea5e9' }}>
                 <CloudSun size={24} />
               </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>Weather & Alerts Hub</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>{t('landing.weatherCardTitle')}</h3>
               <p style={{ color: '#94a3b8', fontSize: '0.95rem', lineHeight: 1.5, margin: 0 }}>
-                Hyperlocal weather metrics coupled with real-time risk alerts for rainfall thresholds, wind speeds, temperature spikes, and moisture drops.
+                {t('landing.weatherCardDesc')}
               </p>
             </div>
 
@@ -809,9 +813,9 @@ export default function Landing() {
               <div style={{ width: '50px', height: '50px', background: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.25)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8b5cf6' }}>
                 <TrendingUp size={24} />
               </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>Predictive Yield Modeler</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>{t('landing.yieldCardTitle')}</h3>
               <p style={{ color: '#94a3b8', fontSize: '0.95rem', lineHeight: 1.5, margin: 0 }}>
-                Input farm area, crop class, and irrigation schedule to project estimated seasonal harvest weights using regression algorithms.
+                {t('landing.yieldCardDesc')}
               </p>
             </div>
 
@@ -820,9 +824,9 @@ export default function Landing() {
               <div style={{ width: '50px', height: '50px', background: 'rgba(249, 115, 22, 0.1)', border: '1px solid rgba(249, 115, 22, 0.25)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f97316' }}>
                 <MapPin size={24} />
               </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>Market Prices & Expense Logs</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>{t('landing.marketCardTitle')}</h3>
               <p style={{ color: '#94a3b8', fontSize: '0.95rem', lineHeight: 1.5, margin: 0 }}>
-                Real-time regional mandi rate tracking, seasonal expense ledger logs, and profit-and-loss insights to keep track of crop finances.
+                {t('landing.marketCardDesc')}
               </p>
             </div>
 
@@ -837,11 +841,11 @@ export default function Landing() {
                 <Bot size={24} />
               </div>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span>AI Agronomist Copilot</span>
-                <span style={{ fontSize: '0.8rem', color: '#818cf8', fontWeight: 600 }}>Chat Now ➔</span>
+                <span>{t('landing.chatCardTitle')}</span>
+                <span style={{ fontSize: '0.8rem', color: '#818cf8', fontWeight: 600 }}>{t('landing.chatNow')}</span>
               </h3>
               <p style={{ color: '#94a3b8', fontSize: '0.95rem', lineHeight: 1.5, margin: 0 }}>
-                Instant conversation assistant trained in farming guidelines, sowing schedules, fertilizer applications, and state support schemes.
+                {t('landing.chatCardDesc')}
               </p>
             </div>
 
@@ -860,10 +864,10 @@ export default function Landing() {
       >
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '4.5rem' }}>
-            <span style={{ color: '#4ade80', fontWeight: 700, fontSize: '0.95rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Key Advantages</span>
-            <h2 style={{ fontSize: '2.6rem', fontWeight: 800, margin: '0.5rem 0 1rem' }}>Unique Benefits of KrishiMitra</h2>
+            <span style={{ color: '#4ade80', fontWeight: 700, fontSize: '0.95rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('landing.benefitsBadge')}</span>
+            <h2 style={{ fontSize: '2.6rem', fontWeight: 800, margin: '0.5rem 0 1rem' }}>{t('landing.benefitsTitle')}</h2>
             <p style={{ color: '#94a3b8', maxWidth: '600px', margin: '0 auto', fontSize: '1.05rem', lineHeight: 1.5 }}>
-              Engineered with modern workflows to optimize responsiveness, multi-lingual support, and high enterprise security.
+              {t('landing.benefitsSubtitle')}
             </p>
           </div>
 
@@ -874,9 +878,9 @@ export default function Landing() {
               <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(249, 115, 22, 0.08)', border: '1px solid rgba(249, 115, 22, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f97316', marginBottom: '0.5rem' }}>
                 <Globe size={26} />
               </div>
-              <h4 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>Multi-Language UI</h4>
+              <h4 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>{t('landing.benefit4Title')}</h4>
               <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: 1.4, margin: 0 }}>
-                Instant toggle between regional dialects ensuring equal accessibility.
+                {t('landing.benefit4Desc')}
               </p>
             </div>
 
@@ -885,9 +889,9 @@ export default function Landing() {
               <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(249, 115, 22, 0.08)', border: '1px solid rgba(249, 115, 22, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f97316', marginBottom: '0.5rem' }}>
                 <Activity size={26} />
               </div>
-              <h4 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>Integrated Analytics</h4>
+              <h4 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>{t('landing.benefit2Title')}</h4>
               <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: 1.4, margin: 0 }}>
-                Built-in charts, historical reports, and seasonal data logs.
+                {t('landing.benefit2Desc')}
               </p>
             </div>
 
@@ -896,9 +900,9 @@ export default function Landing() {
               <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(249, 115, 22, 0.08)', border: '1px solid rgba(249, 115, 22, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f97316', marginBottom: '0.5rem' }}>
                 <Zap size={26} />
               </div>
-              <h4 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>Rapid Response</h4>
+              <h4 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>{t('landing.benefitRapid')}</h4>
               <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: 1.4, margin: 0 }}>
-                High-speed model execution with immediate scan feedback loops.
+                {t('landing.benefitRapidDesc')}
               </p>
             </div>
 
@@ -907,9 +911,9 @@ export default function Landing() {
               <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(249, 115, 22, 0.08)', border: '1px solid rgba(249, 115, 22, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f97316', marginBottom: '0.5rem' }}>
                 <Shield size={26} />
               </div>
-              <h4 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>Ironclad Security</h4>
+              <h4 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>{t('landing.benefitSecurity')}</h4>
               <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: 1.4, margin: 0 }}>
-                GDPR-ready data pipelines ensuring complete ownership of farm telemetry.
+                {t('landing.benefitSecurityDesc')}
               </p>
             </div>
 
@@ -918,9 +922,9 @@ export default function Landing() {
               <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(249, 115, 22, 0.08)', border: '1px solid rgba(249, 115, 22, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f97316', marginBottom: '0.5rem' }}>
                 <Award size={26} />
               </div>
-              <h4 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>Training & Support</h4>
+              <h4 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>{t('landing.benefitSupport')}</h4>
               <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: 1.4, margin: 0 }}>
-                Step-by-step documentation, tutorial logs, and prompt ticket support.
+                {t('landing.benefitSupportDesc')}
               </p>
             </div>
 
@@ -943,27 +947,31 @@ export default function Landing() {
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
             <HelpCircle size={32} style={{ color: '#f97316', marginBottom: '0.5rem' }} />
-            <h2 style={{ fontSize: '2.4rem', fontWeight: 800, margin: 0 }}>Frequently Asked Questions</h2>
-            <p style={{ color: '#94a3b8', marginTop: '0.5rem' }}>Got questions? We have answers.</p>
+            <h2 style={{ fontSize: '2.4rem', fontWeight: 800, margin: 0 }}>{t('landing.faqTitle')}</h2>
+            <p style={{ color: '#94a3b8', marginTop: '0.5rem' }}>{t('landing.faqSubtitle')}</p>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {[
               {
-                q: "What is KrishiMitra and how does it compare to other platforms?",
-                a: "KrishiMitra is an integrated AI-driven smart agriculture management solution. Unlike disjointed tools, it compiles crop diagnosis, soil parameters, expense Ledgers, and mandi rates in a unified, premium dashboard, giving farmers and enterprises a holistic view of their agricultural workflows."
+                q: t('landing.faqQ1'),
+                a: t('landing.faqA1')
               },
               {
-                q: "How accurate is the leaf disease optical scanner?",
-                a: "Our diagnostic model uses optimized deep learning CNN architectures trained on extensive agricultural crop datasets, delivering diagnostic confidence scores of up to 98% for targeted pests and leaf blight diseases."
+                q: t('landing.faqQ2'),
+                a: t('landing.faqA2')
               },
               {
-                q: "Is there offline support for remote fields?",
-                a: "Yes. Our systems are built using responsive design models allowing farmers to load offline cache resources to record diagnostic parameters and log expenses, syncing back once connected."
+                q: t('landing.faqQ3'),
+                a: t('landing.faqA3')
               },
               {
-                q: "How can I set up multiple farm territories?",
-                a: "Once signed in, you can create and configure boundaries for individual farm zones under the main system, mapping soil traits and size values for separate zones."
+                q: t('landing.faqQ4'),
+                a: t('landing.faqA4')
+              },
+              {
+                q: t('landing.faqQ5'),
+                a: t('landing.faqA5')
               }
             ].map((item, idx) => (
               <div
@@ -1009,10 +1017,10 @@ export default function Landing() {
             
             {/* Left Info Column */}
             <div>
-              <span style={{ color: '#f97316', fontWeight: 700, fontSize: '0.95rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Get In Touch</span>
-              <h2 style={{ fontSize: '2.4rem', fontWeight: 800, margin: '0.5rem 0 1rem' }}>Book a Demo of KrishiMitra</h2>
+              <span style={{ color: '#f97316', fontWeight: 700, fontSize: '0.95rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('landing.contactBadge')}</span>
+              <h2 style={{ fontSize: '2.4rem', fontWeight: 800, margin: '0.5rem 0 1rem' }}>{t('landing.contactTitle')}</h2>
               <p style={{ color: '#94a3b8', lineHeight: 1.5, marginBottom: '2rem' }}>
-                See how our intelligence portal can transform your agricultural operations. Schedule a live walkthrough with one of our agronomists.
+                {t('landing.contactSubtitle')}
               </p>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -1022,7 +1030,7 @@ export default function Landing() {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <Building style={{ color: '#f97316' }} size={20} />
-                  <span style={{ color: '#94a3b8', fontSize: '0.95rem' }}>KrishiMitra AgriTech Labs, Pune, India</span>
+                  <span style={{ color: '#94a3b8', fontSize: '0.95rem' }}>{t('landing.contactLocation')}</span>
                 </div>
               </div>
             </div>
@@ -1043,7 +1051,7 @@ export default function Landing() {
                 {/* Name */}
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '0.4rem', textTransform: 'uppercase' }}>
-                    Full Name *
+                    {t('landing.contactNameLabel')} *
                   </label>
                   <div
                     className="input-glow"
@@ -1062,7 +1070,7 @@ export default function Landing() {
                       type="text"
                       name="name"
                       required
-                      placeholder="Dani Zamir"
+                      placeholder={t('landing.contactNameLabel')}
                       value={contactForm.name}
                       onChange={handleFormChange}
                       style={{ background: 'none', border: 'none', outline: 'none', color: '#fff', width: '100%', fontSize: '0.95rem' }}
@@ -1073,7 +1081,7 @@ export default function Landing() {
                 {/* Email */}
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '0.4rem', textTransform: 'uppercase' }}>
-                    Email Address *
+                    {t('landing.contactEmailLabel')} *
                   </label>
                   <div
                     className="input-glow"
@@ -1092,7 +1100,7 @@ export default function Landing() {
                       type="email"
                       name="email"
                       required
-                      placeholder="dani@phenome-networks.com"
+                      placeholder="farmer@krishimitra.org"
                       value={contactForm.email}
                       onChange={handleFormChange}
                       style={{ background: 'none', border: 'none', outline: 'none', color: '#fff', width: '100%', fontSize: '0.95rem' }}
@@ -1103,7 +1111,7 @@ export default function Landing() {
                 {/* Organization */}
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '0.4rem', textTransform: 'uppercase' }}>
-                    Organization
+                    {t('landing.contactOrgLabel')}
                   </label>
                   <div
                     className="input-glow"
@@ -1121,7 +1129,7 @@ export default function Landing() {
                     <input
                       type="text"
                       name="organization"
-                      placeholder="Phenome Seed Ltd"
+                      placeholder={t('landing.contactOrgLabel')}
                       value={contactForm.organization}
                       onChange={handleFormChange}
                       style={{ background: 'none', border: 'none', outline: 'none', color: '#fff', width: '100%', fontSize: '0.95rem' }}
@@ -1132,7 +1140,7 @@ export default function Landing() {
                 {/* Interest Dropdown */}
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '0.4rem', textTransform: 'uppercase' }}>
-                    Primary Interest
+                    {t('landing.contactInterestLabel')}
                   </label>
                   <div
                     className="input-glow"
@@ -1152,9 +1160,9 @@ export default function Landing() {
                       onChange={handleFormChange}
                       style={{ background: 'none', border: 'none', outline: 'none', color: '#fff', width: '100%', fontSize: '0.95rem', cursor: 'pointer' }}
                     >
-                      <option style={{ background: '#0a1a0a', color: '#fff' }} value="Enterprise Platform">Enterprise Platform Demo</option>
-                      <option style={{ background: '#0a1a0a', color: '#fff' }} value="Individual Farm Portal">Individual Farm Portal</option>
-                      <option style={{ background: '#0a1a0a', color: '#fff' }} value="Academic Research Trial">Academic Research Trial</option>
+                      <option style={{ background: '#0a1a0a', color: '#fff' }} value="Enterprise Platform">{t('landing.contactInterestEnterprise')}</option>
+                      <option style={{ background: '#0a1a0a', color: '#fff' }} value="Individual Farm Portal">{t('landing.contactInterestIndividual')}</option>
+                      <option style={{ background: '#0a1a0a', color: '#fff' }} value="Academic Research Trial">{t('landing.contactInterestResearch')}</option>
                     </select>
                   </div>
                 </div>
@@ -1162,7 +1170,7 @@ export default function Landing() {
                 {/* Message */}
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '0.4rem', textTransform: 'uppercase' }}>
-                    Message *
+                    {t('landing.contactMsgLabel')} *
                   </label>
                   <div
                     className="input-glow"
@@ -1181,7 +1189,7 @@ export default function Landing() {
                       name="message"
                       required
                       rows={3}
-                      placeholder="Hi, I would like to schedule a walk-through..."
+                      placeholder={t('landing.contactMsgLabel')}
                       value={contactForm.message}
                       onChange={handleFormChange}
                       style={{ background: 'none', border: 'none', outline: 'none', color: '#fff', width: '100%', fontSize: '0.95rem', resize: 'none', fontFamily: 'inherit' }}
@@ -1211,7 +1219,7 @@ export default function Landing() {
                     marginTop: '0.5rem'
                   }}
                 >
-                  {submitting ? 'Submitting Request...' : 'Book Demo Walkthrough'}
+                  {submitting ? t('landing.contactSubmitting') : t('landing.contactSubmitBtn')}
                 </button>
               </form>
             </div>
@@ -1238,32 +1246,32 @@ export default function Landing() {
               🌾 KrishiMitra
             </div>
             <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: 1.5, margin: 0, maxWidth: '280px' }}>
-              Standardizing agricultural diagnostics and tracking metrics to foster food security and resilient crop yields.
+              {t('landing.footerDesc')}
             </p>
           </div>
 
           {/* Solutions Column */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <h5 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.5rem' }}>Solutions</h5>
-            <button onClick={() => scrollToSection('solutions')} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.9rem', textAlign: 'left', cursor: 'pointer' }} className="hover-accent">For Growers</button>
-            <button onClick={() => scrollToSection('solutions')} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.9rem', textAlign: 'left', cursor: 'pointer' }} className="hover-accent">For Researchers</button>
-            <button onClick={() => scrollToSection('solutions')} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.9rem', textAlign: 'left', cursor: 'pointer' }} className="hover-accent">AI Diagnosis Hub</button>
+            <h5 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.5rem' }}>{t('landing.footerSolutions')}</h5>
+            <button onClick={() => scrollToSection('solutions')} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.9rem', textAlign: 'left', cursor: 'pointer' }} className="hover-accent">{t('landing.tabGrowers')}</button>
+            <button onClick={() => scrollToSection('solutions')} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.9rem', textAlign: 'left', cursor: 'pointer' }} className="hover-accent">{t('landing.forResearchers')}</button>
+            <button onClick={() => scrollToSection('solutions')} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.9rem', textAlign: 'left', cursor: 'pointer' }} className="hover-accent">{t('landing.diseaseCardTitle')}</button>
           </div>
 
           {/* Platform Column */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <h5 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.5rem' }}>Platform</h5>
-            <button onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.9rem', textAlign: 'left', cursor: 'pointer' }} className="hover-accent">Launch App</button>
-            <button onClick={() => scrollToSection('benefits')} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.9rem', textAlign: 'left', cursor: 'pointer' }} className="hover-accent">Core Benefits</button>
-            <button onClick={() => scrollToSection('faq')} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.9rem', textAlign: 'left', cursor: 'pointer' }} className="hover-accent">FAQ Help</button>
+            <h5 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.5rem' }}>{t('landing.footerPlatform')}</h5>
+            <button onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.9rem', textAlign: 'left', cursor: 'pointer' }} className="hover-accent">{t('landing.launchPlatform')}</button>
+            <button onClick={() => scrollToSection('benefits')} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.9rem', textAlign: 'left', cursor: 'pointer' }} className="hover-accent">{t('landing.navBenefits')}</button>
+            <button onClick={() => scrollToSection('faq')} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.9rem', textAlign: 'left', cursor: 'pointer' }} className="hover-accent">{t('landing.navFaq')}</button>
           </div>
 
           {/* Legal Column */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <h5 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.5rem' }}>Regulatory</h5>
-            <span style={{ color: '#64748b', fontSize: '0.9rem' }}>GDPR Compliant</span>
-            <span style={{ color: '#64748b', fontSize: '0.9rem' }}>ISO 27001 Certified</span>
-            <span style={{ color: '#64748b', fontSize: '0.9rem' }}>Privacy & Terms</span>
+            <h5 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.5rem' }}>{t('landing.footerRegulatory')}</h5>
+            <span style={{ color: '#64748b', fontSize: '0.9rem' }}>{t('landing.gdprCompliant')}</span>
+            <span style={{ color: '#64748b', fontSize: '0.9rem' }}>{t('landing.isoCertified')}</span>
+            <span style={{ color: '#64748b', fontSize: '0.9rem' }}>{t('landing.privacyTerms')}</span>
           </div>
 
         </div>
@@ -1271,10 +1279,10 @@ export default function Landing() {
         {/* Copy Line */}
         <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.05)', paddingTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <span style={{ color: '#64748b', fontSize: '0.85rem' }}>
-            &copy; {new Date().getFullYear()} KrishiMitra Systems. All rights reserved.
+            &copy; {new Date().getFullYear()} {t('landing.footerText')}
           </span>
           <span style={{ color: '#64748b', fontSize: '0.85rem' }}>
-            Inspired by Phenome Networks.
+            KrishiMitra (AgriMind)
           </span>
         </div>
       </footer>

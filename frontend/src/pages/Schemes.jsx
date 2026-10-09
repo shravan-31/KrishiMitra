@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useFarmStore } from '../store/farmStore'
 import FarmLayout from '../components/FarmLayout'
 import toast from 'react-hot-toast'
+import { useTranslation } from '../i18n'
 
 import { BACKEND_URL } from '../config'
 
@@ -11,6 +12,7 @@ const CATEGORIES = ['All', 'Subsidy', 'Soil', 'Insurance', 'Credit', 'Income Sup
 
 export default function Schemes() {
   const { activeFarm } = useFarmStore()
+  const { t } = useTranslation()
   const [schemes, setSchemes] = useState([])
   const [loading, setLoading] = useState(false)
   
@@ -52,11 +54,11 @@ export default function Schemes() {
       const res = await apiFetch(`/api/v1/schemes${stateQuery}${categoryQuery}`)
       setSchemes(res)
     } catch (err) {
-      toast.error('Failed to load government schemes')
+      toast.error(t('schemes.loadError'))
     } finally {
       setLoading(false)
     }
-  }, [selectedState, selectedCategory, apiFetch])
+  }, [selectedState, selectedCategory, apiFetch, t])
 
   useEffect(() => {
     loadSchemesList()
@@ -69,7 +71,7 @@ export default function Schemes() {
       const res = await apiFetch(`/api/v1/schemes/apply/${scheme.id}`)
       setApplyDetails(res)
     } catch (err) {
-      toast.error('Failed to retrieve application details')
+      toast.error(t('schemes.applyDetailsError'))
       setApplyModalScheme(null)
     } finally {
       setLoadingApply(false)
@@ -90,9 +92,9 @@ export default function Schemes() {
         
         {/* Header */}
         <div>
-          <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 800 }}>Government Schemes & Subsidies</h1>
+          <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 800 }}>{t('schemes.title')}</h1>
           <p style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '4px' }}>
-            Explore benefits, central programs, state-wise crop insurances, solar pump subsidies, and custom eligibility profiles
+            {t('schemes.subtitle')}
           </p>
         </div>
 
@@ -100,7 +102,7 @@ export default function Schemes() {
         <div className="glass-card" style={{ padding: '1rem 1.5rem', display: 'flex', flexWrap: 'wrap', gap: '1.5rem', alignItems: 'center' }}>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Select State:</span>
+            <span style={{ fontSize: '0.85rem', color: '#64748b' }}>{t('schemes.selectState')}</span>
             <select
               value={selectedState}
               onChange={(e) => setSelectedState(e.target.value)}
@@ -122,7 +124,7 @@ export default function Schemes() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Category:</span>
+            <span style={{ fontSize: '0.85rem', color: '#64748b' }}>{t('schemes.categoryLabel')}</span>
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
@@ -138,15 +140,16 @@ export default function Schemes() {
               }}
             >
               {CATEGORIES.map((cat) => (
-                <option key={cat} value={cat} style={{ background: '#0a1a0a' }}>{cat}</option>
+                <option key={cat} value={cat} style={{ background: '#0a1a0a' }}>
+                  {t(`schemes.cat${cat.replace(/\s+/g, '')}`) || cat}
+                </option>
               ))}
             </select>
           </div>
 
           {activeFarm && (
             <div style={{ marginLeft: 'auto', fontSize: '0.8rem', color: '#10b981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span>🎯 Custom recommendations active for </span>
-              <strong>{activeFarm.farm_name} ({activeFarm.state})</strong>
+              <span>{t('schemes.customRecActive', { farm: activeFarm.farm_name, state: activeFarm.state })}</span>
             </div>
           )}
         </div>
@@ -191,7 +194,7 @@ export default function Schemes() {
                     fontWeight: 800,
                     textTransform: 'uppercase'
                   }}>
-                    ⭐ Eligible Recommendation
+                    {t('schemes.eligibleRecBadge')}
                   </div>
                 )}
 
@@ -206,7 +209,7 @@ export default function Schemes() {
                 </div>
 
                 <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', borderRadius: '10px', padding: '0.75rem 1rem' }}>
-                  <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700 }}>BENEFIT</div>
+                  <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700 }}>{t('schemes.benefitLabel')}</div>
                   <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#10b981', marginTop: '2px' }}>{s.benefit}</div>
                 </div>
 
@@ -222,13 +225,13 @@ export default function Schemes() {
                     fontSize: '0.85rem'
                   }}
                 >
-                  View Details & Apply
+                  {t('schemes.viewDetails')}
                 </button>
               </motion.div>
             ))}
             {schemes.length === 0 && (
               <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '4rem 1rem', color: '#64748b' }}>
-                No schemes available for the selected filters.
+                {t('schemes.noSchemes')}
               </div>
             )}
           </div>
@@ -292,7 +295,7 @@ export default function Schemes() {
 
                 <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>{applyModalScheme.name}</h2>
                 <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700, textTransform: 'uppercase', marginTop: '4px', display: 'inline-block' }}>
-                  {applyModalScheme.category} Portal Application
+                  {applyModalScheme.category} {t('schemes.portalApp')}
                 </span>
 
                 {loadingApply ? (
@@ -304,14 +307,14 @@ export default function Schemes() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginTop: '1.5rem' }}>
                     
                     <div>
-                      <h4 style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8' }}>Benefits Description</h4>
+                      <h4 style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8' }}>{t('schemes.benefits')}</h4>
                       <p style={{ margin: '4px 0 0', fontSize: '0.9rem', color: '#e2e8f0', lineHeight: 1.4 }}>
                         {applyModalScheme.description}
                       </p>
                     </div>
 
                     <div>
-                      <h4 style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8' }}>Documents Required</h4>
+                      <h4 style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8' }}>{t('schemes.requiredDocs')}</h4>
                       <ul style={{ margin: '6px 0 0', paddingLeft: '1.25rem', fontSize: '0.85rem', color: '#cbd5e1', lineHeight: 1.6 }}>
                         {applyDetails.documents_needed.map((doc, idx) => (
                           <li key={idx}>{doc}</li>
@@ -321,12 +324,12 @@ export default function Schemes() {
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1rem' }}>
                       <div>
-                        <span style={{ fontSize: '0.75rem', color: '#64748b' }}>DEADLINE</span>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{t('schemes.deadlineLabel')}</span>
                         <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#f87171' }}>{applyDetails.deadline}</div>
                       </div>
                       <div>
-                        <span style={{ fontSize: '0.75rem', color: '#64748b' }}>STATUS</span>
-                        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#06b6d4' }}>Registration Open</div>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{t('schemes.statusLabel')}</span>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#06b6d4' }}>{t('schemes.statusOpen')}</div>
                       </div>
                     </div>
 
@@ -346,7 +349,7 @@ export default function Schemes() {
                         marginTop: '0.5rem'
                       }}
                     >
-                      Visit Official Portal ↗
+                      {t('schemes.applyOnline')}
                     </a>
                   </div>
                 )}

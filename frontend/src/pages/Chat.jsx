@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useFarmStore } from '../store/farmStore'
 import FarmLayout from '../components/FarmLayout'
+import { useTranslation } from '../i18n'
 
 import { BACKEND_URL } from '../config'
 
@@ -19,27 +20,28 @@ const LANGUAGES = [
   { code: 'ml', name: 'മലയാളം (Malayalam)' }
 ]
 
-const QUICK_CHIPS = [
-  { text: 'What is wrong with my crop?', label: '🔍 Diagnostics' },
-  { text: 'Recommend fertilizer dosage', label: '🌱 Fertilizer' },
-  { text: 'When is the best time to harvest?', label: '🌾 Harvesting' },
-  { text: 'Check my government schemes eligibility', label: '🏛️ Schemes' }
-]
-
 export default function Chat() {
   const { activeFarm } = useFarmStore()
+  const { t, i18n } = useTranslation()
+  const [selectedLang, setSelectedLang] = useState(i18n.language || 'en')
   const [messages, setMessages] = useState([
     {
       sender: 'ai',
-      text: 'Namaste! I am KrishiMitra, your intelligent agricultural assistant. How can I help you manage your farm today?',
+      text: t('chat.initialGreeting'),
       timestamp: new Date()
     }
   ])
   const [inputText, setInputText] = useState('')
-  const [selectedLang, setSelectedLang] = useState('en')
   const [isLoading, setIsLoading] = useState(false)
   const [typingText, setTypingText] = useState('')
   const messagesEndRef = useRef(null)
+
+  // Keep selected response language in sync when global app language changes
+  useEffect(() => {
+    if (i18n.language) {
+      setSelectedLang(i18n.language)
+    }
+  }, [i18n.language])
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -61,6 +63,22 @@ export default function Chat() {
 
   const getClientFallback = (text, lang) => {
     const q = text.toLowerCase()
+    if (lang === 'mr') {
+      if (q.includes('खत') || q.includes('fertilizer') || q.includes('npk') || q.includes('युरिया')) {
+        return "नमस्कार शेतकरी बंधू! पिकाच्या संतुलित पोषणासाठी माती परीक्षणानुसार (Soil Health Card) 4:2:1 प्रमाणात NPK खतांचा वापर करा. रासायनिक खतांसोबत एकरी 2-3 ट्रॉली चांगले कुजलेले शेणखत अवश्य द्या."
+      }
+      if (q.includes('रोग') || q.includes('disease') || q.includes('पान') || q.includes('पिवळे') || q.includes('बुरशी')) {
+        return "नमस्कार! रोगग्रस्त पाने तत्काळ शेतातून काढून नष्ट करा. प्रतिबंधात्मक उपायासाठी 5 मिली निंबोळी अर्क (Neem Oil 1500 ppm) किंवा ट्रायकोडर्मा व्हिरिडी प्रति लिटर पाण्यात मिसळून फवारणी करावी. संशयास्पद रोगांसाठी स्थानिक कृषी विज्ञान केंद्राशी (KVK) संपर्क साधा."
+      }
+      if (q.includes('कीड') || q.includes('pest') || q.includes('अळी') || q.includes('मावा') || q.includes('तुडतुडे')) {
+        return "नमस्कार! रसशोषक किडींच्या नियंत्रणासाठी एकरी 10-15 पिवळे व निळे चिकट सापळे (Sticky Traps) लावा आणि जैविक नियंत्रणासाठी 5% निंबोळी अर्काची फवारणी करा."
+      }
+      if (q.includes('योजना') || q.includes('scheme') || q.includes('अनुदान') || q.includes('पीएम')) {
+        return "नमस्कार! शेतकऱ्यांसाठी प्रमुख शासकीय योजना:\n• पीएम-किसान (PM-KISAN): वर्षाला ₹6,000 थेट बँक खात्यात.\n• पीएम पीक विमा योजना (PMFBY): प्रतिकूल हवामानात पीक नुकसान भरपाई.\n• मागेल त्याला शेततळे व ठिबक सिंचनासाठी 80% पर्यंत शासकीय अनुदान."
+      }
+      return "नमस्कार! मी कृषीमित्र (KrishiMitra) - आपला AI शेती सल्लागार आहे.\nमी खालील विषयांवर संपूर्ण मार्गदर्शन करतो:\n• पिकांवरील रोग व कीड नियंत्रण\n• माती परीक्षण व रासायनिक खतांचे प्रमाण (NPK)\n• पाणी व्यवस्थापन व दुष्काळ संरक्षण\n• शासकीय कृषी योजना (PM-KISAN, PMFBY)\n\nआपल्या पिकाबद्दल कोणताही प्रश्न निःसंकोच विचारा!"
+    }
+
     if (lang === 'hi') {
       if (q.includes('खाद') || q.includes('fertilizer') || q.includes('npk')) {
         return "नमस्ते किसान भाई! फसल के संतुलित पोषण के लिए मृदा स्वास्थ्य कार्ड (Soil Health Card) के अनुसार 4:2:1 अनुपात में NPK दें। रासायनिक खाद के साथ 2-3 ट्रॉली देशी गोबर खाद अवश्य मिलाएं।"
@@ -70,6 +88,9 @@ export default function Chat() {
       }
       if (q.includes('कीट') || q.includes('pest') || q.includes('इल्ली')) {
         return "नमस्ते! रसचूसक कीटों के लिए पीले चिपचिपे कार्ड (Yellow Sticky Traps - 10-15 प्रति एकड़) लगाएं और जैविक नियंत्रण हेतु नीम अर्क (5%) का छिड़काव करें।"
+      }
+      if (q.includes('योजना') || q.includes('scheme') || q.includes('सब्सिडी') || q.includes('सरकारी')) {
+        return "नमस्ते! भारतीय किसानों के लिए मुख्य सरकारी योजनाएं:\n• PM-KISAN: ₹6,000 प्रति वर्ष 3 किस्तों में प्रत्यक्ष आय सहायता।\n• PMFBY: मौसम जोखिम के विरुद्ध कम प्रीमियम पर फसल बीमा।\n• किसान क्रेडिट कार्ड (KCC): 4% रियायती ब्याज दर पर कृषि ऋण।"
       }
       return "नमस्ते किसान भाई! मैं कृषि मित्र (KrishiMitra) हूँ। मैं फसल सुरक्षा, खाद प्रबंधन, मौसम सलाह, कीट-रोग निदान और सरकारी योजनाओं (PM-KISAN, PMFBY) में सहायता कर सकता हूँ।"
     }
@@ -265,23 +286,23 @@ export default function Chat() {
         {/* Chat Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 800 }}>AI Chat Assistant</h1>
+            <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 800 }}>{t('chat.title')}</h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '4px' }}>
-              <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Consulting on agricultural analytics</span>
+              <span style={{ fontSize: '0.85rem', color: '#64748b' }}>{t('chat.consultingAnalytics')}</span>
               {activeFarm ? (
                 <span style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '0.2rem 0.6rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700 }}>
-                  🟢 Farm: {activeFarm.farm_name}
+                  🟢 {activeFarm.farm_name}
                 </span>
               ) : (
                 <span style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.2)', padding: '0.2rem 0.6rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700 }}>
-                  🌾 General Agricultural Advisor
+                  🌾 {t('chat.generalAdvisor')}
                 </span>
               )}
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Response Language:</span>
+            <span style={{ fontSize: '0.85rem', color: '#64748b' }}>{t('chat.responseLanguage')}</span>
             <select
               style={{
                 padding: '0.5rem 1rem',
@@ -388,7 +409,7 @@ export default function Chat() {
                     <div className="skeleton-dot" style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', animation: 'pulse 1.2s infinite ease-in-out' }}></div>
                     <div className="skeleton-dot" style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', animation: 'pulse 1.2s infinite ease-in-out', animationDelay: '0.2s' }}></div>
                     <div className="skeleton-dot" style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', animation: 'pulse 1.2s infinite ease-in-out', animationDelay: '0.4s' }}></div>
-                    <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>KrishiMitra is thinking...</span>
+                    <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>{t('chat.thinkingStatus')}</span>
                   </div>
                 </div>
               )}
@@ -398,7 +419,12 @@ export default function Chat() {
 
           {/* Quick Action Chips */}
           <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '0.75rem' }}>
-            {QUICK_CHIPS.map((chip, i) => (
+            {[
+              { text: t('chat.chipDiagnostics'), label: t('chat.chipDiagnosticsLabel') },
+              { text: t('chat.chipFertilizer'), label: t('chat.chipFertilizerLabel') },
+              { text: t('chat.chipHarvesting'), label: t('chat.chipHarvestingLabel') },
+              { text: t('chat.chipSchemes'), label: t('chat.chipSchemesLabel') }
+            ].map((chip, i) => (
               <button
                 key={i}
                 onClick={() => handleSendMessage(chip.text)}
@@ -428,7 +454,7 @@ export default function Chat() {
           <div style={{ display: 'flex', gap: '0.75rem', position: 'relative' }}>
             <input
               type="text"
-              placeholder={activeFarm ? `Ask about ${activeFarm.farm_name}: diseases, fertilizer, weather...` : "Ask any farming question (e.g., crop diseases, fertilizer NPK, schemes)..."}
+              placeholder={activeFarm ? `${activeFarm.farm_name}: ${t('chat.placeholder')}` : t('chat.placeholder')}
               disabled={isLoading}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}

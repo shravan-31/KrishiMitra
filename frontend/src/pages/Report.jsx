@@ -2,11 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useFarmStore } from '../store/farmStore'
 import FarmLayout from '../components/FarmLayout'
 import toast from 'react-hot-toast'
+import { useTranslation } from '../i18n'
 
 import { BACKEND_URL } from '../config'
 
 export default function Report() {
   const { activeFarm } = useFarmStore()
+  const { t } = useTranslation()
   const [report, setReport] = useState(null)
   const [loading, setLoading] = useState(false)
 
@@ -32,11 +34,11 @@ export default function Report() {
       setReport(data)
     } catch (err) {
       console.error(err)
-      toast.error(err.message || 'Failed to generate farm report')
+      toast.error(err.message || t('report.loadError'))
     } finally {
       setLoading(false)
     }
-  }, [activeFarm, apiFetch])
+  }, [activeFarm, apiFetch, t])
 
   useEffect(() => {
     loadReport()
@@ -125,9 +127,9 @@ export default function Report() {
         {/* Top Header Actions */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800 }}>Comprehensive Farm Report</h1>
+            <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800 }}>{t('report.title')}</h1>
             <p style={{ color: '#64748b', marginTop: '4px' }}>
-              Download or print compiled farm boundaries details, soil indices, yield forecasting logs, and crop diagnostic scans.
+              {t('report.subtitle')}
             </p>
           </div>
           <button
@@ -146,14 +148,14 @@ export default function Report() {
               boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)'
             }}
           >
-            🖨️ Print / Save PDF
+            {t('report.printBtn')}
           </button>
         </div>
 
         {loading ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5rem 0', gap: '1rem' }}>
             <div style={{ width: '40px', height: '40px', border: '3px solid rgba(16,185,129,0.1)', borderTop: '3px solid #10b981', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-            <h3 style={{ color: '#10b981' }}>Compiling report records...</h3>
+            <h3 style={{ color: '#10b981' }}>{t('common.loading')}</h3>
             <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { 100% { transform: rotate(360deg); } }` }} />
           </div>
         ) : report ? (
@@ -162,28 +164,28 @@ export default function Report() {
             {/* Section 1: Farm Boundary Profile */}
             <div className="glass-card" style={{ padding: '2rem' }}>
               <h2 className="section-title" style={{ margin: '0 0 1.5rem', fontSize: '1.4rem', fontWeight: 800, color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                🚜 Farm Boundary Profile
+                🚜 {t('report.farmDetailsTitle')}
               </h2>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
                 <div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Farm Name</div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>{t('nav.farmNameLabel') || 'Farm Name'}</div>
                   <div style={{ fontSize: '1.2rem', fontWeight: 700, marginTop: '2px' }}>{report.farm_name}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Location & Village</div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>{t('nav.locationLabel') || 'Location'}</div>
                   <div style={{ fontSize: '1.2rem', fontWeight: 700, marginTop: '2px' }}>{report.location || '—'}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Territory Boundary</div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>{t('nav.stateLabel') || 'State'}</div>
                   <div style={{ fontSize: '1.2rem', fontWeight: 700, marginTop: '2px' }}>{report.district ? `${report.district}, ${report.state}` : report.state || '—'}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Cultivated Area</div>
-                  <div style={{ fontSize: '1.2rem', fontWeight: 700, marginTop: '2px' }}>{report.area_acres} Acres</div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>{t('nav.areaLabel') || 'Area'}</div>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 700, marginTop: '2px' }}>{report.area_acres} {t('common.acres')}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Soil Taxonomy</div>
-                  <div style={{ fontSize: '1.2rem', fontWeight: 700, marginTop: '2px' }}>{report.soil_type} Soil</div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>{t('nav.soilTypeLabel') || 'Soil Type'}</div>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 700, marginTop: '2px' }}>{report.soil_type} {t('common.soil')}</div>
                 </div>
               </div>
             </div>
@@ -191,35 +193,35 @@ export default function Report() {
             {/* Section 2: Soil Health Indicators */}
             <div className="glass-card" style={{ padding: '2rem' }}>
               <h2 className="section-title" style={{ margin: '0 0 1.5rem', fontSize: '1.4rem', fontWeight: 800, color: '#22c55e', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                🌱 Soil Health & Composition
+                🌱 {t('report.soilSummaryTitle')}
               </h2>
               {report.soil ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', flexWrap: 'wrap' }}>
                     <div style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', padding: '1rem 2rem', borderRadius: '16px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700 }}>SOIL HEALTH SCORE</div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700 }}>{t('soil.soilScore')}</div>
                       <div className="health-badge" style={{ fontSize: '2.5rem', fontWeight: 800, color: '#22c55e' }}>{report.soil.soil_health_score}%</div>
                     </div>
                     
                     <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '1rem' }}>
                       <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '0.5rem 1rem', borderRadius: '10px' }}>
-                        <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>pH LEVEL</div>
+                        <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>{t('soil.ph')}</div>
                         <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', marginTop: '2px' }}>{report.soil.ph_level}</div>
                       </div>
                       <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '0.5rem 1rem', borderRadius: '10px' }}>
-                        <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>NITROGEN (N)</div>
+                        <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>{t('soil.nitrogen')}</div>
                         <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', marginTop: '2px' }}>{report.soil.nitrogen} kg/ha</div>
                       </div>
                       <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '0.5rem 1rem', borderRadius: '10px' }}>
-                        <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>PHOSPHORUS (P)</div>
+                        <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>{t('soil.phosphorus')}</div>
                         <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', marginTop: '2px' }}>{report.soil.phosphorus} kg/ha</div>
                       </div>
                       <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '0.5rem 1rem', borderRadius: '10px' }}>
-                        <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>POTASSIUM (K)</div>
+                        <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>{t('soil.potassium')}</div>
                         <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', marginTop: '2px' }}>{report.soil.potassium} kg/ha</div>
                       </div>
                       <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '0.5rem 1rem', borderRadius: '10px' }}>
-                        <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>MOISTURE</div>
+                        <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>{t('soil.moisture')}</div>
                         <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', marginTop: '2px' }}>{report.soil.moisture}%</div>
                       </div>
                     </div>
@@ -227,7 +229,7 @@ export default function Report() {
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', flexWrap: 'wrap' }}>
                     <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '1.25rem', borderRadius: '12px' }}>
-                      <h4 style={{ margin: '0 0 0.5rem', color: '#22c55e', fontSize: '0.85rem', textTransform: 'uppercase' }}>Recommended Rotations</h4>
+                      <h4 style={{ margin: '0 0 0.5rem', color: '#22c55e', fontSize: '0.85rem', textTransform: 'uppercase' }}>{t('soil.recommendations')}</h4>
                       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                         {report.soil.recommended_crops?.map((crop) => (
                           <span key={crop} style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.15)', color: '#4ade80', padding: '0.25rem 0.75rem', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600 }}>
@@ -238,28 +240,28 @@ export default function Report() {
                     </div>
 
                     <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '1.25rem', borderRadius: '12px' }}>
-                      <h4 style={{ margin: '0 0 0.5rem', color: '#22c55e', fontSize: '0.85rem', textTransform: 'uppercase' }}>Fertilizer Recommendations</h4>
+                      <h4 style={{ margin: '0 0 0.5rem', color: '#22c55e', fontSize: '0.85rem', textTransform: 'uppercase' }}>{t('soil.fertilizerAdvice')}</h4>
                       <div style={{ fontSize: '0.85rem', color: '#94a3b8', lineHeight: 1.5 }}>{report.soil.fertilizer_advice}</div>
                     </div>
                   </div>
                 </div>
               ) : (
-                <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>No soil records mapped for this farm boundary.</p>
+                <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>{t('soil.noAnalysis')}</p>
               )}
             </div>
 
             {/* Section 3: Crop Diagnostics (Photos!) */}
             <div className="glass-card" style={{ padding: '2rem' }}>
               <h2 className="section-title" style={{ margin: '0 0 1.5rem', fontSize: '1.4rem', fontWeight: 800, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                🔬 Crop Diagnostics & Scans
+                🔬 {t('report.diagnosticHistoryTitle')}
               </h2>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                 {/* Disease scans */}
                 <div>
-                  <h3 style={{ fontSize: '1.1rem', margin: '0 0 1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '6px' }}>Disease Infestations</h3>
+                  <h3 style={{ fontSize: '1.1rem', margin: '0 0 1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '6px' }}>{t('disease.title')}</h3>
                   {!report.diseases || report.diseases.length === 0 ? (
-                    <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>No disease scans recorded.</p>
+                    <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>{t('disease.noHistory') || 'No disease scans recorded.'}</p>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                       {report.diseases.map((d) => (
@@ -276,11 +278,11 @@ export default function Report() {
                               <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{new Date(d.scanned_at).toLocaleDateString()}</span>
                             </div>
                             <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem' }}>
-                              <span>Severity: <strong style={{ color: d.severity === 'CRITICAL' || d.severity === 'HIGH' ? '#ef4444' : '#f59e0b' }}>{d.severity}</strong></span>
-                              <span>Confidence: <strong>{d.confidence}%</strong></span>
+                              <span>{t('report.thSeverity')}: <strong style={{ color: d.severity === 'CRITICAL' || d.severity === 'HIGH' ? '#ef4444' : '#f59e0b' }}>{d.severity}</strong></span>
+                              <span>{t('report.thConfidence')}: <strong>{d.confidence}%</strong></span>
                             </div>
                             <div style={{ fontSize: '0.85rem', color: '#94a3b8', lineHeight: 1.4 }}>
-                              <strong>Remediation Steps:</strong> {Array.isArray(d.treatment) ? d.treatment.join(', ') : d.treatment}
+                              <strong>{t('disease.treatmentProtocols') || 'Remediation Steps'}:</strong> {Array.isArray(d.treatment) ? d.treatment.join(', ') : d.treatment}
                             </div>
                           </div>
                         </div>
@@ -291,9 +293,9 @@ export default function Report() {
 
                 {/* Pest scans */}
                 <div>
-                  <h3 style={{ fontSize: '1.1rem', margin: '0 0 1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '6px' }}>Insect Pests Infestations</h3>
+                  <h3 style={{ fontSize: '1.1rem', margin: '0 0 1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '6px' }}>{t('pest.title')}</h3>
                   {!report.pests || report.pests.length === 0 ? (
-                    <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>No insect pest scans recorded.</p>
+                    <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>{t('pest.noHistory') || 'No insect pest scans recorded.'}</p>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                       {report.pests.map((p) => (
@@ -310,13 +312,13 @@ export default function Report() {
                               <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{new Date(p.scanned_at).toLocaleDateString()}</span>
                             </div>
                             <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem' }}>
-                              <span>Infestation: <strong style={{ color: '#fbbf24' }}>{p.infestation}</strong></span>
+                              <span>{t('pest.infestationSeverity')}: <strong style={{ color: '#fbbf24' }}>{p.infestation}</strong></span>
                             </div>
                             <div style={{ fontSize: '0.85rem', color: '#94a3b8', lineHeight: 1.4 }}>
-                              <strong>Organic Control:</strong> {p.organic_ctrl}
+                              <strong>{t('pest.bioCtrl')}:</strong> {p.organic_ctrl}
                             </div>
                             <div style={{ fontSize: '0.85rem', color: '#94a3b8', lineHeight: 1.4 }}>
-                              <strong>Chemical Control:</strong> {p.chemical_ctrl}
+                              <strong>{t('pest.chemCtrl')}:</strong> {p.chemical_ctrl}
                             </div>
                           </div>
                         </div>
@@ -330,50 +332,49 @@ export default function Report() {
             {/* Section 4: Harvest Predictions */}
             <div className="glass-card" style={{ padding: '2rem' }}>
               <h2 className="section-title" style={{ margin: '0 0 1.5rem', fontSize: '1.4rem', fontWeight: 800, color: '#8b5cf6', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                📊 Harvest Predictions & Projections
+                📊 {t('yield.title')}
               </h2>
               {report.season_summary ? (
                 <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '2rem', flexWrap: 'wrap', alignItems: 'center' }}>
                   <div>
-                    <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Estimated Seasonal Tonnage</span>
+                    <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>{t('yield.forecastTitle') || 'Estimated Seasonal Tonnage'}</span>
                     <h3 style={{ margin: '4px 0 0', fontSize: '2.5rem', color: '#a78bfa', fontWeight: 800 }}>
                       {report.season_summary.yield_kg.toLocaleString()} kg
                     </h3>
                     <p style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '6px' }}>
-                      Calculated yield prediction for Season: <strong>{report.season_summary.season} {report.season_summary.year}</strong>
+                      {report.season_summary.season} {report.season_summary.year}
                     </p>
                   </div>
                   <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '1.25rem', borderRadius: '12px' }}>
-                    <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Projected Revenue Valuation</div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>{t('report.projectedValue')}</div>
                     <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#eab308', marginTop: '4px' }}>
                       ₹{(report.season_summary.yield_kg * 22).toLocaleString()}
                     </div>
-                    <span style={{ fontSize: '0.7rem', color: '#64748b' }}>*Based on localized MSP floor rates</span>
                   </div>
                 </div>
               ) : (
-                <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>No crop predictions compiled yet.</p>
+                <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>{t('yield.noPrediction') || 'No crop predictions compiled yet.'}</p>
               )}
             </div>
 
             {/* Section 5: Financial Ledger */}
             <div className="glass-card" style={{ padding: '2rem' }}>
               <h2 className="section-title" style={{ margin: '0 0 1.5rem', fontSize: '1.4rem', fontWeight: 800, color: '#ec4899', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                📒 Financial Ledger & Transactions
+                📒 {t('expenses.title')}
               </h2>
               
               {report.season_summary && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
                   <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '0.75rem 1rem', borderRadius: '10px' }}>
-                    <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>TOTAL EXPENSES</div>
+                    <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>{t('expenses.totalExpense')}</div>
                     <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#f87171', marginTop: '2px' }}>₹{report.season_summary.total_expense.toLocaleString()}</div>
                   </div>
                   <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '0.75rem 1rem', borderRadius: '10px' }}>
-                    <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>TOTAL REVENUE</div>
+                    <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>{t('expenses.totalIncome')}</div>
                     <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#34d399', marginTop: '2px' }}>₹{report.season_summary.total_revenue.toLocaleString()}</div>
                   </div>
                   <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '0.75rem 1rem', borderRadius: '10px' }}>
-                    <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>NET PROFIT / LOSS</div>
+                    <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>{t('expenses.netProfit')}</div>
                     <div style={{ fontSize: '1.4rem', fontWeight: 800, color: report.season_summary.profit_loss >= 0 ? '#34d399' : '#f87171', marginTop: '2px' }}>
                       ₹{report.season_summary.profit_loss.toLocaleString()}
                     </div>
@@ -381,18 +382,18 @@ export default function Report() {
                 </div>
               )}
 
-              <h3 style={{ fontSize: '1.1rem', margin: '0 0 1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '6px' }}>Transaction History</h3>
+              <h3 style={{ fontSize: '1.1rem', margin: '0 0 1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '6px' }}>{t('expenses.historyTitle')}</h3>
               {!report.expenses || report.expenses.length === 0 ? (
-                <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>No transactions recorded.</p>
+                <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>{t('expenses.noExpenses')}</p>
               ) : (
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
                     <thead>
                       <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#64748b' }}>
-                        <th style={{ padding: '0.6rem 0.5rem' }}>Date</th>
-                        <th style={{ padding: '0.6rem 0.5rem' }}>Category</th>
-                        <th style={{ padding: '0.6rem 0.5rem' }}>Description</th>
-                        <th style={{ padding: '0.6rem 0.5rem', textAlign: 'right' }}>Amount</th>
+                        <th style={{ padding: '0.6rem 0.5rem' }}>{t('expenses.colDate')}</th>
+                        <th style={{ padding: '0.6rem 0.5rem' }}>{t('expenses.colCategory')}</th>
+                        <th style={{ padding: '0.6rem 0.5rem' }}>{t('expenses.colDescription')}</th>
+                        <th style={{ padding: '0.6rem 0.5rem', textAlign: 'right' }}>{t('expenses.colAmount')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -413,29 +414,29 @@ export default function Report() {
             {/* Section 6: Crop Calendar */}
             <div className="glass-card" style={{ padding: '2rem' }}>
               <h2 className="section-title" style={{ margin: '0 0 1.5rem', fontSize: '1.4rem', fontWeight: 800, color: '#d97706', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                📅 Upcoming Agronomy Tasks
+                📅 {t('calendar.title')}
               </h2>
               {!report.tasks || report.tasks.length === 0 ? (
-                <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>No pending calendar tasks.</p>
+                <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>{t('calendar.noTasks') || 'No pending calendar tasks.'}</p>
               ) : (
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
                     <thead>
                       <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#64748b' }}>
-                        <th style={{ padding: '0.6rem 0.5rem' }}>Date</th>
-                        <th style={{ padding: '0.6rem 0.5rem' }}>Task</th>
-                        <th style={{ padding: '0.6rem 0.5rem' }}>Type</th>
-                        <th style={{ padding: '0.6rem 0.5rem' }}>Urgency</th>
+                        <th style={{ padding: '0.6rem 0.5rem' }}>{t('report.thDate')}</th>
+                        <th style={{ padding: '0.6rem 0.5rem' }}>{t('calendar.colTask') || 'Task'}</th>
+                        <th style={{ padding: '0.6rem 0.5rem' }}>{t('calendar.colType') || 'Type'}</th>
+                        <th style={{ padding: '0.6rem 0.5rem' }}>{t('calendar.colUrgency') || 'Urgency'}</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {report.tasks.map((t) => (
-                        <tr key={t.id || Math.random()} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
-                          <td style={{ padding: '0.6rem 0.5rem', color: '#64748b' }}>{new Date(t.scheduled_at).toLocaleDateString()}</td>
-                          <td style={{ padding: '0.6rem 0.5rem', fontWeight: 700 }}>{t.task_name}</td>
-                          <td style={{ padding: '0.6rem 0.5rem' }}>{t.task_type}</td>
-                          <td style={{ padding: '0.6rem 0.5rem', color: t.urgency === 'HIGH' ? '#ef4444' : '#e2e8f0', fontWeight: t.urgency === 'HIGH' ? 800 : 500 }}>
-                            {t.urgency}
+                      {report.tasks.map((tItem) => (
+                        <tr key={tItem.id || Math.random()} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                          <td style={{ padding: '0.6rem 0.5rem', color: '#64748b' }}>{new Date(tItem.scheduled_at).toLocaleDateString()}</td>
+                          <td style={{ padding: '0.6rem 0.5rem', fontWeight: 700 }}>{tItem.task_name}</td>
+                          <td style={{ padding: '0.6rem 0.5rem' }}>{tItem.task_type}</td>
+                          <td style={{ padding: '0.6rem 0.5rem', color: tItem.urgency === 'HIGH' ? '#ef4444' : '#e2e8f0', fontWeight: tItem.urgency === 'HIGH' ? 800 : 500 }}>
+                            {tItem.urgency}
                           </td>
                         </tr>
                       ))}
@@ -449,7 +450,7 @@ export default function Report() {
         ) : (
           <div className="glass-card" style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
             <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📋</span>
-            <p>Select an active farm to generate your comprehensive report.</p>
+            <p>{t('report.noActiveFarm') || 'Select an active farm to generate your comprehensive report.'}</p>
           </div>
         )}
       </div>

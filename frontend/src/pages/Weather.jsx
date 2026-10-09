@@ -3,10 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useFarmStore } from '../store/farmStore'
 import FarmLayout from '../components/FarmLayout'
 import toast from 'react-hot-toast'
+import { useTranslation } from '../i18n'
 
 import { BACKEND_URL } from '../config'
 
 export default function Weather() {
+  const { t } = useTranslation()
   const { activeFarm } = useFarmStore()
   const [lat, setLat] = useState('18.5204')
   const [lon, setLon] = useState('73.8567')
@@ -40,13 +42,13 @@ export default function Weather() {
       // Load active alerts too
       const alertData = await apiFetch(`/api/v1/weather/alert/${activeFarm.id}`)
       setAlerts(alertData || [])
-      toast.success("Weather advisories updated!")
+      toast.success(t('weather.weatherUpdatedToast'))
     } catch (err) {
-      toast.error(err.message || "Failed to load weather data")
+      toast.error(err.message || t('weather.weatherFailedToast'))
     } finally {
       setLoading(false)
     }
-  }, [activeFarm, lat, lon, apiFetch])
+  }, [activeFarm, lat, lon, apiFetch, t])
 
   // Get user geolocation on mount — priority: farm GPS > browser GPS > default
   useEffect(() => {
@@ -98,8 +100,8 @@ export default function Weather() {
       <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800 }}>Weather Advisories & Alerts</h1>
-            <p style={{ color: '#64748b', marginTop: '4px' }}>Real-time microclimate monitoring linked directly to crop risk forecasts and smart scheduling logic.</p>
+            <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800 }}>{t('weather.title')}</h1>
+            <p style={{ color: '#64748b', marginTop: '4px' }}>{t('weather.subtitle')}</p>
           </div>
 
           {/* Coordinate picker */}
@@ -122,7 +124,7 @@ export default function Weather() {
               onClick={() => fetchWeather()}
               style={{ padding: '0.5rem 1rem', borderRadius: '8px', background: 'rgba(16,185,129,0.15)', color: '#34d399', border: '1px solid rgba(16,185,129,0.3)', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem' }}
             >
-              Update
+              {t('weather.updateBtn')}
             </button>
           </div>
         </div>
@@ -142,29 +144,29 @@ export default function Weather() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                   <div>
                     <h2 style={{ margin: 0, fontSize: '2.5rem', fontWeight: 800 }}>{weather.temp}°C</h2>
-                    <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Current Local Temperature</span>
+                    <span style={{ fontSize: '0.85rem', color: '#64748b' }}>{t('weather.currentTemp')}</span>
                   </div>
                   <span style={{ fontSize: '3.5rem', animation: 'pulse-slow 3s infinite ease-in-out' }}>🌤️</span>
                 </div>
 
                 {/* Weather details dials */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.25rem', marginBottom: '1.5rem' }}>
-                  <DetailDial label="Humidity" value={`${weather.humidity}%`} emoji="💧" color="#0ea5e9" />
-                  <DetailDial label="Wind Speed" value={`${weather.wind_speed} km/h`} emoji="💨" color="#94a3b8" />
-                  <DetailDial label="UV Index" value={`${weather.uv_index}`} emoji="☀️" color="#f59e0b" />
-                  <DetailDial label="Rainfall (1h)" value={`${weather.rainfall} mm`} emoji="🌧️" color="#3b82f6" />
+                  <DetailDial label={t('weather.humidity')} value={`${weather.humidity}%`} emoji="💧" color="#0ea5e9" />
+                  <DetailDial label={t('weather.windSpeed')} value={`${weather.wind_speed} km/h`} emoji="💨" color="#94a3b8" />
+                  <DetailDial label={t('weather.uvIndex')} value={`${weather.uv_index}`} emoji="☀️" color="#f59e0b" />
+                  <DetailDial label={t('weather.rainfall')} value={`${weather.rainfall} mm`} emoji="🌧️" color="#3b82f6" />
                 </div>
 
                 {/* Drought warning indicator */}
                 {weather.drought_days > 0 && (
                   <div style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: '12px', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#f59e0b', fontSize: '0.85rem', fontWeight: 600 }}>
-                    ⚠️ Alert: {weather.drought_days} consecutive dry days recorded.
+                    ⚠️ {t('weather.droughtAlert', { days: weather.drought_days })}
                   </div>
                 )}
               </div>
             ) : (
               <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
-                <p>Allow location permissions or input coordinates above to fetch weather advisories.</p>
+                <p>{t('weather.locationPrompt')}</p>
               </div>
             )}
           </div>
@@ -173,7 +175,7 @@ export default function Weather() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {/* Advisory card */}
             <div className="glass-card" style={{ padding: '2rem' }}>
-              <h3 style={{ margin: '0 0 1rem', fontSize: '1.15rem', fontWeight: 800 }}>Farming Advisory</h3>
+              <h3 style={{ margin: '0 0 1rem', fontSize: '1.15rem', fontWeight: 800 }}>{t('weather.farmingAdvisoryTitle')}</h3>
               {loading ? (
                 <Skeleton width="100%" height="80px" />
               ) : weather?.advisory ? (
@@ -181,16 +183,16 @@ export default function Weather() {
                   💬 {weather.advisory}
                 </div>
               ) : (
-                <p style={{ color: '#64748b', fontSize: '0.85rem' }}>No advisor data available.</p>
+                <p style={{ color: '#64748b', fontSize: '0.85rem' }}>{t('weather.noAdvisory')}</p>
               )}
             </div>
 
             {/* Warnings list */}
             <div className="glass-card" style={{ padding: '2rem' }}>
-              <h3 style={{ margin: '0 0 1rem', fontSize: '1.15rem', fontWeight: 800 }}>Active Meteorological Risks</h3>
+              <h3 style={{ margin: '0 0 1rem', fontSize: '1.15rem', fontWeight: 800 }}>{t('weather.activeRisksTitle')}</h3>
               {alerts.length === 0 ? (
                 <div style={{ color: '#64748b', fontSize: '0.85rem', padding: '0.5rem 0' }}>
-                  ✅ No active weather warnings registered for your crops.
+                  {t('weather.noRisks')}
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -208,7 +210,7 @@ export default function Weather() {
             {weather?.disease_risk && (
               <div className="glass-card" style={{ padding: '2rem' }}>
                 <h3 style={{ margin: '0 0 1rem', fontSize: '1.15rem', fontWeight: 800 }}>
-                  🦠 Disease Risk Assessment
+                  {t('weather.diseaseRiskTitle')}
                 </h3>
                 <div style={{
                   display: 'flex', alignItems: 'center', gap: '1rem',
@@ -234,7 +236,7 @@ export default function Weather() {
                       color: weather.disease_risk.risk_level === 'HIGH' ? '#f87171' :
                              weather.disease_risk.risk_level === 'MEDIUM' ? '#fde047' : '#4ade80'
                     }}>
-                      {weather.disease_risk.risk_level} RISK
+                      {t('weather.riskLevel', { level: weather.disease_risk.risk_level })}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '2px' }}>
                       {weather.disease_risk.engine}
@@ -260,7 +262,7 @@ export default function Weather() {
 
         {/* 7-day Forecast Row */}
         <div className="glass-card" style={{ padding: '2rem' }}>
-          <h3 style={{ margin: '0 0 1.25rem', fontSize: '1.25rem', fontWeight: 800 }}>7-Day Microclimate Outlook</h3>
+          <h3 style={{ margin: '0 0 1.25rem', fontSize: '1.25rem', fontWeight: 800 }}>{t('weather.outlookTitle')}</h3>
           {loading ? (
             <div style={{ display: 'flex', gap: '1rem', overflow: 'hidden' }}>
               {Array.from({ length: 7 }).map((_, i) => (

@@ -4,6 +4,7 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 import { useFarmStore } from '../store/farmStore'
 import FarmLayout from '../components/FarmLayout'
 import toast from 'react-hot-toast'
+import { useTranslation } from '../i18n'
 
 import { BACKEND_URL } from '../config'
 
@@ -29,6 +30,7 @@ const MSP_MAP = {
 }
 
 export default function Market() {
+  const { t, i18n } = useTranslation()
   const { activeFarm } = useFarmStore()
   const [selectedCrop, setSelectedCrop] = useState('Soybean')
   const [searchQuery, setSearchQuery] = useState('')
@@ -69,12 +71,12 @@ export default function Market() {
       }
       
     } catch (err) {
-      toast.error(`Failed to load market prices: ${err.message}`)
+      toast.error(err.message || t('market.loadFailedToast'))
       console.error(err)
     } finally {
       setLoading(false)
     }
-  }, [apiFetch])
+  }, [apiFetch, t])
 
   useEffect(() => {
     loadMarketInfo(selectedCrop, forecastDays)
@@ -93,7 +95,7 @@ export default function Market() {
   const chartData = forecastData?.daily_prices?.map((item, idx) => {
     const d = new Date(item.date)
     const isToday = idx === 0
-    const label = isToday ? 'Today' : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+    const label = isToday ? t('market.today') : d.toLocaleDateString(i18n?.language === 'mr' ? 'mr-IN' : (i18n?.language === 'hi' ? 'hi-IN' : 'en-IN'), { day: 'numeric', month: 'short' })
     return {
       date: label,
       fullDate: item.date,
@@ -110,10 +112,10 @@ export default function Market() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
             <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 800 }}>
-              🌾 Live APMC Mandi Rates & Price Forecast
+              {t('market.title')}
             </h1>
             <p style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '4px' }}>
-              Real-time modal prices from APMC market yards across Maharashtra with AI-driven price projections
+              {t('market.subtitle')}
             </p>
           </div>
 
@@ -121,7 +123,7 @@ export default function Market() {
           <div style={{ position: 'relative', width: '280px' }}>
             <input
               type="text"
-              placeholder={`Search crop (Selected: ${selectedCrop})...`}
+              placeholder={t('market.searchPlaceholder', { crop: selectedCrop })}
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value)
@@ -229,9 +231,9 @@ export default function Market() {
             >
               <span style={{ fontSize: '1.5rem' }}>⚠️</span>
               <div>
-                <strong style={{ fontSize: '0.95rem' }}>Market Price is Below Minimum Support Price (MSP)!</strong>
+                <strong style={{ fontSize: '0.95rem' }}>{t('market.belowMspWarningTitle')}</strong>
                 <p style={{ margin: '2px 0 0', fontSize: '0.8rem', opacity: 0.9 }}>
-                  Current market price is ₹{priceData?.today_price}/quintal, whereas the Government MSP is ₹{msp}/quintal. If feasible, consider holding produce or registering at government procurement centers.
+                  {t('market.belowMspWarningDesc', { todayPrice: priceData?.today_price, msp })}
                 </p>
               </div>
             </motion.div>
@@ -254,7 +256,7 @@ export default function Market() {
               <div className="glass-card" style={{ padding: '1.5rem', position: 'relative', borderLeft: '4px solid #10b981' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ fontSize: '0.78rem', color: '#34d399', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    🟢 Live Average Rate (Today)
+                    {t('market.liveAverageRate')}
                   </div>
                   <span style={{ fontSize: '0.7rem', padding: '0.2rem 0.6rem', borderRadius: '20px', background: 'rgba(16,185,129,0.15)', color: '#6ee7b7', fontWeight: 700 }}>
                     {priceData.record_date}
@@ -262,48 +264,48 @@ export default function Market() {
                 </div>
 
                 <div style={{ fontSize: '2.4rem', fontWeight: 900, marginTop: '0.6rem', color: '#fff', display: 'flex', alignItems: 'baseline', gap: '0.35rem' }}>
-                  ₹{priceData.today_price} <span style={{ fontSize: '0.95rem', color: '#94a3b8', fontWeight: 600 }}>/ Quintal</span>
+                  ₹{priceData.today_price} <span style={{ fontSize: '0.95rem', color: '#94a3b8', fontWeight: 600 }}>{t('market.perQuintal')}</span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem', fontSize: '0.82rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     {priceData.trend === 'UP' ? (
-                      <span style={{ color: '#4ade80', fontWeight: 800, background: 'rgba(34,197,94,0.12)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>▲ Up vs Yesterday (+₹{(priceData.today_price - priceData.yesterday_price).toFixed(0)})</span>
+                      <span style={{ color: '#4ade80', fontWeight: 800, background: 'rgba(34,197,94,0.12)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>{t('market.upVsYesterday', { diff: (priceData.today_price - priceData.yesterday_price).toFixed(0) })}</span>
                     ) : priceData.trend === 'DOWN' ? (
-                      <span style={{ color: '#f87171', fontWeight: 800, background: 'rgba(239,68,68,0.12)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>▼ Down vs Yesterday (-₹{(priceData.yesterday_price - priceData.today_price).toFixed(0)})</span>
+                      <span style={{ color: '#f87171', fontWeight: 800, background: 'rgba(239,68,68,0.12)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>{t('market.downVsYesterday', { diff: (priceData.yesterday_price - priceData.today_price).toFixed(0) })}</span>
                     ) : (
-                      <span style={{ color: '#94a3b8', fontWeight: 700 }}>➖ Stable</span>
+                      <span style={{ color: '#94a3b8', fontWeight: 700 }}>{t('market.priceStable')}</span>
                     )}
                   </div>
-                  <span style={{ color: '#64748b', fontSize: '0.75rem' }}>Yesterday: ₹{priceData.yesterday_price}/q</span>
+                  <span style={{ color: '#64748b', fontSize: '0.75rem' }}>{t('market.yesterdayRate', { price: priceData.yesterday_price })}</span>
                 </div>
               </div>
 
               {/* Best market suggestion */}
               <div className="glass-card" style={{ padding: '1.5rem', borderLeft: '4px solid #06b6d4' }}>
                 <div style={{ fontSize: '0.78rem', color: '#38bdf8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  ⭐ Top Performing APMC Mandi
+                  {t('market.topMandi')}
                 </div>
                 <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#38bdf8', marginTop: '0.6rem' }}>
                   {priceData.best_market.split(' Mandi')[0] || priceData.best_market}
                 </div>
                 <div style={{ fontSize: '0.85rem', color: '#cbd5e1', marginTop: '0.6rem' }}>
-                  Highest Auction Rate: <strong>{priceData.best_market.split('(')[1]?.replace(')', '') || `₹${priceData.today_price}/q`}</strong>
+                  {t('market.highestAuctionRate')} <strong>{priceData.best_market.split('(')[1]?.replace(')', '') || `₹${priceData.today_price}/q`}</strong>
                 </div>
               </div>
 
               {/* Government MSP Card */}
               <div className="glass-card" style={{ padding: '1.5rem', borderLeft: '4px solid #f59e0b' }}>
                 <div style={{ fontSize: '0.78rem', color: '#fbbf24', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  🏛️ Government MSP Benchmark
+                  {t('market.mspBenchmark')}
                 </div>
                 <div style={{ fontSize: '2rem', fontWeight: 800, marginTop: '0.6rem', color: '#fff', display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
-                  {msp > 0 ? `₹${msp}` : 'N/A'} <span style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 600 }}>{msp > 0 ? '/ Quintal' : ''}</span>
+                  {msp > 0 ? `₹${msp}` : 'N/A'} <span style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 600 }}>{msp > 0 ? t('market.perQuintal') : ''}</span>
                 </div>
                 <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '0.6rem' }}>
                   {msp > 0 
-                    ? (priceData.today_price >= msp ? `✅ Current price is ₹${(priceData.today_price - msp).toFixed(0)} above MSP` : `⚠️ Current price is below MSP`)
-                    : 'No direct MSP established for this perishable commodity'}
+                    ? (priceData.today_price >= msp ? t('market.aboveMsp', { diff: (priceData.today_price - msp).toFixed(0) }) : t('market.belowMsp'))
+                    : t('market.noDirectMsp')}
                 </div>
               </div>
 
@@ -325,7 +327,7 @@ export default function Market() {
                 </span>
                 <div>
                   <div style={{ fontSize: '0.85rem', fontWeight: 800, color: forecastData.trend === 'BULLISH' ? '#6ee7b7' : (forecastData.trend === 'BEARISH' ? '#fca5a5' : '#93c5fd') }}>
-                    Market Intelligence & Strategic Advisory ({forecastData.trend === 'BULLISH' ? 'Bullish Trend' : (forecastData.trend === 'BEARISH' ? 'Bearish Trend' : 'Stable Trend')}):
+                    {t('market.advisoryTitle', { trend: forecastData.trend })}
                   </div>
                   <div style={{ fontSize: '0.85rem', color: '#e2e8f0', marginTop: '2px', lineHeight: 1.4 }}>
                     {forecastData.advisory}
@@ -342,10 +344,10 @@ export default function Market() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                   <div>
                     <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800 }}>
-                      📊 AI Price Forecast by Upcoming Dates ({selectedCrop})
+                      {t('market.forecastTitle', { crop: selectedCrop })}
                     </h3>
                     <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                      Daily price projections for the next {forecastDays} days from today
+                      {t('market.forecastSubtitle', { days: forecastDays })}
                     </span>
                   </div>
 
@@ -365,7 +367,7 @@ export default function Market() {
                           cursor: 'pointer'
                         }}
                       >
-                        {d} Days
+                        {d === 7 ? t('market.days7') : (d === 14 ? t('market.days14') : t('market.days30'))}
                       </button>
                     ))}
                   </div>
@@ -375,15 +377,15 @@ export default function Market() {
                 {forecastData && (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: '1.25rem' }}>
                     <div style={{ background: 'rgba(255,255,255,0.02)', padding: '0.6rem', borderRadius: '8px', textAlign: 'center' }}>
-                      <span style={{ fontSize: '0.7rem', color: '#64748b' }}>Minimum (Min)</span>
+                      <span style={{ fontSize: '0.7rem', color: '#64748b' }}>{t('market.minStat')}</span>
                       <div style={{ fontWeight: 800, color: '#f87171', fontSize: '1rem' }}>₹{Math.round(forecastData.min)}</div>
                     </div>
                     <div style={{ background: 'rgba(255,255,255,0.02)', padding: '0.6rem', borderRadius: '8px', textAlign: 'center' }}>
-                      <span style={{ fontSize: '0.7rem', color: '#64748b' }}>Average (Avg)</span>
+                      <span style={{ fontSize: '0.7rem', color: '#64748b' }}>{t('market.avgStat')}</span>
                       <div style={{ fontWeight: 800, color: '#38bdf8', fontSize: '1rem' }}>₹{Math.round(forecastData.avg)}</div>
                     </div>
                     <div style={{ background: 'rgba(255,255,255,0.02)', padding: '0.6rem', borderRadius: '8px', textAlign: 'center' }}>
-                      <span style={{ fontSize: '0.7rem', color: '#64748b' }}>Maximum (Max)</span>
+                      <span style={{ fontSize: '0.7rem', color: '#64748b' }}>{t('market.maxStat')}</span>
                       <div style={{ fontWeight: 800, color: '#34d399', fontSize: '1rem' }}>₹{Math.round(forecastData.max)}</div>
                     </div>
                   </div>
@@ -411,12 +413,12 @@ export default function Market() {
                             fontSize: '0.85rem'
                           }}
                         />
-                        <Area type="monotone" dataKey="price" name="Forecast Price (₹)" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrice)" />
+                        <Area type="monotone" dataKey="price" name={t('market.forecastPriceName')} stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrice)" />
                       </AreaChart>
                     </ResponsiveContainer>
                   ) : (
                     <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
-                      Loading forecast...
+                      {t('market.chartLoading')}
                     </div>
                   )}
                 </div>
@@ -425,15 +427,15 @@ export default function Market() {
                 {forecastData?.daily_prices && (
                   <div style={{ marginTop: '1.5rem' }}>
                     <h4 style={{ margin: '0 0 0.75rem', fontSize: '0.88rem', color: '#cbd5e1', fontWeight: 700 }}>
-                      📅 Day-by-Day Price Forecast Breakdown:
+                      {t('market.breakdownTitle')}
                     </h4>
                     <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '10px' }}>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', textAlign: 'left' }}>
                         <thead>
                           <tr style={{ background: 'rgba(255,255,255,0.04)', color: '#94a3b8', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                            <th style={{ padding: '0.55rem 0.75rem' }}>Date</th>
-                            <th style={{ padding: '0.55rem 0.75rem' }}>Forecast Price (₹/q)</th>
-                            <th style={{ padding: '0.55rem 0.75rem' }}>Expected Trend</th>
+                            <th style={{ padding: '0.55rem 0.75rem' }}>{t('market.tableDate')}</th>
+                            <th style={{ padding: '0.55rem 0.75rem' }}>{t('market.tableForecastPrice')}</th>
+                            <th style={{ padding: '0.55rem 0.75rem' }}>{t('market.tableTrend')}</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -443,16 +445,16 @@ export default function Market() {
                             return (
                               <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', background: isToday ? 'rgba(16,185,129,0.06)' : 'transparent' }}>
                                 <td style={{ padding: '0.5rem 0.75rem', color: isToday ? '#6ee7b7' : '#e2e8f0', fontWeight: isToday ? 800 : 500 }}>
-                                  {isToday ? 'Today' : d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}
+                                  {isToday ? t('market.today') : d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}
                                 </td>
                                 <td style={{ padding: '0.5rem 0.75rem', color: '#38bdf8', fontWeight: 700 }}>
                                   ₹{Math.round(row.price)}
                                 </td>
                                 <td style={{ padding: '0.5rem 0.75rem' }}>
                                   {row.price >= priceData.today_price ? (
-                                    <span style={{ color: '#34d399', fontWeight: 700 }}>↗️ Stable / Upward</span>
+                                    <span style={{ color: '#34d399', fontWeight: 700 }}>{t('market.trendUp')}</span>
                                   ) : (
-                                    <span style={{ color: '#f87171', fontWeight: 700 }}>↘️ Downward</span>
+                                    <span style={{ color: '#f87171', fontWeight: 700 }}>{t('market.trendDown')}</span>
                                   )}
                                 </td>
                               </tr>
@@ -470,10 +472,10 @@ export default function Market() {
               <div className="glass-card" style={{ padding: '1.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                   <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>
-                    🏛️ Today's Rates Across APMC Mandis
+                    {t('market.mandisTitle')}
                   </h3>
                   <span style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 700 }}>
-                    {priceData.all_mandis?.length || 0} Mandis Reported
+                    {t('market.mandisReported', { count: priceData.all_mandis?.length || 0 })}
                   </span>
                 </div>
 
@@ -493,17 +495,17 @@ export default function Market() {
                           {idx === 0 && '⭐ '} {m.mandi}
                         </span>
                         <span style={{ color: '#10b981', fontWeight: 800, fontSize: '1.05rem' }}>
-                          ₹{m.price}<span style={{ fontSize: '0.75rem', color: '#64748b' }}>/q</span>
+                          ₹{m.price}<span style={{ fontSize: '0.75rem', color: '#64748b' }}>{t('market.perQuintal')}</span>
                         </span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', fontSize: '0.75rem', color: '#64748b' }}>
-                        <span>Variety: <strong style={{ color: '#cbd5e1' }}>{m.variety || 'Common'}</strong></span>
-                        <span>Date: <strong style={{ color: '#cbd5e1' }}>{m.arrival_date || priceData.record_date}</strong></span>
+                        <span>{t('market.variety')} <strong style={{ color: '#cbd5e1' }}>{m.variety || t('market.commonVariety')}</strong></span>
+                        <span>{t('market.arrivalDate')} <strong style={{ color: '#cbd5e1' }}>{m.arrival_date || priceData.record_date}</strong></span>
                       </div>
                       {(m.min_price > 0 || m.max_price > 0) && (
                         <div style={{ marginTop: '5px', fontSize: '0.72rem', color: '#94a3b8', display: 'flex', justifyContent: 'space-between' }}>
-                          <span>Min: ₹{m.min_price}</span>
-                          <span>Max: ₹{m.max_price}</span>
+                          <span>{t('market.min')} ₹{m.min_price}</span>
+                          <span>{t('market.max')} ₹{m.max_price}</span>
                         </div>
                       )}
                     </div>

@@ -4,10 +4,13 @@ import { useAuth } from '../hooks/useAuth'
 import { useFarmStore } from '../store/farmStore'
 import { useFarmWebSocket } from '../hooks/useFarmWebSocket'
 import toast, { Toaster } from 'react-hot-toast'
+import { useTranslation } from '../i18n'
+import LanguageSelector from './LanguageSelector'
 
 import { BACKEND_URL } from '../config'
 
 export default function FarmLayout({ children }) {
+  const { t, i18n } = useTranslation()
   const { user, logout } = useAuth()
   const { farms, activeFarm, setFarms, setActiveFarm } = useFarmStore()
   const navigate = useNavigate()
@@ -65,7 +68,7 @@ export default function FarmLayout({ children }) {
   const handleCreateFarm = async (e) => {
     e.preventDefault()
     if (!newFarm.farm_name.trim()) {
-      toast.error('Farm name is required')
+      toast.error(t('validation.enterFarmName') || 'Farm name is required')
       return
     }
     setSubmittingFarm(true)
@@ -91,9 +94,9 @@ export default function FarmLayout({ children }) {
         latitude: null,
         longitude: null
       })
-      toast.success(`Farm "${data.farm_name}" registered successfully!`)
+      toast.success(t('messages.farmCreated', { name: data.farm_name }))
     } catch (err) {
-      toast.error(err.message || 'Failed to create farm')
+      toast.error(err.message || t('messages.somethingWentWrong'))
     } finally {
       setSubmittingFarm(false)
     }
@@ -104,7 +107,7 @@ export default function FarmLayout({ children }) {
     const selected = farms.find(f => f.id === farmId)
     if (selected) {
       setActiveFarm(selected)
-      toast.success(`Switched to farm: ${selected.farm_name}`)
+      toast.success(t('messages.farmSwitched', { name: selected.farm_name }))
     }
   }
 
@@ -268,7 +271,7 @@ export default function FarmLayout({ children }) {
 
           {farms.length > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Active Farm:</span>
+              <span style={{ fontSize: '0.85rem', color: '#64748b' }}>{t('nav.activeFarm')}</span>
               <select
                 style={{
                   padding: '0.5rem 1rem',
@@ -291,7 +294,9 @@ export default function FarmLayout({ children }) {
           )}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          <LanguageSelector variant="pill" />
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             {user?.avatar_url && (
               <img
@@ -321,7 +326,7 @@ export default function FarmLayout({ children }) {
             }}
             onClick={logout}
           >
-            Logout
+            {t('nav.logout')}
           </button>
         </div>
       </header>
@@ -341,35 +346,35 @@ export default function FarmLayout({ children }) {
           }}
         >
           <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem', paddingLeft: '0.75rem' }}>
-            Main Menu
+            {t('nav.mainMenu')}
           </div>
 
-          <SidebarLink to="/dashboard" emoji="🏠" active={location.pathname === '/dashboard'}>Dashboard</SidebarLink>
-          <SidebarLink to="/alerts" emoji="🎛️" active={location.pathname === '/alerts'}>Real-time Alerts</SidebarLink>
-          <SidebarLink to="/chat" emoji="🤖" active={location.pathname === '/chat'}>AI Chat Assistant</SidebarLink>
+          <SidebarLink to="/dashboard" emoji="🏠" active={location.pathname === '/dashboard'}>{t('nav.dashboard')}</SidebarLink>
+          <SidebarLink to="/alerts" emoji="🎛️" active={location.pathname === '/alerts'}>{t('nav.alerts')}</SidebarLink>
+          <SidebarLink to="/chat" emoji="🤖" active={location.pathname === '/chat'}>{t('nav.chat')}</SidebarLink>
 
           <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '1.5rem', marginBottom: '0.5rem', paddingLeft: '0.75rem' }}>
-            AI Diagnostics
+            {t('nav.aiDiagnostics')}
           </div>
 
-          <SidebarLink to="/disease" emoji="🔬" active={location.pathname === '/disease'}>Disease Detection</SidebarLink>
-          <SidebarLink to="/pest" emoji="🐛" active={location.pathname === '/pest'}>Pest Detection</SidebarLink>
-          <SidebarLink to="/soil" emoji="🌱" active={location.pathname === '/soil'}>Soil Analysis</SidebarLink>
-          <SidebarLink to="/crops" emoji="📍" active={location.pathname === '/crops'}>Crop Recommender</SidebarLink>
-          <SidebarLink to="/yield" emoji="📊" active={location.pathname === '/yield'}>Yield Prediction</SidebarLink>
+          <SidebarLink to="/disease" emoji="🔬" active={location.pathname === '/disease'}>{t('nav.disease')}</SidebarLink>
+          <SidebarLink to="/pest" emoji="🐛" active={location.pathname === '/pest'}>{t('nav.pest')}</SidebarLink>
+          <SidebarLink to="/soil" emoji="🌱" active={location.pathname === '/soil'}>{t('nav.soil')}</SidebarLink>
+          <SidebarLink to="/crops" emoji="📍" active={location.pathname === '/crops'}>{t('nav.crops')}</SidebarLink>
+          <SidebarLink to="/yield" emoji="📊" active={location.pathname === '/yield'}>{t('nav.yield')}</SidebarLink>
 
           <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '1.5rem', marginBottom: '0.5rem', paddingLeft: '0.75rem' }}>
-            Operations & Finance
+            {t('nav.operationsFinance')}
           </div>
 
-          <SidebarLink to="/calendar" emoji="📅" active={location.pathname === '/calendar'}>Crop Calendar</SidebarLink>
-          <SidebarLink to="/health" emoji="💚" active={location.pathname === '/health'}>Farm Health</SidebarLink>
-          <SidebarLink to="/report" emoji="📋" active={location.pathname === '/report'}>Farm Report</SidebarLink>
-          <SidebarLink to="/market" emoji="💰" active={location.pathname === '/market'}>Market Prices</SidebarLink>
-          <SidebarLink to="/expenses" emoji="📒" active={location.pathname === '/expenses'}>Expense Tracker</SidebarLink>
-          <SidebarLink to="/schemes" emoji="🏛️" active={location.pathname === '/schemes'}>Govt Schemes</SidebarLink>
-          <SidebarLink to="/drought" emoji="🛡️" active={location.pathname === '/drought'}>Drought Defense</SidebarLink>
-          <SidebarLink to="/languages" emoji="🗣️" active={location.pathname === '/languages'}>Multilingual</SidebarLink>
+          <SidebarLink to="/calendar" emoji="📅" active={location.pathname === '/calendar'}>{t('nav.calendar')}</SidebarLink>
+          <SidebarLink to="/health" emoji="💚" active={location.pathname === '/health'}>{t('nav.health')}</SidebarLink>
+          <SidebarLink to="/report" emoji="📋" active={location.pathname === '/report'}>{t('nav.report')}</SidebarLink>
+          <SidebarLink to="/market" emoji="💰" active={location.pathname === '/market'}>{t('nav.market')}</SidebarLink>
+          <SidebarLink to="/expenses" emoji="📒" active={location.pathname === '/expenses'}>{t('nav.expenses')}</SidebarLink>
+          <SidebarLink to="/schemes" emoji="🏛️" active={location.pathname === '/schemes'}>{t('nav.schemes')}</SidebarLink>
+          <SidebarLink to="/drought" emoji="🛡️" active={location.pathname === '/drought'}>{t('nav.drought')}</SidebarLink>
+          <SidebarLink to="/languages" emoji="🗣️" active={location.pathname === '/languages'}>{t('nav.multilingual')}</SidebarLink>
 
           <div style={{ flex: 1 }} />
           <button
@@ -385,7 +390,7 @@ export default function FarmLayout({ children }) {
               marginTop: '1.5rem'
             }}
           >
-            + New Farm
+            {t('nav.newFarm')}
           </button>
         </aside>
 
@@ -394,15 +399,15 @@ export default function FarmLayout({ children }) {
           {loadingFarms ? (
             <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
               <div style={{ fontSize: '3rem', animation: 'floatup 2s ease-in-out infinite' }}>🌾</div>
-              <h3 style={{ marginTop: '1rem', color: '#10b981', fontWeight: 700 }}>Loading Farm Workspace...</h3>
+              <h3 style={{ marginTop: '1rem', color: '#10b981', fontWeight: 700 }}>{t('common.loading')}</h3>
             </div>
           ) : farms.length === 0 ? (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
               <div className="glass-card" style={{ padding: '3rem', maxWidth: '500px', textAlign: 'center', background: 'rgba(10, 26, 10, 0.45)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '20px' }}>
                 <span style={{ fontSize: '4rem', display: 'block', marginBottom: '1.5rem' }}>🚜</span>
-                <h2 style={{ fontSize: '1.8rem', fontWeight: 800, margin: 0, background: 'linear-gradient(135deg, #4ade80, #34d399, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Welcome to KrishiMitra!</h2>
+                <h2 style={{ fontSize: '1.8rem', fontWeight: 800, margin: 0, background: 'linear-gradient(135deg, #4ade80, #34d399, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{t('nav.welcome')}</h2>
                 <p style={{ color: '#94a3b8', fontSize: '0.95rem', lineHeight: 1.6, margin: '1rem 0 2rem' }}>
-                  To unlock AI crop diagnostics, soil health metrics, yield predictions, and mandi price forecasting, please create your first farm boundary.
+                  {t('nav.welcomeDesc')}
                 </p>
                 <button
                   className="glow-btn"
@@ -415,7 +420,7 @@ export default function FarmLayout({ children }) {
                     fontWeight: 700,
                   }}
                 >
-                  Initialize Farm Now
+                  {t('nav.initializeFarm')}
                 </button>
               </div>
             </div>
@@ -433,40 +438,40 @@ export default function FarmLayout({ children }) {
           display: 'flex', justifyContent: 'center', alignItems: 'center'
         }}>
           <div className="glass-card" style={{ width: '450px', background: '#0a100a', border: '1px solid #10b981', padding: '2rem', borderRadius: '20px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
-            <h3 style={{ margin: '0 0 1.5rem', color: '#10b981', fontSize: '1.4rem', fontWeight: 800 }}>Initialize Farm Boundary</h3>
+            <h3 style={{ margin: '0 0 1.5rem', color: '#10b981', fontSize: '1.4rem', fontWeight: 800 }}>{t('nav.initFarmModalTitle')}</h3>
             
             <form onSubmit={handleCreateFarm} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Farm Name</label>
-                <input type="text" required className="glass-input" placeholder="e.g. Golden Harvest Fields" value={newFarm.farm_name} onChange={(e) => setNewFarm({ ...newFarm, farm_name: e.target.value })} />
+                <label style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: 600 }}>{t('nav.farmNameLabel')}</label>
+                <input type="text" required className="glass-input" placeholder={t('nav.farmNamePlaceholder')} value={newFarm.farm_name} onChange={(e) => setNewFarm({ ...newFarm, farm_name: e.target.value })} />
               </div>
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Location / Village</label>
-                <input type="text" className="glass-input" placeholder="e.g. Baramati" value={newFarm.location} onChange={(e) => setNewFarm({ ...newFarm, location: e.target.value })} />
+                <label style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: 600 }}>{t('nav.locationLabel')}</label>
+                <input type="text" className="glass-input" placeholder={t('nav.locationPlaceholder')} value={newFarm.location} onChange={(e) => setNewFarm({ ...newFarm, location: e.target.value })} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: 600 }}>State</label>
+                  <label style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: 600 }}>{t('nav.stateLabel')}</label>
                   <input type="text" className="glass-input" value={newFarm.state} onChange={(e) => setNewFarm({ ...newFarm, state: e.target.value })} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: 600 }}>District</label>
+                  <label style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: 600 }}>{t('nav.districtLabel')}</label>
                   <input type="text" className="glass-input" value={newFarm.district} onChange={(e) => setNewFarm({ ...newFarm, district: e.target.value })} />
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Area (Acres)</label>
+                  <label style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: 600 }}>{t('nav.areaLabel')}</label>
                   <input type="number" step="0.1" className="glass-input" value={newFarm.area_acres} onChange={(e) => setNewFarm({ ...newFarm, area_acres: parseFloat(e.target.value) || 0 })} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Soil Type</label>
+                  <label style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: 600 }}>{t('nav.soilTypeLabel')}</label>
                   <select className="glass-input" value={newFarm.soil_type} onChange={(e) => setNewFarm({ ...newFarm, soil_type: e.target.value })}>
-                    <option value="Alluvial" style={{ background: '#0a100a' }}>Alluvial</option>
-                    <option value="Black Cotton" style={{ background: '#0a100a' }}>Black Cotton</option>
-                    <option value="Red Soil" style={{ background: '#0a100a' }}>Red Soil</option>
-                    <option value="Clayey" style={{ background: '#0a100a' }}>Clayey</option>
-                    <option value="Sandy Loam" style={{ background: '#0a100a' }}>Sandy Loam</option>
+                    <option value="Alluvial" style={{ background: '#0a100a' }}>{t('nav.soilAlluvial')}</option>
+                    <option value="Black Cotton" style={{ background: '#0a100a' }}>{t('nav.soilBlackCotton')}</option>
+                    <option value="Red Soil" style={{ background: '#0a100a' }}>{t('nav.soilRed')}</option>
+                    <option value="Clayey" style={{ background: '#0a100a' }}>{t('nav.soilClayey')}</option>
+                    <option value="Sandy Loam" style={{ background: '#0a100a' }}>{t('nav.soilSandyLoam')}</option>
                   </select>
                 </div>
               </div>
@@ -474,7 +479,7 @@ export default function FarmLayout({ children }) {
               {/* GPS Location */}
               <div>
                 <label style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
-                  GPS Coordinates <span style={{ color: '#475569', fontWeight: 400 }}>(for Weather & Disease Risk)</span>
+                  {t('nav.gpsCoordinates')} <span style={{ color: '#475569', fontWeight: 400 }}>{t('nav.gpsCoordinatesHint')}</span>
                 </label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '0.5rem', alignItems: 'center' }}>
                   <input
@@ -491,14 +496,14 @@ export default function FarmLayout({ children }) {
                   />
                   <button
                     type="button"
-                    title="Use my current GPS location"
+                    title={t('nav.gpsUseCurrent')}
                     style={{
                       padding: '0.55rem 0.75rem', borderRadius: '8px',
                       background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)',
                       color: '#10b981', cursor: 'pointer', fontSize: '1.1rem'
                     }}
                     onClick={() => {
-                      if (!navigator.geolocation) { toast.error('Geolocation not supported'); return }
+                      if (!navigator.geolocation) { toast.error(t('nav.gpsNotSupported')); return }
                       navigator.geolocation.getCurrentPosition(
                         (pos) => {
                           setNewFarm(prev => ({
@@ -506,9 +511,9 @@ export default function FarmLayout({ children }) {
                             latitude: Math.round(pos.coords.latitude * 10000) / 10000,
                             longitude: Math.round(pos.coords.longitude * 10000) / 10000
                           }))
-                          toast.success('📍 GPS location captured!')
+                          toast.success(t('nav.gpsCaptured'))
                         },
-                        () => toast.error('GPS access denied. Enter coordinates manually.')
+                        () => toast.error(t('nav.gpsDenied'))
                       )
                     }}
                   >📍</button>
@@ -522,10 +527,10 @@ export default function FarmLayout({ children }) {
 
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
                 <button type="submit" className="glow-btn" style={{ flex: 1, padding: '0.8rem', borderRadius: '10px', color: '#fff', fontWeight: 700 }} disabled={submittingFarm}>
-                  {submittingFarm ? 'Registering...' : 'Register Farm'}
+                  {submittingFarm ? t('common.loading') : t('nav.createFarmBtn')}
                 </button>
                 <button type="button" className="glow-btn" style={{ background: 'rgba(255,255,255,0.05)', flex: 1, padding: '0.8rem', borderRadius: '10px', color: '#fff', fontWeight: 700 }} onClick={() => setShowFarmModal(false)}>
-                  Cancel
+                  {t('nav.cancelBtn')}
                 </button>
               </div>
             </form>

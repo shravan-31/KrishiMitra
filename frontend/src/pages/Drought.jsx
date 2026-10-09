@@ -3,9 +3,11 @@ import { motion } from 'framer-motion'
 import { useFarmStore } from '../store/farmStore'
 import FarmLayout from '../components/FarmLayout'
 import toast from 'react-hot-toast'
+import { useTranslation } from '../i18n'
 import { BACKEND_URL } from '../config'
 
 export default function Drought() {
+  const { t } = useTranslation()
   const { activeFarm } = useFarmStore()
   
   // Assessment inputs
@@ -77,9 +79,9 @@ export default function Drought() {
         body: JSON.stringify(formData)
       })
       setAnalysis(data)
-      toast.success('Drought water stress assessment completed!')
+      toast.success(t('drought.assessmentCompleteToast'))
     } catch (err) {
-      toast.error(err.message || 'Failed to complete drought assessment')
+      toast.error(err.message || t('drought.assessmentFailedToast'))
     } finally {
       setLoading(false)
     }
@@ -116,11 +118,11 @@ export default function Drought() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
               <span style={{ fontSize: '2rem' }}>🛡️</span>
               <h1 style={{ margin: 0, fontSize: '2.1rem', fontWeight: 800, background: 'linear-gradient(135deg, #f59e0b, #ef4444, #06b6d4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                Drought Defense & Water Shield
+                {t('drought.title')}
               </h1>
             </div>
             <p style={{ color: '#94a3b8', margin: '0 0 0 3rem', fontSize: '0.95rem' }}>
-              Precision water budgeting, irrigation optimization, survival forecasting, and emergency protocols for drought-affected farms in Maharashtra.
+              {t('drought.subtitle')}
             </p>
           </div>
 
@@ -139,7 +141,7 @@ export default function Drought() {
                 transition: 'all 0.2s'
               }}
             >
-              💧 Water Advisor
+              {t('drought.advisorTab')}
             </button>
             <button
               onClick={() => setActiveTab('crops')}
@@ -155,7 +157,7 @@ export default function Drought() {
                 transition: 'all 0.2s'
               }}
             >
-              🌾 Drought-Resilient Crops
+              {t('drought.cropsTab')}
             </button>
             <button
               onClick={() => setActiveTab('schemes')}
@@ -171,7 +173,7 @@ export default function Drought() {
                 transition: 'all 0.2s'
               }}
             >
-              🏛️ Relief Subsidies
+              {t('drought.schemesTab')}
             </button>
           </div>
         </div>
@@ -185,14 +187,14 @@ export default function Drought() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
                 <span style={{ fontSize: '1.4rem' }}>⚙️</span>
                 <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#f8fafc' }}>
-                  Farm Water Audit Parameters
+                  {t('drought.formTitle')}
                 </h3>
               </div>
 
               <form onSubmit={handleAnalyze} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '4px' }}>
-                    Current Cultivated Crop
+                    {t('drought.cropLabel')}
                   </label>
                   <select
                     className="glass-input"
@@ -218,7 +220,7 @@ export default function Drought() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '4px' }}>
-                      Land Area (Acres): {formData.acres}
+                      {t('drought.acresLabel')}: {formData.acres}
                     </label>
                     <input
                       type="number"
@@ -232,7 +234,7 @@ export default function Drought() {
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '4px' }}>
-                      Primary Water Source
+                      {t('drought.waterSourceLabel')}
                     </label>
                     <select
                       className="glass-input"
@@ -251,7 +253,7 @@ export default function Drought() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '4px' }}>
-                      Pump Power (HP)
+                      {t('drought.pumpHpLabel')}
                     </label>
                     <input
                       type="number"
@@ -265,7 +267,7 @@ export default function Drought() {
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '4px' }}>
-                      Daily Run Time (Hours)
+                      {t('drought.dailyHoursLabel')}
                     </label>
                     <input
                       type="number"
@@ -281,7 +283,7 @@ export default function Drought() {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '4px' }}>
-                    Irrigation Method
+                    {t('drought.irrigationMethodLabel')}
                   </label>
                   <select
                     className="glass-input"
@@ -297,7 +299,7 @@ export default function Drought() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '4px' }}>
-                      Soil Texture
+                      {t('drought.soilTextureLabel')}
                     </label>
                     <select
                       className="glass-input"
@@ -312,7 +314,7 @@ export default function Drought() {
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '4px' }}>
-                      Current Growth Stage
+                      {t('drought.growthStageLabel')}
                     </label>
                     <select
                       className="glass-input"
@@ -329,7 +331,7 @@ export default function Drought() {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '4px' }}>
-                    District (Maharashtra)
+                    {t('drought.districtLabel')}
                   </label>
                   <select
                     className="glass-input"
@@ -368,7 +370,7 @@ export default function Drought() {
                     cursor: 'pointer'
                   }}
                 >
-                  {loading ? 'Evaluating Water Deficit...' : '⚡ Calculate Drought Defense Plan'}
+                  {loading ? t('drought.calculating') : t('drought.calculateBtn')}
                 </button>
               </form>
             </div>
@@ -378,8 +380,8 @@ export default function Drought() {
               {loading ? (
                 <div className="glass-card" style={{ padding: '3rem', textAlign: 'center', borderRadius: '16px' }}>
                   <div style={{ fontSize: '2.5rem', marginBottom: '1rem', animation: 'spin 2s linear infinite' }}>💧</div>
-                  <h3 style={{ margin: 0, color: '#38bdf8' }}>Analyzing Crop Hydration & Deficit...</h3>
-                  <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: '0.5rem' }}>Computing pump discharge, crop water requirements, and survival horizon.</p>
+                  <h3 style={{ margin: 0, color: '#38bdf8' }}>{t('drought.analyzingTitle')}</h3>
+                  <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: '0.5rem' }}>{t('drought.analyzingDesc')}</p>
                 </div>
               ) : analysis ? (
                 <>
@@ -404,15 +406,15 @@ export default function Drought() {
                           {analysis?.stress_level === 'CRITICAL' ? '🚨' : analysis?.stress_level === 'HIGH' ? '⚠️' : analysis?.stress_level === 'MODERATE' ? '⚡' : '✅'}
                         </span>
                         <div>
-                          <div style={{ fontSize: '0.8rem', color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Water Stress Index</div>
+                          <div style={{ fontSize: '0.8rem', color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('drought.stressIndexTitle')}</div>
                           <h2 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800, color: severityColor.text }}>
-                            {analysis?.stress_level || 'EVALUATING'} STRESS ({analysis?.water_stress_index ?? 0}%)
+                            {analysis?.stress_level || 'EVALUATING'} ({analysis?.water_stress_index ?? 0}%)
                           </h2>
                         </div>
                       </div>
 
                       <div style={{ textAlign: 'right', background: 'rgba(0,0,0,0.3)', padding: '0.6rem 1.2rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Crop Survival Horizon</div>
+                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{t('drought.survivalHorizon')}</div>
                         <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#f8fafc' }}>
                           ~{analysis?.estimated_survival_days ?? 15} Days
                         </div>
@@ -439,26 +441,28 @@ export default function Drought() {
                   {/* Water Volume Metrics Grid */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
                     <div className="glass-card" style={{ padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                      <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '4px' }}>Daily Crop Need</div>
+                      <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '4px' }}>{t('drought.dailyDemand')}</div>
                       <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#60a5fa' }}>
                         {(analysis?.water_balance?.crop_daily_demand_liters ?? analysis?.water_stress?.daily_demand_liters ?? 0).toLocaleString()} <span style={{ fontSize: '0.8rem' }}>L/day</span>
                       </div>
-                      <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>For {formData.acres} acres of {formData.crop_name}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>
+                        {t('drought.forAcresOfCrop', { acres: formData.acres, crop: formData.crop_name })}
+                      </div>
                     </div>
 
                     <div className="glass-card" style={{ padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                      <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '4px' }}>Effective Water Delivered</div>
+                      <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '4px' }}>{t('drought.deliveredWater')}</div>
                       <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#34d399' }}>
                         {(analysis?.water_balance?.effective_supply_liters ?? analysis?.water_stress?.daily_available_liters ?? 0).toLocaleString()} <span style={{ fontSize: '0.8rem' }}>L/day</span>
                       </div>
                       <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>
-                        At {analysis?.water_balance?.irrigation_efficiency_pct ?? 90}% irrigation efficiency
+                        {t('drought.atEfficiency', { eff: analysis?.water_balance?.irrigation_efficiency_pct ?? 90 })}
                       </div>
                     </div>
 
                     <div className="glass-card" style={{ padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.06)' }}>
                       <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '4px' }}>
-                        {(analysis?.water_balance?.water_deficit_liters ?? analysis?.water_stress?.daily_deficit_liters ?? 0) > 0 ? 'Water Shortage' : 'Water Surplus'}
+                        {(analysis?.water_balance?.water_deficit_liters ?? analysis?.water_stress?.daily_deficit_liters ?? 0) > 0 ? t('drought.waterShortage') : t('drought.waterSurplus')}
                       </div>
                       <div style={{ fontSize: '1.3rem', fontWeight: 800, color: (analysis?.water_balance?.water_deficit_liters ?? 0) > 0 ? '#f87171' : '#4ade80' }}>
                         {(analysis?.water_balance?.water_deficit_liters ?? 0) > 0
@@ -466,7 +470,7 @@ export default function Drought() {
                           : `+${(analysis?.water_balance?.water_surplus_liters ?? 0).toLocaleString()}`} <span style={{ fontSize: '0.8rem' }}>L/day</span>
                       </div>
                       <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>
-                        {(analysis?.water_balance?.water_deficit_liters ?? 0) > 0 ? 'Deficit requires defense tactics' : 'Adequate moisture available'}
+                        {(analysis?.water_balance?.water_deficit_liters ?? 0) > 0 ? t('drought.deficitNeedsDefense') : t('drought.adequateMoisture')}
                       </div>
                     </div>
                   </div>
@@ -476,34 +480,34 @@ export default function Drought() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
                       <span style={{ fontSize: '1.3rem' }}>🕒</span>
                       <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#f8fafc' }}>
-                        Optimized Precision Irrigation Schedule
+                        {t('drought.dripScheduleTitle')}
                       </h3>
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                       <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '12px' }}>
-                        <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '4px' }}>Recommended Watering Window</div>
+                        <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '4px' }}>{t('drought.optimalWindow')}</div>
                         <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#38bdf8' }}>
-                          {analysis?.drip_schedule?.optimal_watering_window || '5:30 AM – 7:30 AM (Early Morning)'}
+                          {analysis?.drip_schedule?.optimal_watering_window || '5:30 AM – 7:30 AM'}
                         </div>
                         <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>
-                          Evaporative loss during 11 AM - 4 PM reaches 35%. Early morning prevents transpiration shock.
+                          {t('drought.windowTip')}
                         </div>
                       </div>
 
                       <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '12px' }}>
-                        <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '4px' }}>Recommended Run Cycle</div>
+                        <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '4px' }}>{t('drought.runCycle')}</div>
                         <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#4ade80' }}>
                           {analysis?.drip_schedule?.recommended_run_time_per_session || '1.5 Hours'}
                         </div>
                         <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>
-                          Frequency: {analysis?.drip_schedule?.watering_frequency || 'Every 2 Days'} | Saved: {analysis?.drip_schedule?.water_saved_percent || '35%'}
+                          {t('drought.frequency')} {analysis?.drip_schedule?.watering_frequency || 'Every 2 Days'} | {t('drought.saved')} {analysis?.drip_schedule?.water_saved_percent || '35%'}
                         </div>
                       </div>
                     </div>
 
                     <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '0.85rem', borderRadius: '10px', fontSize: '0.85rem', color: '#86efac' }}>
-                      💡 <strong>Action Tip:</strong> {analysis?.drip_schedule?.tip || analysis?.drip_schedule?.guideline || 'Avoid midday watering to conserve up to 35% moisture.'}
+                      💡 <strong>{t('drought.actionTip')}</strong> {analysis?.drip_schedule?.tip || analysis?.drip_schedule?.guideline || 'Avoid midday watering to conserve up to 35% moisture.'}
                     </div>
                   </div>
 
@@ -512,14 +516,14 @@ export default function Drought() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
                       <span style={{ fontSize: '1.3rem' }}>🛠️</span>
                       <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#f8fafc' }}>
-                        Emergency Defense Protocols
+                        {t('drought.protocolsTitle')}
                       </h3>
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
                       <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', padding: '1rem', borderRadius: '12px' }}>
                         <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fbbf24', marginBottom: '0.35rem' }}>
-                          🌾 Soil Mulching (Moisture Retention)
+                          {t('drought.mulchingTitle')}
                         </div>
                         <div style={{ fontSize: '0.82rem', color: '#cbd5e1', lineHeight: 1.4 }}>
                           {analysis?.emergency_protocols?.mulching || 'Apply 3-inch straw mulch around root base to block surface evaporation.'}
@@ -528,7 +532,7 @@ export default function Drought() {
 
                       <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', padding: '1rem', borderRadius: '12px' }}>
                         <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#60a5fa', marginBottom: '0.35rem' }}>
-                          🌿 Anti-Transpirant Foliar Spray
+                          {t('drought.antiTranspirantTitle')}
                         </div>
                         <div style={{ fontSize: '0.82rem', color: '#cbd5e1', lineHeight: 1.4 }}>
                           {analysis?.emergency_protocols?.anti_transpirant_spray || 'Spray 5% Kaolin clay or Potassium Nitrate (1%) at sunrise to reflect excessive heat.'}
@@ -537,7 +541,7 @@ export default function Drought() {
 
                       <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', padding: '1rem', borderRadius: '12px' }}>
                         <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#34d399', marginBottom: '0.35rem' }}>
-                          🚜 Alternate Furrow Irrigation
+                          {t('drought.alternateFurrowTitle')}
                         </div>
                         <div style={{ fontSize: '0.82rem', color: '#cbd5e1', lineHeight: 1.4 }}>
                           {analysis?.emergency_protocols?.alternate_furrow_irrigation || 'Irrigate odd rows only this cycle to stretch available water over double the acreage.'}
@@ -546,7 +550,7 @@ export default function Drought() {
 
                       <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', padding: '1rem', borderRadius: '12px' }}>
                         <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#f43f5e', marginBottom: '0.35rem' }}>
-                          🎯 Critical Stage Moisture Prioritization
+                          {t('drought.stagePrioritizationTitle')}
                         </div>
                         <div style={{ fontSize: '0.82rem', color: '#cbd5e1', lineHeight: 1.4 }}>
                           {analysis?.emergency_protocols?.stage_prioritization || 'Concentrate scarce irrigation strictly during flowering and pod/boll formation.'}
@@ -556,7 +560,7 @@ export default function Drought() {
 
                     <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1rem' }}>
                       <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#94a3b8', marginBottom: '0.5rem', textTransform: 'uppercase' }}>
-                        Specific Action Recommendations:
+                        {t('drought.recommendationsTitle')}
                       </div>
                       <ul style={{ margin: 0, paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                         {(analysis?.actionable_recommendations || [
@@ -575,9 +579,9 @@ export default function Drought() {
               ) : (
                 <div className="glass-card" style={{ padding: '3rem', textAlign: 'center', borderRadius: '16px' }}>
                   <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>🛡️</span>
-                  <h3 style={{ margin: '0 0 0.5rem', color: '#f8fafc' }}>Ready for Water Assessment</h3>
+                  <h3 style={{ margin: '0 0 0.5rem', color: '#f8fafc' }}>{t('drought.readyTitle')}</h3>
                   <p style={{ color: '#94a3b8', fontSize: '0.9rem', maxWidth: '400px', margin: '0 auto' }}>
-                    Adjust your crop, pump HP, and daily hours on the left, then click <strong>Calculate Drought Defense Plan</strong> to generate an immediate survival audit.
+                    {t('drought.readyDesc')}
                   </p>
                 </div>
               )}
@@ -591,10 +595,10 @@ export default function Drought() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)' }}>
               <h2 style={{ margin: '0 0 0.5rem', fontSize: '1.3rem', fontWeight: 800, color: '#34d399' }}>
-                University-Certified Drought Resilient Crops & Seed Varieties
+                {t('drought.certifiedCropsTitle')}
               </h2>
               <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.9rem' }}>
-                Recommended by Mahatma Phule Krishi Vidyapeeth (MPKV Rahuri) and Vasantrao Naik Marathwada Krishi Vidyapeeth (VNMKV Parbhani) for dryland rain-shadow regions of Maharashtra.
+                {t('drought.certifiedCropsSubtitle')}
               </p>
             </div>
 
@@ -624,14 +628,14 @@ export default function Drought() {
                     </div>
 
                     <div style={{ fontSize: '0.85rem', color: '#fbbf24', fontWeight: 600, marginBottom: '0.75rem' }}>
-                      Variety: {c.variety}
+                      {t('drought.variety')} {c.variety}
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.8rem', color: '#94a3b8', background: 'rgba(0,0,0,0.2)', padding: '0.75rem', borderRadius: '10px', marginBottom: '0.75rem' }}>
-                      <div>⏱️ <strong>Duration:</strong> {c.duration_days}</div>
-                      <div>💧 <strong>Irrigations:</strong> {c.water_turns}</div>
-                      <div>🌾 <strong>Yield:</strong> {c.yield_potential}</div>
-                      <div>🏛️ <strong>Center:</strong> {c.institution}</div>
+                      <div>⏱️ <strong>{t('drought.duration')}</strong> {c.duration_days}</div>
+                      <div>💧 <strong>{t('drought.irrigations')}</strong> {c.water_turns}</div>
+                      <div>🌾 <strong>{t('drought.yield')}</strong> {c.yield_potential}</div>
+                      <div>🏛️ <strong>{t('drought.center')}</strong> {c.institution}</div>
                     </div>
 
                     <p style={{ margin: 0, fontSize: '0.85rem', color: '#cbd5e1', lineHeight: 1.4 }}>
@@ -640,14 +644,14 @@ export default function Drought() {
                   </div>
 
                   <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Certified Certified Dryland Variety</span>
+                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{t('drought.certifiedDryland')}</span>
                     <a
                       href="https://mahadbt.maharashtra.gov.in"
                       target="_blank"
                       rel="noreferrer"
                       style={{ fontSize: '0.8rem', color: '#38bdf8', textDecoration: 'none', fontWeight: 600 }}
                     >
-                      Check Seed Subsidy →
+                      {t('drought.checkSubsidy')}
                     </a>
                   </div>
                 </div>
@@ -661,10 +665,10 @@ export default function Drought() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)' }}>
               <h2 style={{ margin: '0 0 0.5rem', fontSize: '1.3rem', fontWeight: 800, color: '#38bdf8' }}>
-                Government Drought Relief & Financial Assistance Schemes
+                {t('drought.reliefTitle')}
               </h2>
               <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.9rem' }}>
-                Financial grants, drip subsidies, solar pumps, and crop insurance compensation applicable across Maharashtra districts.
+                {t('drought.reliefSubtitle')}
               </p>
             </div>
 
@@ -694,7 +698,7 @@ export default function Drought() {
                     </div>
 
                     <div style={{ fontSize: '0.82rem', color: '#a7f3d0', fontWeight: 600, marginBottom: '0.75rem' }}>
-                      Eligibility: {s.eligibility}
+                      {t('drought.eligibility')} {s.eligibility}
                     </div>
 
                     <p style={{ margin: '0 0 1rem', fontSize: '0.85rem', color: '#cbd5e1', lineHeight: 1.5 }}>
@@ -703,7 +707,7 @@ export default function Drought() {
 
                     <div style={{ background: 'rgba(0,0,0,0.25)', padding: '0.75rem', borderRadius: '10px' }}>
                       <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600, marginBottom: '4px' }}>
-                        Required Documents:
+                        {t('drought.requiredDocs')}
                       </div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
                         {s.documents_needed.map((doc, dIdx) => (
@@ -725,7 +729,7 @@ export default function Drought() {
                   </div>
 
                   <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Official Government Portal</span>
+                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{t('drought.officialPortal')}</span>
                     <a
                       href={s.portal_url}
                       target="_blank"
@@ -740,7 +744,7 @@ export default function Drought() {
                         fontSize: '0.8rem'
                       }}
                     >
-                      Apply on Portal ↗
+                      {t('drought.applyPortal')}
                     </a>
                   </div>
                 </div>

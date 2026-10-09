@@ -16,10 +16,13 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useAuth } from '../hooks/useAuth';
+import { useTranslation } from '../i18n';
+import LanguageSelector from '../components/LanguageSelector';
 
 import { BACKEND_URL } from '../config';
 
 export default function Login() {
+  const { t } = useTranslation();
   const { user, loginWithGoogle, loginWithEmail, register } = useAuth();
   const navigate = useNavigate();
 
@@ -116,12 +119,12 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password || (mode === 'signup' && !fullName)) {
-      toast.error('Please fill in all fields');
+      toast.error(t('login.fillAllFields'));
       return;
     }
 
     if (password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+      toast.error(t('login.passwordMinLength'));
       return;
     }
 
@@ -130,26 +133,26 @@ export default function Login() {
       const res = await loginWithEmail(email, password);
       setLoading(false);
       if (res.success) {
-        toast.success('Logged in successfully!');
+        toast.success(t('login.loginSuccess'));
         navigate('/dashboard');
       } else {
-        toast.error(res.error || 'Invalid credentials');
+        toast.error(res.error || t('login.invalidCredentials'));
       }
     } else {
       const res = await register(email, password, fullName);
       setLoading(false);
       if (res.success) {
-        toast.success('Registration successful!');
+        toast.success(t('login.registerSuccess'));
         navigate('/dashboard');
       } else {
-        toast.error(res.error || 'Registration failed');
+        toast.error(res.error || t('login.registerFailed'));
       }
     }
   };
 
   // Quick Developer Bypass
   const handleDevLogin = () => {
-    toast.loading('Redirecting to developer environment...');
+    toast.loading(t('login.redirectingDev'));
     window.location.href = `${BACKEND_URL}/auth/dev-login`;
   };
 
@@ -209,6 +212,11 @@ export default function Login() {
           alignItems: 'stretch',
         }}
       >
+        {/* Language Selector */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
+          <LanguageSelector variant="pill" />
+        </div>
+
         {/* Brand Header */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <span style={{ fontSize: '3rem', display: 'block', marginBottom: '0.5rem' }}>🌾</span>
@@ -226,7 +234,7 @@ export default function Login() {
             KrishiMitra
           </h1>
           <p style={{ color: '#64748b', fontSize: '0.9rem', marginTop: '0.5rem', fontWeight: 500 }}>
-            Smart AI & ML Agriculture Intelligence
+            {t('login.subtitle')}
           </p>
         </div>
 
@@ -248,7 +256,7 @@ export default function Login() {
               transition: 'all 0.2s',
             }}
           >
-            Sign In
+            {t('login.signInTab')}
           </button>
           <button
             onClick={() => { setMode('signup'); setPassword(''); }}
@@ -266,7 +274,7 @@ export default function Login() {
               transition: 'all 0.2s',
             }}
           >
-            Register
+            {t('login.registerTab')}
           </button>
         </div>
 
@@ -284,7 +292,7 @@ export default function Login() {
                 style={{ overflow: 'hidden' }}
               >
                 <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Full Name
+                  {t('login.fullName')}
                 </label>
                 <div
                   className="input-glow"
@@ -301,7 +309,7 @@ export default function Login() {
                   <span style={{ fontSize: '1rem', marginRight: '0.75rem', opacity: 0.6 }}>👤</span>
                   <input
                     type="text"
-                    placeholder="Enter full name"
+                    placeholder={t('login.enterFullName')}
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     style={{
@@ -321,7 +329,7 @@ export default function Login() {
           {/* Email field */}
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Email Address
+              {t('login.emailAddress')}
             </label>
             <div
               className="input-glow"
@@ -338,7 +346,7 @@ export default function Login() {
               <span style={{ fontSize: '1rem', marginRight: '0.75rem', opacity: 0.6 }}>✉️</span>
               <input
                 type="email"
-                placeholder="farmer@krishimitra.org"
+                placeholder={t('login.enterEmail')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 style={{
@@ -356,7 +364,7 @@ export default function Login() {
           {/* Password field */}
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Password
+              {t('login.password')}
             </label>
             <div
               className="input-glow"
@@ -424,12 +432,12 @@ export default function Login() {
                     animation: 'floatUp 0.8s linear infinite',
                   }}
                 />
-                Processing...
+                {mode === 'signin' ? t('login.signingIn') : t('login.registering')}
               </>
             ) : mode === 'signin' ? (
-              'Sign In with Password'
+              t('login.signInBtn')
             ) : (
-              'Create Farm Account'
+              t('login.registerBtn')
             )}
           </button>
         </form>
@@ -438,7 +446,7 @@ export default function Login() {
         <div style={{ display: 'flex', alignItems: 'center', margin: '1.75rem 0' }}>
           <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.06)' }} />
           <span style={{ padding: '0 0.75rem', fontSize: '0.75rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            or continue with
+            {t('login.orContinueWith')}
           </span>
           <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.06)' }} />
         </div>
@@ -470,7 +478,7 @@ export default function Login() {
             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.85z" fill="#FBBC05"/>
             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.85c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
           </svg>
-          Google Authentication
+          {t('login.googleSignIn')}
         </button>
 
         {/* Development bypass link */}
@@ -491,7 +499,7 @@ export default function Login() {
             onMouseEnter={(e) => e.target.style.color = '#ef4444'}
             onMouseLeave={(e) => e.target.style.color = '#64748b'}
           >
-            ⚠️ Local Developer Quick Login
+            ⚠️ {t('login.devLoginBtn')}
           </button>
         </div>
 
