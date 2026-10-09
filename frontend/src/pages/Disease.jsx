@@ -574,37 +574,37 @@ export default function Disease() {
                     </div>
                   </div>
 
-                  {result.is_uncertain ? (
-                    <div style={{ background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.4)', borderRadius: '12px', padding: '1.25rem', color: '#fde047' }}>
-                      <h4 style={{ margin: '0 0 0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#facc15', fontSize: '1rem' }}>
+                  {result.is_uncertain && (
+                    <div style={{ background: 'rgba(234, 179, 8, 0.08)', border: '1px solid rgba(234, 179, 8, 0.3)', borderRadius: '12px', padding: '1.1rem', color: '#fde047' }}>
+                      <h4 style={{ margin: '0 0 0.35rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#facc15', fontSize: '0.95rem' }}>
                         {t('disease.uncertainTitle')}
                       </h4>
-                      <p style={{ margin: 0, fontSize: '0.85rem', color: '#fef08a', lineHeight: 1.5 }}>
+                      <p style={{ margin: 0, fontSize: '0.82rem', color: '#fef08a', lineHeight: 1.4 }}>
                         {result.message || t('disease.selectImagePrompt')}
                       </p>
-                      <p style={{ margin: '0.5rem 0 0', fontSize: '0.75rem', color: '#cbd5e1' }}>
+                      <p style={{ margin: '0.4rem 0 0', fontSize: '0.75rem', color: '#cbd5e1' }}>
                         {t('disease.uncertainNote')}
                       </p>
                     </div>
-                  ) : (
-                    <div style={{ background: 'rgba(16,185,129,0.03)', border: '1px solid rgba(16,185,129,0.18)', borderRadius: '14px', padding: '1.3rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                        <h4 style={{ margin: 0, color: '#10b981', fontSize: '0.95rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <span>🩺</span> {t('disease.prescribedTreatment')}
-                        </h4>
-                        {result.treatment_plan && (
-                          <button
-                            onClick={() => setActiveTab('treatment')}
-                            style={{
-                              background: 'rgba(16,185,129,0.15)', border: '1px solid #10b981',
-                              color: '#34d399', borderRadius: '8px', padding: '0.35rem 0.75rem',
-                              fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s'
-                            }}
-                          >
-                            {t('disease.viewFullPlan')}
-                          </button>
-                        )}
-                      </div>
+                  )}
+
+                  <div style={{ background: 'rgba(16,185,129,0.03)', border: '1px solid rgba(16,185,129,0.18)', borderRadius: '14px', padding: '1.3rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <h4 style={{ margin: 0, color: '#10b981', fontSize: '0.95rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span>🩺</span> {t('disease.prescribedTreatment')}
+                      </h4>
+                      <button
+                        onClick={() => setActiveTab('treatment')}
+                        style={{
+                          background: 'rgba(16,185,129,0.15)', border: '1px solid #10b981',
+                          color: '#34d399', borderRadius: '8px', padding: '0.35rem 0.75rem',
+                          fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s'
+                        }}
+                      >
+                        {t('disease.viewFullPlan')}
+                      </button>
+                    </div>
+                    {result.treatment_steps && result.treatment_steps.length > 0 ? (
                       <ol style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.88rem', color: '#cbd5e1', lineHeight: 1.7 }}>
                         {result.treatment_steps.map((step, idx) => (
                           <li key={idx} style={{ marginBottom: '6px' }}>
@@ -612,14 +612,18 @@ export default function Disease() {
                           </li>
                         ))}
                       </ol>
-                      {result.treatment_plan?.guidance && (
-                        <div style={{ marginTop: '0.85rem', paddingTop: '0.75rem', borderTop: '1px dashed rgba(255,255,255,0.08)', fontSize: '0.82rem', color: '#94a3b8' }}>
-                          <span style={{ color: '#eab308', fontWeight: 700 }}>{t('disease.clinicalNote')}</span>
-                          {result.treatment_plan.guidance}
-                        </div>
-                      )}
-                    </div>
-                  )}
+                    ) : (
+                      <p style={{ margin: 0, fontSize: '0.88rem', color: '#cbd5e1' }}>
+                        {result.treatment || 'Monitor crop symptoms and capture a well-lit leaf photo.'}
+                      </p>
+                    )}
+                    {result.treatment_plan?.guidance && (
+                      <div style={{ marginTop: '0.85rem', paddingTop: '0.75rem', borderTop: '1px dashed rgba(255,255,255,0.08)', fontSize: '0.82rem', color: '#94a3b8' }}>
+                        <span style={{ color: '#eab308', fontWeight: 700 }}>{t('disease.clinicalNote')}</span>
+                        {result.treatment_plan.guidance}
+                      </div>
+                    )}
+                  </div>
 
                   {result.top5 && result.top5.length > 0 && (
                     <div>
@@ -642,7 +646,7 @@ export default function Disease() {
                 </motion.div>
 
               /* ─── TAB: Treatment Plan (Solution-in-the-Loop) ─── */
-              ) : result && activeTab === 'treatment' && result.treatment_plan ? (
+              ) : result && activeTab === 'treatment' ? (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                   key="treatment" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
 
@@ -657,10 +661,10 @@ export default function Disease() {
                   {/* Severity-specific guidance */}
                   <div style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '14px', padding: '1.25rem' }}>
                     <div style={{ fontSize: '0.7rem', color: '#10b981', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>
-                      {t('disease.severityGuidance', { severity: result.severity })}
+                      {t('disease.severityGuidance', { severity: result.severity || 'LOW' })}
                     </div>
                     <p style={{ margin: 0, fontSize: '0.9rem', color: '#e2e8f0', lineHeight: 1.6 }}>
-                      {result.treatment_plan.guidance}
+                      {result.treatment_plan?.guidance || result.treatment || 'Apply recommended dosage and monitor foliage symptoms regularly.'}
                     </p>
                   </div>
 
@@ -668,7 +672,7 @@ export default function Disease() {
                   <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '14px', padding: '1.25rem' }}>
                     <h4 style={{ margin: '0 0 0.75rem', color: '#94a3b8', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase' }}>{t('disease.culturalPractices')}</h4>
                     <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.85rem', color: '#cbd5e1', lineHeight: 1.7 }}>
-                      {result.treatment_plan.cultural_practices.map((p, i) => (
+                      {(result.treatment_plan?.cultural_practices || (result.treatment_steps || ['Isolate diseased plants', 'Avoid overhead watering'])).map((p, i) => (
                         <li key={i} style={{ marginBottom: '4px' }}>
                           <span style={{ color: '#10b981', marginRight: '4px' }}>●</span> {p}
                         </li>
@@ -681,17 +685,17 @@ export default function Disease() {
                     <span style={{ fontSize: '1.5rem' }}>📸</span>
                     <div>
                       <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#a5b4fc' }}>
-                        {t('disease.followupScanIn', { days: result.treatment_plan.follow_up_days })}
+                        {t('disease.followupScanIn', { days: result.treatment_plan?.follow_up_days || 7 })}
                       </div>
                       <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '2px' }}>
-                        {result.treatment_plan.monitoring_note}
+                        {result.treatment_plan?.monitoring_note || 'Re-scan leaf after 7 days to evaluate recovery.'}
                       </div>
                     </div>
                   </div>
 
                   {/* Source disclaimer */}
                   <div style={{ fontSize: '0.7rem', color: '#64748b', padding: '0.75rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
-                    <strong>{t('disease.sourceLabel')}</strong> {result.treatment_plan.source}<br />
+                    <strong>{t('disease.sourceLabel')}</strong> {result.treatment_plan?.source || 'Agricultural Extension Guidelines'}<br />
                     <em>{t('disease.disclaimer')}</em>
                   </div>
                 </motion.div>

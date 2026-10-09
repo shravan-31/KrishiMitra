@@ -149,10 +149,32 @@ async def dev_login(request: Request, db=Depends(get_db)):
             "mock_dev_user",
             "farmer@krishimitra.org",
             "Krishi Dev Farmer",
-            "https://api.dicebear.com/7.x/adventurer/svg?seed=KrishiDev",
         )
 
-    # Create JWT
+    # Auto-seed a demo farm with crops if this user has no farms yet
+    user_id = user["id"]
+    existing_farm = await db.fetchrow("SELECT id FROM farms WHERE user_id = $1 LIMIT 1", user_id)
+    if not existing_farm:
+        new_farm_row = await db.fetchrow(
+            """
+            INSERT INTO farms (user_id, farm_name, location, state, district, area_acres, soil_type, latitude, longitude)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            RETURNING id
+            """,
+            user_id, "सह्याद्री ॲग्रो फार्म (Sahyadri Farm)", "Baramati, Pune", "Maharashtra", "Pune",
+            5.0, "Black Soil", 18.1507, 74.5768
+        )
+        if new_farm_row:
+            f_id = new_farm_row["id"]
+            await db.execute(
+                """
+                INSERT INTO crops (farm_id, crop_name, variety, sown_date, harvest_date, area_acres, status)
+                VALUES 
+                  ($1, 'Soybean', 'JS-335', CURRENT_DATE - INTERVAL '25 days', CURRENT_DATE + INTERVAL '70 days', 3.0, 'growing'),
+                  ($1, 'Wheat', 'Lokwan', CURRENT_DATE - INTERVAL '10 days', CURRENT_DATE + INTERVAL '95 days', 2.0, 'growing')
+                """,
+                f_id
+            )
     payload = {
         "sub": str(user["id"]),
         "email": user["email"],

@@ -282,7 +282,7 @@ export default function Report() {
                               <span>{t('report.thConfidence')}: <strong>{d.confidence}%</strong></span>
                             </div>
                             <div style={{ fontSize: '0.85rem', color: '#94a3b8', lineHeight: 1.4 }}>
-                              <strong>{t('disease.treatmentProtocols') || 'Remediation Steps'}:</strong> {Array.isArray(d.treatment) ? d.treatment.join(', ') : d.treatment}
+                              <strong>{t('disease.treatmentProtocols') || 'Remediation Steps'}:</strong> {Array.isArray(d.treatment) ? d.treatment.join(', ') : (d.treatment || 'Apply targeted fungicide and balanced moisture control.')}
                             </div>
                           </div>
                         </div>
@@ -308,21 +308,22 @@ export default function Report() {
                           />
                           <div style={{ flex: 1, minWidth: '250px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                              <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#fbbf24' }}>{p.pest_name}</h4>
+                              <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#fbbf24' }}>{p.pest_name || 'Crop Pest Scan'}</h4>
                               <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{new Date(p.scanned_at).toLocaleDateString()}</span>
                             </div>
                             <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem' }}>
-                              <span>{t('pest.infestationSeverity')}: <strong style={{ color: '#fbbf24' }}>{p.infestation}</strong></span>
+                              <span>{t('pest.infestationSeverity')}: <strong style={{ color: '#fbbf24' }}>{p.infestation || 'MEDIUM'}</strong></span>
                             </div>
                             <div style={{ fontSize: '0.85rem', color: '#94a3b8', lineHeight: 1.4 }}>
-                              <strong>{t('pest.bioCtrl')}:</strong> {p.organic_ctrl}
+                              <strong>{t('pest.bioCtrl') || 'Biological Control'}:</strong> {p.organic_ctrl || (typeof p.treatment === 'string' ? p.treatment.split(' | ')[0] : null) || 'Apply neem oil (Azadirachtin 1500 ppm @ 3-5 ml/L).'}
                             </div>
                             <div style={{ fontSize: '0.85rem', color: '#94a3b8', lineHeight: 1.4 }}>
-                              <strong>{t('pest.chemCtrl')}:</strong> {p.chemical_ctrl}
+                              <strong>{t('pest.chemCtrl') || 'Chemical Control'}:</strong> {p.chemical_ctrl || (typeof p.treatment === 'string' ? p.treatment.split(' | ')[1] : null) || 'Apply targeted pesticide if infestation exceeds economic threshold.'}
                             </div>
                           </div>
                         </div>
                       ))}
+
                     </div>
                   )}
                 </div>

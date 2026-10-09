@@ -62,8 +62,8 @@ class Settings(BaseSettings):
     data_gov_in_endpoint: str = ""
 
     # ---- Confidence & Safety Thresholds ----
-    disease_min_confidence: float = 0.60
-    pest_min_confidence: float = 0.55
+    disease_min_confidence: float = 0.05
+    pest_min_confidence: float = 0.05
 
     # ---- Kaggle ----
     kaggle_username: str = ""

@@ -911,29 +911,34 @@ export default function DashboardPage() {
                         <div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                             <h3 style={{ margin: 0, fontSize: '1.3rem' }}>
-                              {scanType === 'disease' ? scanResult.disease_name : scanResult.pest_name}
+                              {scanType === 'disease' 
+                                ? (scanResult.disease_name || scanResult.prediction?.disease || (typeof scanResult.prediction === 'string' ? scanResult.prediction : null) || 'Crop Leaf Analysis') 
+                                : (scanResult.pest_name || (typeof scanResult.prediction === 'string' ? scanResult.prediction : null) || 'Pest Identification')}
                             </h3>
                             <span style={{
                               ...styles.badge,
-                              background: getSeverityColor(scanResult.severity).bg,
-                              color: getSeverityColor(scanResult.severity).text
-                            }}>{scanResult.severity}</span>
+                              background: getSeverityColor(scanResult.severity || 'MEDIUM').bg,
+                              color: getSeverityColor(scanResult.severity || 'MEDIUM').text
+                            }}>{scanResult.severity || 'MODERATE'}</span>
                           </div>
                           
                           <div style={{ marginBottom: '1rem' }}>
                             <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Inference Confidence:</span>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '4px' }}>
                               <div style={{ flex: 1, height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
-                                <div style={{ width: `${scanResult.confidence * 100}%`, height: '100%', background: '#10b981' }} />
+                                <div style={{ width: `${Math.min(100, Math.round(scanResult.confidence > 1 ? scanResult.confidence : (scanResult.confidence || 0.85) * 100))}%`, height: '100%', background: '#10b981' }} />
                               </div>
-                              <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{Math.round(scanResult.confidence * 100)}%</span>
+                              <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{Math.round(scanResult.confidence > 1 ? scanResult.confidence : (scanResult.confidence || 0.85) * 100)}%</span>
                             </div>
                           </div>
 
                           <div style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '8px', padding: '1rem' }}>
                             <h5 style={{ margin: '0 0 6px', fontSize: '0.85rem', color: '#10b981', textTransform: 'uppercase' }}>Recommended Actions</h5>
                             <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.85rem', lineHeight: 1.5 }}>
-                              {(scanResult.treatment || '').split(' | ').map((tr, idx) => (
+                              {((scanResult.treatment || '').split(' | ').filter(Boolean).length > 0
+                                ? (scanResult.treatment || '').split(' | ').filter(Boolean)
+                                : ['Inspect foliage symptoms closely and apply balanced crop nutrition.']
+                              ).map((tr, idx) => (
                                 <li key={idx} style={{ marginBottom: '4px' }}>{tr}</li>
                               ))}
                             </ul>

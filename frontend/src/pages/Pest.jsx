@@ -517,7 +517,7 @@ export default function Pest() {
                   </div>
 
                   {/* Organic & Chemical Treatments */}
-                  {result.is_uncertain ? (
+                  {result.is_uncertain && (
                     <div style={{ background: 'rgba(234, 179, 8, 0.08)', border: '1px solid rgba(234, 179, 8, 0.35)', borderRadius: '12px', padding: '1.25rem', color: '#fde047' }}>
                       <h4 style={{ margin: '0 0 0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#facc15', fontSize: '1rem' }}>
                         {t('pest.confidenceTooLow', { confidence: result.confidence })}
@@ -549,19 +549,19 @@ export default function Pest() {
                         {t('pest.accuracyScanTip')}
                       </p>
                     </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      <div style={{ background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.15)', borderRadius: '12px', padding: '1rem' }}>
-                        <h4 style={{ margin: '0 0 0.25rem', color: '#4ade80', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase' }}>{t('pest.organicProtocol')}</h4>
-                        <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8', lineHeight: 1.4 }}>{result.organic_control}</p>
-                      </div>
-
-                      <div style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: '12px', padding: '1rem' }}>
-                        <h4 style={{ margin: '0 0 0.25rem', color: '#ef4444', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase' }}>{t('pest.chemicalProtocol')}</h4>
-                        <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8', lineHeight: 1.4 }}>{result.chemical_control}</p>
-                      </div>
-                    </div>
                   )}
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <div style={{ background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.15)', borderRadius: '12px', padding: '1rem' }}>
+                      <h4 style={{ margin: '0 0 0.25rem', color: '#4ade80', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase' }}>{t('pest.organicProtocol')}</h4>
+                      <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8', lineHeight: 1.4 }}>{result.organic_control || 'Apply neem oil (5ml/L) or organic insecticidal soap spray.'}</p>
+                    </div>
+
+                    <div style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: '12px', padding: '1rem' }}>
+                      <h4 style={{ margin: '0 0 0.25rem', color: '#ef4444', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase' }}>{t('pest.chemicalProtocol')}</h4>
+                      <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8', lineHeight: 1.4 }}>{result.chemical_control || 'Apply standard recommended pesticide if infestation is severe.'}</p>
+                    </div>
+                  </div>
 
                   {result.top5 && result.top5.length > 0 && (
                     <div>

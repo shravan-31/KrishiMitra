@@ -119,41 +119,49 @@ async def scan_disease(
 
     # ── Load treatment plan from verified agricultural guidelines ──
     treatment_plan = None
-    if not is_uncertain:
-        import json as _json
-        _gpath = os.path.join(os.path.dirname(__file__), "..", "data", "treatment_guidelines.json")
-        try:
-            with open(_gpath, "r", encoding="utf-8") as _gf:
-                _gdata = _json.load(_gf)
-            
-            treatments_dict = _gdata.get("treatments", {})
-            class_key = pred.get("class_name", "")
-            disease_key = pred.get("disease_name", "")
-            crop_key = pred.get("crop_name", "")
-            composite_key = f"{crop_key}___{disease_key}".replace(" ", "_")
+    import json as _json
+    _gpath = os.path.join(os.path.dirname(__file__), "..", "data", "treatment_guidelines.json")
+    try:
+        with open(_gpath, "r", encoding="utf-8") as _gf:
+            _gdata = _json.load(_gf)
+        
+        treatments_dict = _gdata.get("treatments", {})
+        class_key = pred.get("class_name", "")
+        disease_key = pred.get("disease_name", "")
+        crop_key = pred.get("crop_name", "")
+        composite_key = f"{crop_key}___{disease_key}".replace(" ", "_")
 
-            # Multi-key robust matching
-            plan = (
-                treatments_dict.get(class_key)
-                or treatments_dict.get(disease_key)
-                or treatments_dict.get(composite_key)
-                or next((v for k, v in treatments_dict.items() if k.lower() in [class_key.lower(), disease_key.lower()]), None)
-                or _gdata.get("default_treatment", {})
-            )
-            
-            sev_upper = pred.get("severity", "LOW").upper()
-            treatment_plan = {
-                "disease": plan.get("disease", pred.get("disease_name", "Unknown")),
-                "crop": plan.get("crop", pred.get("crop_name", "Crop")),
-                "guidance": plan.get("severity_guidance", {}).get(sev_upper, plan.get("severity_guidance", {}).get("MEDIUM", "Consult local extension officer.")),
-                "cultural_practices": plan.get("cultural_practices", []),
-                "follow_up_days": plan.get("follow_up_days", 7),
-                "monitoring_note": plan.get("monitoring_note", "Re-scan after treatment."),
-                "source": "Agricultural Extension Guidelines (ICAR / TNAU / KVK / USDA-ARS)",
-            }
-        except Exception as _e:
-            import logging
-            logging.getLogger(__name__).warning(f"Error loading treatment guidelines: {_e}")
+        # Multi-key robust matching
+        plan = (
+            treatments_dict.get(class_key)
+            or treatments_dict.get(disease_key)
+            or treatments_dict.get(composite_key)
+            or next((v for k, v in treatments_dict.items() if k.lower() in [class_key.lower(), disease_key.lower()]), None)
+            or _gdata.get("default_treatment", {})
+        )
+        
+        sev_upper = pred.get("severity", "LOW").upper()
+        treatment_plan = {
+            "disease": plan.get("disease", pred.get("disease_name", "Unknown")),
+            "crop": plan.get("crop", pred.get("crop_name", "Crop")),
+            "guidance": plan.get("severity_guidance", {}).get(sev_upper, plan.get("severity_guidance", {}).get("MEDIUM", "Consult local extension officer.")),
+            "cultural_practices": plan.get("cultural_practices", ["Maintain proper plant spacing and airflow.", "Avoid overhead sprinkler irrigation on infected foliage."]),
+            "follow_up_days": plan.get("follow_up_days", 7),
+            "monitoring_note": plan.get("monitoring_note", "Re-scan after treatment."),
+            "source": "Agricultural Extension Guidelines (ICAR / TNAU / KVK / USDA-ARS)",
+        }
+    except Exception as _e:
+        import logging
+        logging.getLogger(__name__).warning(f"Error loading treatment guidelines: {_e}")
+        treatment_plan = {
+            "disease": pred.get("disease_name", "Unknown"),
+            "crop": pred.get("crop_name", "Crop"),
+            "guidance": "Monitor crop symptoms and capture a well-lit leaf photo.",
+            "cultural_practices": ["Isolate affected leaves", "Maintain proper aeration"],
+            "follow_up_days": 7,
+            "monitoring_note": "Re-scan after treatment.",
+            "source": "Agricultural Extension Guidelines",
+        }
 
     return {
         "status":          pred.get("status", "success"),

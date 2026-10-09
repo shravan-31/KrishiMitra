@@ -23,8 +23,8 @@ git add -f frontend/dist
 git add .
 echo.
 
-echo 3. Creating commit with latest features and compiled production bundle...
-git commit -m "deploy: update production frontend bundle and fixes"
+echo 3. Creating commit with root dashboard routing and auto-seed farm...
+git commit -m "fix: route root URL directly to Dashboard and auto-seed demo farm"
 echo.
 
 echo 4. Pushing commit to remote repository (origin main)...

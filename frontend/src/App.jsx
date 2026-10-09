@@ -42,11 +42,21 @@ function AnimatedRoutes() {
   return (
     <PageTransition locationKey={location.pathname}>
       <Routes location={location}>
-        {/* Landing Page */}
-        <Route path="/" element={<Landing />} />
+        {/* Root Route: Directly opens Dashboard when authenticated, otherwise redirects to /login */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Public Login Route */}
         <Route path="/login" element={<Login />} />
+
+        {/* Landing Page */}
+        <Route path="/landing" element={<Landing />} />
 
         {/* Protected routes */}
         <Route
