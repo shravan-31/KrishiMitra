@@ -150,11 +150,7 @@ export function I18nProvider({ children }) {
     }
   }
 
-  return (
-    <I18nContext.Provider value={contextValue}>
-      {children}
-    </I18nContext.Provider>
-  )
+  return React.createElement(I18nContext.Provider, { value: contextValue }, children)
 }
 
 // Main Hook for Functional Components
