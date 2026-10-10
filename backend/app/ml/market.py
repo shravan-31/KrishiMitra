@@ -106,7 +106,7 @@ def get_historical_prices(crop_name: str, limit: int = 30):
     return prices, dates.strftime("%Y-%m-%d").tolist()
 
 
-def forecast_market(crop_name: str, forecast_days: int = 7):
+def forecast_market(crop_name: str, forecast_days: int = 7, allow_fallback: bool = False):
     """
     Forecast crop prices for today and upcoming N days using a combination of
     trained PyTorch LSTM (for Rice/Wheat) and seasonal market momentum modeling
@@ -114,6 +114,10 @@ def forecast_market(crop_name: str, forecast_days: int = 7):
     """
     load_market_assets()
     crop_clean = crop_name.strip().capitalize()
+    crops_list = _config.get("crops", ["Rice", "Wheat"]) if _config else ["Rice", "Wheat"]
+    if not allow_fallback and crop_clean not in crops_list:
+        raise ValueError(f"Crop '{crop_clean}' is not supported for LSTM price forecasting. Supported crops: {crops_list}")
+
     base_price = CROP_BASE_PRICES.get(crop_clean, 2500.0)
     
     # 1. Historical sequence leading up to today
@@ -125,7 +129,6 @@ def forecast_market(crop_name: str, forecast_days: int = 7):
     # Check if PyTorch LSTM is available and crop is in its trained dictionary
     use_lstm = False
     if _model is not None and _scaler is not None and _config is not None:
-        crops_list = _config.get("crops", ["Rice", "Wheat"])
         if crop_clean in crops_list:
             use_lstm = True
             crop_idx = crops_list.index(crop_clean)

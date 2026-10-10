@@ -1,0 +1,3 @@
+"""
+KrishiMitra Backend Tests Package
+"""

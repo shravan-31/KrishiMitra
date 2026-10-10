@@ -84,7 +84,7 @@ async def predict_crop_yield(
     }
 
     try:
-        from app.main import get_ws_manager
+        from app.websocket import get_ws_manager
         ws_manager = get_ws_manager()
         await on_yield_predicted(req.farm_id, yield_data, db, ws_manager)
     except Exception:

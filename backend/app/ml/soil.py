@@ -93,7 +93,7 @@ def generate_fertilizer_advice(n, p, k, ph, organic_matter):
     if ph < 6.0:
         advice.append("Soil is acidic. Add agricultural lime (calcium carbonate) to increase pH.")
     elif ph > 7.5:
-        advice.append("Soil is alkaline. Incorporate agricultural sulfur or organic compost to lower pH.")
+        advice.append("Soil is alkaline. Incorporate agricultural sulfur, gypsum, or organic compost to lower pH.")
         
     if organic_matter < 2.0:
         advice.append("Organic matter is low. Incorporate well-rotted farmyard manure or vermicompost.")

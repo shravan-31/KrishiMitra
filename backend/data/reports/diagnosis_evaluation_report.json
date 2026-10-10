@@ -1,0 +1,286 @@
+{
+  "metadata": {
+    "timestamp": "2026-10-10 23:19:42",
+    "disease_checkpoint": "backend/models/plantvillage/model.pth",
+    "pest_checkpoint": "backend/models/pest/model.pth",
+    "device": "cpu"
+  },
+  "sample_counts": {
+    "A_healthy_supported": 36,
+    "B_diseased_supported": 78,
+    "C_unsupported_species": 15,
+    "D_non_plant_images": 15,
+    "E_difficult_conditions": 20,
+    "F_pest_evaluation": 55
+  },
+  "category_metrics": {},
+  "disease_metrics": {
+    "supported_total_evaluated": 114,
+    "correct_predictions": 80,
+    "top1_accuracy": 0.7018,
+    "macro_f1": 0.7589,
+    "coverage": 0.7281,
+    "selective_risk": 0.0361,
+    "healthy_total": 36,
+    "healthy_false_positives": 1,
+    "false_positive_rate_on_healthy": 0.0278,
+    "non_plant_total": 15,
+    "non_plant_rejected": 12,
+    "non_plant_rejection_rate": 0.8,
+    "non_plant_false_acceptance_rate": 0.2,
+    "unsupported_species_total": 15,
+    "unsupported_species_rejected": 15,
+    "unsupported_rejection_rate": 1.0,
+    "difficult_conditions_total": 20,
+    "difficult_rejected_or_uncertain": 20,
+    "difficult_safety_gate_rate": 1.0,
+    "calibration": {
+      "ece": 0.2123,
+      "brier_score": 0.0794
+    },
+    "per_class_summary": {
+      "Apple___Apple_scab": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 0.6667,
+        "f1": 0.8
+      },
+      "Apple___Black_rot": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "Apple___Cedar_apple_rust": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "Apple___healthy": {
+        "samples": 3,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "Blueberry___healthy": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "Cherry_(including_sour)___Powdery_mildew": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 0.3333,
+        "f1": 0.5
+      },
+      "Cherry_(including_sour)___healthy": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "Corn_(maize)___Common_rust_": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 0.6667,
+        "f1": 0.8
+      },
+      "Corn_(maize)___Northern_Leaf_Blight": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 0.3333,
+        "f1": 0.5
+      },
+      "Corn_(maize)___healthy": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "Grape___Black_rot": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "Grape___Esca_(Black_Measles)": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 0.6667,
+        "f1": 0.8
+      },
+      "Grape___Leaf_blight_(Isariopsis_Leaf_Spot)": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 0.6667,
+        "f1": 0.8
+      },
+      "Grape___healthy": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 0.6667,
+        "f1": 0.8
+      },
+      "Orange___Haunglongbing_(Citrus_greening)": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "Peach___Bacterial_spot": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 0.6667,
+        "f1": 0.8
+      },
+      "Peach___healthy": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "Pepper,_bell___Bacterial_spot": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "Pepper,_bell___healthy": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 0.3333,
+        "f1": 0.5
+      },
+      "Potato___Early_blight": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "Potato___Late_blight": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 0.3333,
+        "f1": 0.5
+      },
+      "Potato___healthy": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "Raspberry___healthy": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "Soybean___healthy": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 0.3333,
+        "f1": 0.5
+      },
+      "Squash___Powdery_mildew": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "Strawberry___Leaf_scorch": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "Strawberry___healthy": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "Tomato___Bacterial_spot": {
+        "samples": 3,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "Tomato___Early_blight": {
+        "samples": 3,
+        "precision": 0.6667,
+        "recall": 0.6667,
+        "f1": 0.6667
+      },
+      "Tomato___Late_blight": {
+        "samples": 3,
+        "precision": 0.5,
+        "recall": 0.6667,
+        "f1": 0.5714
+      },
+      "Tomato___Leaf_Mold": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 0.3333,
+        "f1": 0.5
+      },
+      "Tomato___Septoria_leaf_spot": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 0.3333,
+        "f1": 0.5
+      },
+      "Tomato___Spider_mites Two-spotted_spider_mite": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 0.3333,
+        "f1": 0.5
+      },
+      "Tomato___Target_Spot": {
+        "samples": 3,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "Tomato___Tomato_Yellow_Leaf_Curl_Virus": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "Tomato___Tomato_mosaic_virus": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "Tomato___healthy": {
+        "samples": 3,
+        "precision": 1.0,
+        "recall": 0.6667,
+        "f1": 0.8
+      }
+    }
+  },
+  "pest_metrics": {
+    "total_pest_samples": 55,
+    "pest_present_samples": 45,
+    "pest_absent_clean_leaf_samples": 10,
+    "pest_present_detected": 12,
+    "pest_present_uncertain_gated": 33,
+    "pest_present_sensitivity": 0.2667,
+    "pest_absent_false_alarm_count": 0,
+    "pest_absent_safely_suppressed": 10,
+    "pest_absent_suppression_rate": 1.0,
+    "limitation_note": "EfficientNet-B0 is a closed-set 15-class insect classifier without an object detector or background class. Absence detection cannot be guaranteed without an object detector."
+  },
+  "calibration": {},
+  "execution_duration_seconds": 16.33
+}

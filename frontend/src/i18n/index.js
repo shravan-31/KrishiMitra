@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import en from './locales/en.json'
 import mr from './locales/mr.json'
 import hi from './locales/hi.json'
+import catalog from './catalog.json'
 
 const resources = {
   en,
@@ -14,6 +15,66 @@ export const SUPPORTED_LANGUAGES = [
   { code: 'mr', label: 'Marathi', nativeName: 'मराठी', flag: '🇮🇳' },
   { code: 'hi', label: 'Hindi', nativeName: 'हिंदी', flag: '🇮🇳' }
 ]
+
+export function getLocalizedCrop(crop, lang = null) {
+  if (!crop) return ''
+  const currentLang = lang || (typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null) || DEFAULT_LANGUAGE
+  if (catalog.crops && catalog.crops[crop]) {
+    return catalog.crops[crop][currentLang] || catalog.crops[crop][DEFAULT_LANGUAGE] || crop
+  }
+  const found = Object.keys(catalog.crops || {}).find(k => k.toLowerCase() === String(crop).toLowerCase())
+  if (found) {
+    return catalog.crops[found][currentLang] || catalog.crops[found][DEFAULT_LANGUAGE] || crop
+  }
+  return crop
+}
+
+export function getLocalizedDisease(disease, lang = null) {
+  if (!disease) return ''
+  const currentLang = lang || (typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null) || DEFAULT_LANGUAGE
+  if (catalog.diseases && catalog.diseases[disease]) {
+    return catalog.diseases[disease][currentLang] || catalog.diseases[disease][DEFAULT_LANGUAGE] || disease
+  }
+  const found = Object.entries(catalog.diseases || {}).find(([k, v]) => {
+    const label = k.includes('___') ? k.split('___')[1].replace(/_/g, ' ').toLowerCase() : k.toLowerCase()
+    return label === String(disease).toLowerCase() || k.toLowerCase() === String(disease).toLowerCase()
+  })
+  if (found) {
+    return found[1][currentLang] || found[1][DEFAULT_LANGUAGE] || disease
+  }
+  return disease
+}
+
+export function getLocalizedPest(pest, lang = null) {
+  if (!pest) return ''
+  const currentLang = lang || (typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null) || DEFAULT_LANGUAGE
+  if (catalog.pests && catalog.pests[pest]) {
+    return catalog.pests[pest][currentLang] || catalog.pests[pest][DEFAULT_LANGUAGE] || pest
+  }
+  const found = Object.keys(catalog.pests || {}).find(k => k.toLowerCase().replace(/_/g, ' ') === String(pest).toLowerCase().replace(/_/g, ' '))
+  if (found) {
+    return catalog.pests[found][currentLang] || catalog.pests[found][DEFAULT_LANGUAGE] || pest
+  }
+  return pest
+}
+
+export function getLocalizedSeverity(severity, lang = null) {
+  if (!severity) return ''
+  const currentLang = lang || (typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null) || DEFAULT_LANGUAGE
+  if (catalog.severities && catalog.severities[severity]) {
+    return catalog.severities[severity][currentLang] || catalog.severities[severity][DEFAULT_LANGUAGE] || severity
+  }
+  return severity
+}
+
+export function getLocalizedStatus(status, lang = null) {
+  if (!status) return ''
+  const currentLang = lang || (typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null) || DEFAULT_LANGUAGE
+  if (catalog.statuses && catalog.statuses[status]) {
+    return catalog.statuses[status][currentLang] || catalog.statuses[status][DEFAULT_LANGUAGE] || status
+  }
+  return status
+}
 
 const STORAGE_KEY = 'krishimitra_lang'
 const DEFAULT_LANGUAGE = 'en'
@@ -143,6 +204,11 @@ export function I18nProvider({ children }) {
     language: currentLang,
     changeLanguage,
     t,
+    getLocalizedCrop: (c) => getLocalizedCrop(c, currentLang),
+    getLocalizedDisease: (d) => getLocalizedDisease(d, currentLang),
+    getLocalizedPest: (p) => getLocalizedPest(p, currentLang),
+    getLocalizedSeverity: (s) => getLocalizedSeverity(s, currentLang),
+    getLocalizedStatus: (st) => getLocalizedStatus(st, currentLang),
     i18n: {
       ...i18n,
       language: currentLang,
@@ -160,6 +226,11 @@ export function useTranslation() {
     // Graceful fallback if called outside Provider
     return {
       t: (key, vars) => translate(key, vars, i18n.language),
+      getLocalizedCrop: (c) => getLocalizedCrop(c, i18n.language),
+      getLocalizedDisease: (d) => getLocalizedDisease(d, i18n.language),
+      getLocalizedPest: (p) => getLocalizedPest(p, i18n.language),
+      getLocalizedSeverity: (s) => getLocalizedSeverity(s, i18n.language),
+      getLocalizedStatus: (st) => getLocalizedStatus(st, i18n.language),
       i18n: {
         ...i18n,
         language: i18n.language,
@@ -169,6 +240,11 @@ export function useTranslation() {
   }
   return {
     t: context.t,
+    getLocalizedCrop: context.getLocalizedCrop,
+    getLocalizedDisease: context.getLocalizedDisease,
+    getLocalizedPest: context.getLocalizedPest,
+    getLocalizedSeverity: context.getLocalizedSeverity,
+    getLocalizedStatus: context.getLocalizedStatus,
     i18n: context.i18n,
     ready: true
   }

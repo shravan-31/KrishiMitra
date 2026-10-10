@@ -10,7 +10,7 @@ import { useTranslation } from '../i18n'
 import { BACKEND_URL } from '../config'
 
 export default function Pest() {
-  const { t } = useTranslation()
+  const { t, language, getLocalizedPest, getLocalizedSeverity, getLocalizedStatus } = useTranslation()
   const { activeFarm } = useFarmStore()
   const [selectedFile, setSelectedFile] = useState(null)
   const [previewUrl, setPreviewUrl] = useState(null)
@@ -192,6 +192,7 @@ export default function Pest() {
     const formData = new FormData()
     formData.append('farm_id', activeFarm.id)
     formData.append('file', selectedFile)
+    formData.append('lang', language || 'en')
 
     try {
       const res = await fetch(`${BACKEND_URL}/api/v1/pest/detect`, {
@@ -477,15 +478,19 @@ export default function Pest() {
                       {result.is_uncertain ? (
                         <div>
                           <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: '#facc15' }}>
-                            {t('pest.unidentifiedInsect')}
+                            {result.status === 'INVALID_IMAGE' ? t('pest.invalidImage') : t('pest.unidentifiedInsect')}
                           </h2>
                           <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
-                            {t('pest.closestMatch', { pest: result.pest_name, confidence: result.confidence })}
+                            {result.pest_name 
+                              ? t('pest.closestMatch', { pest: result.pest_name, confidence: result.confidence })
+                              : (result.message || 'Pest presence could not be confirmed.')}
                           </span>
                         </div>
                       ) : (
                         <div>
-                          <h2 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800 }}>{result.pest_name}</h2>
+                          <h2 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800 }}>
+                            {result.localized_pest || getLocalizedPest(result.pest_name) || result.pest_name}
+                          </h2>
                           <span style={{ fontSize: '0.85rem', color: '#64748b' }}>{t('pest.detectedTitle')}</span>
                         </div>
                       )}
@@ -502,7 +507,7 @@ export default function Pest() {
                         textTransform: 'uppercase'
                       }}
                     >
-                      {result.is_uncertain ? t('pest.unconfirmed') : `${result.infestation_level} ${t('pest.infestationSuffix')}`}
+                      {result.is_uncertain ? t('pest.unconfirmed') : `${result.localized_infestation || getLocalizedSeverity(result.infestation_level) || result.infestation_level} ${t('pest.infestationSuffix')}`}
                     </span>
                   </div>
 
@@ -551,17 +556,19 @@ export default function Pest() {
                     </div>
                   )}
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    <div style={{ background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.15)', borderRadius: '12px', padding: '1rem' }}>
-                      <h4 style={{ margin: '0 0 0.25rem', color: '#4ade80', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase' }}>{t('pest.organicProtocol')}</h4>
-                      <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8', lineHeight: 1.4 }}>{result.organic_control || 'Apply neem oil (5ml/L) or organic insecticidal soap spray.'}</p>
-                    </div>
+                  {!result.is_uncertain && result.pest_name && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      <div style={{ background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.15)', borderRadius: '12px', padding: '1rem' }}>
+                        <h4 style={{ margin: '0 0 0.25rem', color: '#4ade80', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase' }}>{t('pest.organicProtocol')}</h4>
+                        <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8', lineHeight: 1.4 }}>{result.organic_control || 'Apply neem oil (5ml/L) or organic insecticidal soap spray.'}</p>
+                      </div>
 
-                    <div style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: '12px', padding: '1rem' }}>
-                      <h4 style={{ margin: '0 0 0.25rem', color: '#ef4444', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase' }}>{t('pest.chemicalProtocol')}</h4>
-                      <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8', lineHeight: 1.4 }}>{result.chemical_control || 'Apply standard recommended pesticide if infestation is severe.'}</p>
+                      <div style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: '12px', padding: '1rem' }}>
+                        <h4 style={{ margin: '0 0 0.25rem', color: '#ef4444', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase' }}>{t('pest.chemicalProtocol')}</h4>
+                        <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8', lineHeight: 1.4 }}>{result.chemical_control || 'Apply standard recommended pesticide if infestation is severe.'}</p>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {result.top5 && result.top5.length > 0 && (
                     <div>

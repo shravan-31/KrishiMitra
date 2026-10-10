@@ -4,7 +4,7 @@ import datetime
 from pydantic import BaseModel
 from app.middleware.auth import get_current_user
 from app.database import get_db
-from app.main import get_ws_manager
+from app.websocket import get_ws_manager
 from app.integration_engine import on_expense_added
 
 router = APIRouter(prefix="/api/v1/expenses", tags=["expenses"])

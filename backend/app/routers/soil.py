@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Form, HTTPException
 from app.middleware.auth import get_current_user
 from app.database import get_db
-from app.main import get_ws_manager
+from app.websocket import get_ws_manager
 from app.ml.soil import predict_soil
 from app.integration_engine import on_soil_analyzed
 

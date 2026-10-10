@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import JSONResponse
 from app.middleware.auth import get_current_user
 from app.database import get_db
-from app.main import get_ws_manager
+from app.websocket import get_ws_manager
 from app.ml.market import forecast_market, get_historical_prices
 from app.services.mandi_service import fetch_mandi_prices
 from app.integration_engine import on_market_price_updated
@@ -110,7 +110,7 @@ async def get_crop_forecast(
     crop_clean = crop_name.strip().capitalize()
     
     try:
-        res = forecast_market(crop_name=crop_clean, forecast_days=days)
+        res = forecast_market(crop_name=crop_clean, forecast_days=days, allow_fallback=True)
     except Exception as ex:
         raise HTTPException(status_code=500, detail=f"Market forecasting failed: {ex}")
         

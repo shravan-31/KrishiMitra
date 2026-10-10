@@ -15,7 +15,9 @@ const getSeverityColor = (sev) => {
     case 'HIGH': return '#f97316'
     case 'MEDIUM': return '#eab308'
     case 'LOW': return '#22c55e'
-    default: return '#10b981'
+    case 'NOT_ASSESSED': return '#94a3b8'
+    case 'NOT_APPLICABLE': return '#94a3b8'
+    default: return '#94a3b8'
   }
 }
 
@@ -28,7 +30,7 @@ const alertColors = {
 const riskColors = { HIGH: '#ef4444', MEDIUM: '#eab308', LOW: '#22c55e' }
 
 export default function Disease() {
-  const { t } = useTranslation()
+  const { t, language, getLocalizedCrop, getLocalizedDisease, getLocalizedSeverity, getLocalizedStatus } = useTranslation()
   const { activeFarm } = useFarmStore()
   const [selectedFile, setSelectedFile] = useState(null)
   const [previewUrl, setPreviewUrl] = useState(null)
@@ -213,6 +215,7 @@ export default function Disease() {
     const formData = new FormData()
     formData.append('farm_id', activeFarm.id)
     formData.append('file', selectedFile)
+    formData.append('lang', language || 'en')
     try {
       const res = await fetch(`${BACKEND_URL}/api/v1/disease/scan`, {
         method: 'POST', body: formData, credentials: 'include'
@@ -549,8 +552,13 @@ export default function Disease() {
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
-                      <h2 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800 }}>{result.disease_name}</h2>
-                      <span style={{ fontSize: '0.85rem', color: '#64748b' }}>{t('disease.diagnosedLeaf')}</span>
+                      <h2 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800 }}>
+                        {result.localized_disease || getLocalizedDisease(result.disease_name) || result.disease_name}
+                      </h2>
+                      <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                        {result.crop_name && result.crop_name !== 'UNKNOWN_CROP' ? `${result.localized_crop || getLocalizedCrop(result.crop_name) || result.crop_name} • ` : ''}
+                        {t('disease.diagnosedLeaf')}
+                      </span>
                     </div>
                     <span style={{
                       padding: '0.4rem 0.85rem', borderRadius: '20px',
@@ -560,7 +568,7 @@ export default function Disease() {
                       border: `1px solid ${getSeverityColor(result.severity)}30`,
                       textTransform: 'uppercase'
                     }}>
-                      {result.severity} {t('disease.severityLabel')}
+                      {result.localized_severity || getLocalizedSeverity(result.severity) || result.severity} {t('disease.severityLabel')}
                     </span>
                   </div>
 
@@ -574,37 +582,44 @@ export default function Disease() {
                     </div>
                   </div>
 
+                  {/* ── Validation / Uncertainty / Unknown Crop Advisory ── */}
                   {result.is_uncertain && (
                     <div style={{ background: 'rgba(234, 179, 8, 0.08)', border: '1px solid rgba(234, 179, 8, 0.3)', borderRadius: '12px', padding: '1.1rem', color: '#fde047' }}>
                       <h4 style={{ margin: '0 0 0.35rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#facc15', fontSize: '0.95rem' }}>
-                        {t('disease.uncertainTitle')}
+                        ⚠️ {result.status === 'INVALID_IMAGE' ? t('disease.invalidImageTitle') : (result.status === 'UNKNOWN_CROP' ? t('disease.unknownCropTitle') : t('disease.uncertainTitle'))}
                       </h4>
                       <p style={{ margin: 0, fontSize: '0.82rem', color: '#fef08a', lineHeight: 1.4 }}>
                         {result.message || t('disease.selectImagePrompt')}
                       </p>
+                      {result.status === 'UNKNOWN_CROP' && result.supported_crops && (
+                        <p style={{ margin: '0.5rem 0 0', fontSize: '0.75rem', color: '#94a3b8' }}>
+                          <strong>{t('disease.supportedCropsLabel')}:</strong> {result.supported_crops.join(', ')}
+                        </p>
+                      )}
                       <p style={{ margin: '0.4rem 0 0', fontSize: '0.75rem', color: '#cbd5e1' }}>
                         {t('disease.uncertainNote')}
                       </p>
                     </div>
                   )}
 
-                  <div style={{ background: 'rgba(16,185,129,0.03)', border: '1px solid rgba(16,185,129,0.18)', borderRadius: '14px', padding: '1.3rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                      <h4 style={{ margin: 0, color: '#10b981', fontSize: '0.95rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span>🩺</span> {t('disease.prescribedTreatment')}
-                      </h4>
-                      <button
-                        onClick={() => setActiveTab('treatment')}
-                        style={{
-                          background: 'rgba(16,185,129,0.15)', border: '1px solid #10b981',
-                          color: '#34d399', borderRadius: '8px', padding: '0.35rem 0.75rem',
-                          fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s'
-                        }}
-                      >
-                        {t('disease.viewFullPlan')}
-                      </button>
-                    </div>
-                    {result.treatment_steps && result.treatment_steps.length > 0 ? (
+                  {/* ── Prescribed Treatment Protocol: Render ONLY for confirmed disease diagnosis ── */}
+                  {!result.is_uncertain && !result.is_healthy && result.treatment_steps && result.treatment_steps.length > 0 && (
+                    <div style={{ background: 'rgba(16,185,129,0.03)', border: '1px solid rgba(16,185,129,0.18)', borderRadius: '14px', padding: '1.3rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        <h4 style={{ margin: 0, color: '#10b981', fontSize: '0.95rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span>🩺</span> {t('disease.prescribedTreatment')}
+                        </h4>
+                        <button
+                          onClick={() => setActiveTab('treatment')}
+                          style={{
+                            background: 'rgba(16,185,129,0.15)', border: '1px solid #10b981',
+                            color: '#34d399', borderRadius: '8px', padding: '0.35rem 0.75rem',
+                            fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s'
+                          }}
+                        >
+                          {t('disease.viewFullPlan')}
+                        </button>
+                      </div>
                       <ol style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.88rem', color: '#cbd5e1', lineHeight: 1.7 }}>
                         {result.treatment_steps.map((step, idx) => (
                           <li key={idx} style={{ marginBottom: '6px' }}>
@@ -612,18 +627,14 @@ export default function Disease() {
                           </li>
                         ))}
                       </ol>
-                    ) : (
-                      <p style={{ margin: 0, fontSize: '0.88rem', color: '#cbd5e1' }}>
-                        {result.treatment || 'Monitor crop symptoms and capture a well-lit leaf photo.'}
-                      </p>
-                    )}
-                    {result.treatment_plan?.guidance && (
-                      <div style={{ marginTop: '0.85rem', paddingTop: '0.75rem', borderTop: '1px dashed rgba(255,255,255,0.08)', fontSize: '0.82rem', color: '#94a3b8' }}>
-                        <span style={{ color: '#eab308', fontWeight: 700 }}>{t('disease.clinicalNote')}</span>
-                        {result.treatment_plan.guidance}
-                      </div>
-                    )}
-                  </div>
+                      {result.treatment_plan?.guidance && (
+                        <div style={{ marginTop: '0.85rem', paddingTop: '0.75rem', borderTop: '1px dashed rgba(255,255,255,0.08)', fontSize: '0.82rem', color: '#94a3b8' }}>
+                          <span style={{ color: '#eab308', fontWeight: 700 }}>{t('disease.clinicalNote')}</span>
+                          {result.treatment_plan.guidance}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {result.top5 && result.top5.length > 0 && (
                     <div>

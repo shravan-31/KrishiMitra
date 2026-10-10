@@ -41,60 +41,9 @@ else:
 
 
 # ---------------------------------------------------------------------------
-# WebSocket Connection Manager (Fix 8 — heartbeat ping support)
+# WebSocket Connection Manager (imported from app.websocket to avoid circular imports)
 # ---------------------------------------------------------------------------
-class ConnectionManager:
-    """Manages WebSocket connections grouped by farm_id rooms."""
-
-    def __init__(self):
-        self.rooms: Dict[int, Set[WebSocket]] = {}
-
-    async def connect(self, ws: WebSocket, farm_id: int) -> None:
-        await ws.accept()
-        if farm_id not in self.rooms:
-            self.rooms[farm_id] = set()
-        self.rooms[farm_id].add(ws)
-
-    def disconnect(self, ws: WebSocket, farm_id: int) -> None:
-        if farm_id in self.rooms:
-            self.rooms[farm_id].discard(ws)
-            if not self.rooms[farm_id]:
-                del self.rooms[farm_id]
-
-    async def broadcast(self, farm_id: int, data: dict) -> None:
-        if farm_id not in self.rooms:
-            return
-        message = json.dumps(data)
-        dead: list[WebSocket] = []
-        for ws in self.rooms[farm_id]:
-            try:
-                await ws.send_text(message)
-            except Exception:
-                dead.append(ws)
-        for ws in dead:
-            self.rooms[farm_id].discard(ws)
-
-    async def broadcast_all(self, data: dict) -> None:
-        message = json.dumps(data)
-        for farm_id in list(self.rooms.keys()):
-            dead: list[WebSocket] = []
-            for ws in self.rooms[farm_id]:
-                try:
-                    await ws.send_text(message)
-                except Exception:
-                    dead.append(ws)
-            for ws in dead:
-                self.rooms[farm_id].discard(ws)
-
-    def active_connections_count(self) -> int:
-        return sum(len(v) for v in self.rooms.values())
-
-
-# Singleton manager
-ws_manager = ConnectionManager()
-
-def get_ws_manager():
-    return ws_manager
+from app.websocket import ConnectionManager, ws_manager, get_ws_manager
 
 
 # ---------------------------------------------------------------------------
@@ -148,7 +97,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="KrishiMitra API",
     description="Smart Agriculture Intelligence Platform — 14 features, ML-powered",
-    version="1.0.0",
+    version="1.0.1",
     lifespan=lifespan,
 )
 
@@ -184,7 +133,7 @@ async def health_check():
     """System health probe — returns status and active WS connections."""
     return {
         "status": "ok",
-        "version": "1.0.0",
+        "version": app.version,
         "ws_connections": ws_manager.active_connections_count(),
     }
 
