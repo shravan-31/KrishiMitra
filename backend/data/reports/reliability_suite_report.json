@@ -1,32 +1,26 @@
 {
   "suite_status": "ALL_PASSED",
-  "total_scenarios_evaluated": 4,
-  "passed": 4,
+  "total_scenarios_evaluated": 3,
+  "passed": 3,
   "failed": 0,
   "scenarios": {
-    "Scenario_21_english_localization_integrity": {
-      "scenario_number": 21,
-      "name": "english_localization_integrity",
+    "Scenario_18_authorized_farm_access": {
+      "scenario_number": 18,
+      "name": "authorized_farm_access",
       "status": "PASS",
-      "details": "1029 keys verified"
+      "details": "Farm verified: Farmer Ramesh Field"
     },
-    "Scenario_22_marathi_localization_integrity": {
-      "scenario_number": 22,
-      "name": "marathi_localization_integrity",
+    "Scenario_19_cross_user_idor_protection": {
+      "scenario_number": 19,
+      "name": "cross_user_idor_protection",
       "status": "PASS",
-      "details": "Coverage: 100.0%"
+      "details": "403 Forbidden correctly returned on unauthorized user"
     },
-    "Scenario_23_hindi_localization_integrity": {
-      "scenario_number": 23,
-      "name": "hindi_localization_integrity",
+    "Scenario_20_db_failure_isolation": {
+      "scenario_number": 20,
+      "name": "db_failure_isolation",
       "status": "PASS",
-      "details": "Coverage: 100.0%"
-    },
-    "Scenario_24_catalog_key_parity": {
-      "scenario_number": 24,
-      "name": "catalog_key_parity",
-      "status": "PASS",
-      "details": "Issues: 0, Status: PASS"
+      "details": "DB exception isolated gracefully"
     }
   }
 }

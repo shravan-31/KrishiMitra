@@ -19,12 +19,15 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 async def verify_farm_access(farm_id: int, user_id: int, db) -> dict:
     """Verifies that the requested farm exists and belongs to the authenticated user."""
-    farm = await db.fetchrow("SELECT id, user_id, name FROM farms WHERE id=$1", farm_id)
+    farm = await db.fetchrow("SELECT id, user_id, farm_name, farm_name AS name FROM farms WHERE id=$1", farm_id)
     if not farm:
         raise HTTPException(status_code=404, detail="Farm not found")
     if farm["user_id"] != user_id:
         raise HTTPException(status_code=403, detail="Not authorized to access this farm boundary")
-    return dict(farm)
+    res = dict(farm)
+    if "name" not in res and "farm_name" in res:
+        res["name"] = res["farm_name"]
+    return res
 
 
 @router.get("/supported-crops")

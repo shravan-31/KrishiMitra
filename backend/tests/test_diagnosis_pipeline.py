@@ -281,7 +281,7 @@ async def test_farm_ownership_authorization():
         assert e.status_code == 404
 
     # 2. Farm owned by user 2, accessed by user 1 -> 403 Forbidden
-    db_unauth = MockDB({"id": 1, "user_id": 2, "name": "Neighbor Farm"})
+    db_unauth = MockDB({"id": 1, "user_id": 2, "name": "Neighbor Farm", "farm_name": "Neighbor Farm"})
     try:
         await verify_farm_access(farm_id=1, user_id=1, db=db_unauth)
         assert False, "Should have raised 403"
@@ -289,7 +289,7 @@ async def test_farm_ownership_authorization():
         assert e.status_code == 403
 
     # 3. Authorized access -> succeeds
-    db_auth = MockDB({"id": 1, "user_id": 1, "name": "My Farm"})
+    db_auth = MockDB({"id": 1, "user_id": 1, "name": "My Farm", "farm_name": "My Farm"})
     res = await verify_farm_access(farm_id=1, user_id=1, db=db_auth)
     assert res["id"] == 1
     assert res["user_id"] == 1

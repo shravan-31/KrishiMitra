@@ -38,8 +38,8 @@ class MockDB:
     """Mock asynchronous database for isolated unit and regression verification."""
     def __init__(self, farm_records: List[Dict[str, Any]] = None):
         self.farms = farm_records or [
-            {"id": 1, "user_id": 101, "name": "Farmer Ramesh Field"},
-            {"id": 2, "user_id": 102, "name": "Farmer Suresh Orchard"},
+            {"id": 1, "user_id": 101, "name": "Farmer Ramesh Field", "farm_name": "Farmer Ramesh Field"},
+            {"id": 2, "user_id": 102, "name": "Farmer Suresh Orchard", "farm_name": "Farmer Suresh Orchard"},
         ]
         self.queries_executed = []
 
