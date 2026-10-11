@@ -53,7 +53,7 @@ export default function Calendar() {
     if (!activeFarm) return
     setLoading(true)
     try {
-      const data = await apiFetch(`/calendar?farm_id=${activeFarm.id}`)
+      const data = await apiFetch(`/api/calendar?farm_id=${activeFarm.id}`)
       setTasks(data || [])
     } catch (err) {
       console.error(err)
@@ -90,7 +90,7 @@ export default function Calendar() {
     }
 
     try {
-      await apiFetch('/calendar', {
+      await apiFetch('/api/calendar', {
         method: 'POST',
         body: JSON.stringify(payload)
       })
@@ -109,7 +109,7 @@ export default function Calendar() {
 
   const handleToggleComplete = async (task) => {
     try {
-      await apiFetch(`/calendar/${task.id}/complete?completed=${!task.completed}`, {
+      await apiFetch(`/api/calendar/${task.id}/complete?completed=${!task.completed}`, {
         method: 'PUT'
       })
       toast.success(task.completed ? t('calendar.markedIncomplete', "Task marked incomplete") : t('calendar.markedCompleted', "Task completed!"))
@@ -121,7 +121,7 @@ export default function Calendar() {
 
   const handleDeleteTask = async (taskId) => {
     try {
-      await apiFetch(`/calendar/${taskId}`, {
+      await apiFetch(`/api/calendar/${taskId}`, {
         method: 'DELETE'
       })
       toast.success(t('calendar.taskDeleted', "Task removed from crop calendar"))

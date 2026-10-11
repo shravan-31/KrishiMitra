@@ -690,10 +690,10 @@ export default function Drought() {
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                       <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#f8fafc' }}>
-                        {s.name}
+                        {s.name || s.title}
                       </h3>
                       <span style={{ fontSize: '0.75rem', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', padding: '0.2rem 0.6rem', borderRadius: '20px', fontWeight: 700, border: '1px solid rgba(56, 189, 248, 0.3)' }}>
-                        {s.benefit}
+                        {s.benefit || s.tag}
                       </span>
                     </div>
 
@@ -702,7 +702,7 @@ export default function Drought() {
                     </div>
 
                     <p style={{ margin: '0 0 1rem', fontSize: '0.85rem', color: '#cbd5e1', lineHeight: 1.5 }}>
-                      {s.details}
+                      {s.details || s.benefit || s.authority}
                     </p>
 
                     <div style={{ background: 'rgba(0,0,0,0.25)', padding: '0.75rem', borderRadius: '10px' }}>
@@ -710,7 +710,7 @@ export default function Drought() {
                         {t('drought.requiredDocs')}
                       </div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
-                        {s.documents_needed.map((doc, dIdx) => (
+                        {(Array.isArray(s.documents_needed) ? s.documents_needed : ['Aadhaar Card', '7/12 Land Record', 'Bank Passbook']).map((doc, dIdx) => (
                           <span
                             key={dIdx}
                             style={{

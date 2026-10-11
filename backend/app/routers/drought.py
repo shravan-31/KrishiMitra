@@ -110,36 +110,48 @@ DROUGHT_RESILIENT_CROPS = [
 DROUGHT_SCHEMES = [
     {
         "title": "PM Krishi Sinchayee Yojana (PMKSY) — Drip & Sprinkler Subsidy",
+        "name": "PM Krishi Sinchayee Yojana (PMKSY)",
         "authority": "Department of Agriculture, Govt. of Maharashtra",
         "benefit": "75% to 80% subsidy for small & marginal farmers on micro-irrigation systems.",
+        "details": "75% to 80% capital subsidy on precision drip lines, sprinkler sets, and filter kits to optimize critical watering.",
         "eligibility": "7/12 land record, active electricity/solar connection or farm pond.",
+        "documents_needed": ["7/12 & 8A Land Extracts", "Aadhaar Card", "Bank Passbook Copy", "Quotation from Authorized Drip Dealer"],
         "portal_name": "MahaDBT Farmer Portal",
         "portal_url": "https://mahadbt.maharashtra.gov.in",
         "tag": "80% Micro-Irrigation Subsidy"
     },
     {
         "title": "Magel Tyala Shettale (Individual Farm Pond Scheme)",
+        "name": "Magel Tyala Shettale (Farm Pond Scheme)",
         "authority": "Govt. of Maharashtra Dryland Farming Directorate",
         "benefit": "Up to ₹50,000 for pond excavation + ₹75,000 for 500-micron plastic lining.",
+        "details": "Direct DBT grant to construct rainwater harvesting farm pond for moisture security during long dry spells.",
         "eligibility": "Minimum 0.60 hectare land ownership, no existing government pond.",
+        "documents_needed": ["7/12 Land Record Extract", "Aadhaar Card", "No-Dues Certificate", "Gram Panchayat Resolution"],
         "portal_name": "MahaDBT Shettale Portal",
         "portal_url": "https://mahadbt.maharashtra.gov.in",
         "tag": "100% Water Storage Grant"
     },
     {
         "title": "Pradhan Mantri Fasal Bima Yojana (PMFBY) — ₹1 Drought Compensation",
+        "name": "PM Fasal Bima Yojana (PMFBY)",
         "authority": "Ministry of Agriculture & Farmers Welfare",
         "benefit": "Full crop loss compensation if drought causes mid-season adversity or localized deficit.",
+        "details": "Comprehensive insurance coverage against drought, prolonged dry spells, and yield loss at a token ₹1 farmer premium.",
         "eligibility": "Farmers insured under ₹1 scheme + e-Pik Pahani digital crop record.",
+        "documents_needed": ["e-Pik Pahani Digital Crop Entry", "Aadhaar Card", "Bank Account Details", "Sowing Self-Declaration"],
         "portal_name": "National Crop Insurance Portal",
         "portal_url": "https://pmfby.gov.in",
         "tag": "Crop Insurance Claim"
     },
     {
         "title": "Kusum Solar Agriculture Pump Subsidy (Component-B)",
+        "name": "PM KUSUM Solar Pump Subsidy",
         "authority": "MEDA (Maharashtra Energy Development Agency)",
         "benefit": "90% subsidy on 3 HP, 5 HP, and 7.5 HP standalone solar water pumps.",
+        "details": "Daytime uninterrupted irrigation via DC solar submersible pumps with 90% government funding.",
         "eligibility": "Farmers without conventional grid electricity in drought-notified talukas.",
+        "documents_needed": ["7/12 Land Record", "Aadhaar Card", "Borewell/Well Depth Verification Certificate", "Caste Certificate (if applicable)"],
         "portal_name": "MahaVitaran Solar Portal",
         "portal_url": "https://www.mahadiscom.in/solar_ksy/",
         "tag": "90% Solar Pump Grant"

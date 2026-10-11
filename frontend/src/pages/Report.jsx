@@ -51,8 +51,9 @@ export default function Report() {
   // Helper for scan image URLs
   const getFullImageUrl = (path) => {
     if (!path) return 'https://images.unsplash.com/photo-1592417817098-8f3d6eb19675?auto=format&fit=crop&w=400&q=80'
-    if (path.startsWith('http')) return path
-    return `${BACKEND_URL}${path}`
+    if (path.startsWith('http://') || path.startsWith('https://')) return path
+    const normalized = path.startsWith('/') ? path : `/${path}`
+    return `${BACKEND_URL}${normalized}`
   }
 
   return (
@@ -271,6 +272,10 @@ export default function Report() {
                             alt={d.disease_name}
                             className="thumbnail-img"
                             style={{ width: '120px', height: '120px', objectFit: 'cover', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)' }}
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><rect width="120" height="120" rx="10" fill="%231e293b"/><text x="60" y="66" font-family="sans-serif" font-size="28" text-anchor="middle">🌿</text></svg>';
+                            }}
                           />
                           <div style={{ flex: 1, minWidth: '250px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
@@ -305,6 +310,10 @@ export default function Report() {
                             alt={p.pest_name}
                             className="thumbnail-img"
                             style={{ width: '120px', height: '120px', objectFit: 'cover', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)' }}
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><rect width="120" height="120" rx="10" fill="%231e293b"/><text x="60" y="66" font-family="sans-serif" font-size="28" text-anchor="middle">🐛</text></svg>';
+                            }}
                           />
                           <div style={{ flex: 1, minWidth: '250px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>

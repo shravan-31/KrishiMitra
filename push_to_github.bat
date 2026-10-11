@@ -23,8 +23,8 @@ git add -f frontend/dist
 git add .
 echo.
 
-echo 3. Creating commit with root dashboard routing and auto-seed farm...
-git commit -m "fix: route root URL directly to Dashboard and auto-seed demo farm"
+echo 3. Creating commit with Drought, Calendar, and static uploads fixes...
+git commit -m "fix: resolve Drought schemes crash, Calendar API proxying, and static upload fallbacks"
 echo.
 
 echo 4. Pushing commit to remote repository (origin main)...

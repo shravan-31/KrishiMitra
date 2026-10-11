@@ -622,7 +622,15 @@ export default function Pest() {
                     <tr key={row.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
                       <td style={{ padding: '0.75rem 1rem' }}>
                         {row.image_url ? (
-                          <img src={`${BACKEND_URL}${row.image_url}`} alt="Scan" style={{ width: 45, height: 45, borderRadius: '8px', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.05)' }} />
+                          <img
+                            src={row.image_url.startsWith('http') ? row.image_url : `${BACKEND_URL}${row.image_url.startsWith('/') ? '' : '/'}${row.image_url}`}
+                            alt="Scan"
+                            style={{ width: 45, height: 45, borderRadius: '8px', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.05)' }}
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="45" height="45" viewBox="0 0 45 45"><rect width="45" height="45" rx="8" fill="%231e293b"/><text x="22" y="27" font-family="sans-serif" font-size="16" text-anchor="middle">🐛</text></svg>';
+                            }}
+                          />
                         ) : (
                           <span>N/A</span>
                         )}

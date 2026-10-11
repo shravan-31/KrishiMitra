@@ -197,13 +197,51 @@ async def websocket_endpoint_farm(ws: WebSocket, farm_id: int):
 # Router Includes & Static Files
 # ---------------------------------------------------------------------------
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import Response
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.config import settings
 
 uploads_path = os.path.abspath(settings.upload_dir)
 os.makedirs(os.path.join(uploads_path, "disease"), exist_ok=True)
 os.makedirs(os.path.join(uploads_path, "pest"), exist_ok=True)
 
-app.mount("/static/uploads", StaticFiles(directory=uploads_path), name="static_uploads")
+FALLBACK_SCAN_SVG = (
+    '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">'
+    '<rect width="160" height="160" rx="16" fill="#1e293b"/>'
+    '<circle cx="80" cy="80" r="48" fill="#334155"/>'
+    '<path d="M80 50 C65 50 55 65 55 80 C55 95 68 108 80 110 C92 108 105 95 105 80 C105 65 95 50 80 50 Z" fill="#10b981" opacity="0.8"/>'
+    '<path d="M80 54 L80 106" stroke="#064e3b" stroke-width="3" stroke-linecap="round"/>'
+    '<text x="80" y="132" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#94a3b8" text-anchor="middle">AgriMind Scan</text>'
+    '</svg>'
+)
+
+class FallbackStaticFiles(StaticFiles):
+    async def get_response(self, path: str, scope):
+        try:
+            resp = await super().get_response(path, scope)
+            if resp.status_code == 404:
+                return Response(
+                    content=FALLBACK_SCAN_SVG,
+                    media_type="image/svg+xml",
+                    headers={"Cache-Control": "public, max-age=3600"}
+                )
+            return resp
+        except StarletteHTTPException as exc:
+            if exc.status_code == 404:
+                return Response(
+                    content=FALLBACK_SCAN_SVG,
+                    media_type="image/svg+xml",
+                    headers={"Cache-Control": "public, max-age=3600"}
+                )
+            raise exc
+        except Exception:
+            return Response(
+                content=FALLBACK_SCAN_SVG,
+                media_type="image/svg+xml",
+                headers={"Cache-Control": "public, max-age=3600"}
+            )
+
+app.mount("/static/uploads", FallbackStaticFiles(directory=uploads_path), name="static_uploads")
 
 from app.routers.auth import router as auth_router
 from app.routers.farm import router as farm_router
@@ -243,6 +281,8 @@ app.include_router(market_router)
 app.include_router(expenses_router)
 app.include_router(alerts_router)
 app.include_router(calendar_router)
+app.include_router(calendar_router, prefix="/api")
+app.include_router(calendar_router, prefix="/api/v1")
 app.include_router(season_summary_router)
 app.include_router(weather_router)
 app.include_router(chat_router)
